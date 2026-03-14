@@ -2184,6 +2184,7 @@ function getFullState() {
 }
 
 function applyState(s) {
+  try {
   if (s.fields) {
     document.querySelectorAll('[data-key]').forEach(el => {
       const key = el.dataset.key;
@@ -2215,34 +2216,35 @@ function applyState(s) {
     }
     renderTimeline();
   }
-  if (s.userPhotos) {
+  if (s.userPhotos && Array.isArray(s.userPhotos)) {
     userPhotos = s.userPhotos;
     buildGallery();
   }
-  if (s.quickLinks) {
+  if (s.quickLinks && Array.isArray(s.quickLinks)) {
     quickLinks = [...DEFAULT_LINKS, ...s.quickLinks.filter(l => !DEFAULT_LINKS.find(d => d.label === l.label))];
     renderQuickLinks();
   }
-  if (s.expenses) {
+  if (s.expenses && Array.isArray(s.expenses)) {
     expenses = s.expenses;
     renderExpenses();
   }
-  if (s.sharedNotes) {
+  if (s.sharedNotes && Array.isArray(s.sharedNotes)) {
     sharedNotes = s.sharedNotes;
     renderNotes();
   }
-  if (s.shoppingRooms) {
+  if (s.shoppingRooms && Array.isArray(s.shoppingRooms)) {
     shoppingRooms = s.shoppingRooms.map(r => ({ ...r, items: Array.isArray(r.items) ? r.items : [] }));
     renderShopping();
   }
-  if (s.milestones) {
+  if (s.milestones && Array.isArray(s.milestones)) {
     milestones = s.milestones;
     renderMilestones();
   }
-  if (s.utilities) {
+  if (s.utilities && Array.isArray(s.utilities)) {
     utilities = s.utilities;
     renderUtilities();
   }
+  } catch(e) { console.error('applyState error:', e); }
 }
 
 // ── Firebase + Google Auth ───────────────────────────────────────
