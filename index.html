@@ -357,6 +357,32 @@
   .ph-row .ph-date { color: var(--color-text-tertiary); }
   .ph-row .ph-price { font-weight: 500; color: var(--color-text-primary); }
 
+  /* ── Projects ── */
+  .proj-card { background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:10px;overflow:hidden; }
+  .proj-header { display:flex;align-items:flex-start;gap:12px;padding:14px 16px; }
+  .proj-header:hover { background:var(--teal-subtle); }
+  .proj-check { width:20px;height:20px;border-radius:50%;border:2px solid var(--color-border-secondary);flex-shrink:0;margin-top:1px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;cursor:pointer; }
+  .proj-card.done .proj-check { background:var(--teal);border-color:var(--teal); }
+  .proj-card.done .proj-check::after { content:'';display:block;width:6px;height:9px;border:2px solid #fff;border-left:none;border-top:none;transform:rotate(45deg) translate(-1px,-1px); }
+  .proj-card.done .proj-name { text-decoration:line-through;color:var(--warm-faint); }
+  .proj-body { flex:1;min-width:0; }
+  .proj-name { font-size:14px;font-weight:500;color:var(--warm-dark); }
+  .proj-meta { display:flex;flex-wrap:wrap;gap:8px;margin-top:5px; }
+  .proj-tag { font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;letter-spacing:0.03em; }
+  .proj-priority-before { background:rgba(196,151,58,0.15);color:#8a6010; }
+  .proj-priority-soon { background:var(--teal-muted);color:var(--teal-dark); }
+  .proj-priority-someday { background:var(--color-background-secondary);color:var(--warm-muted); }
+  .proj-status-planning { background:var(--color-background-secondary);color:var(--warm-muted); }
+  .proj-status-progress { background:var(--teal-muted);color:var(--teal-dark); }
+  .proj-status-complete { background:#e8f2ec;color:#2d6b3f; }
+  .proj-subtasks { padding:0 16px 14px 52px;display:flex;flex-direction:column;gap:3px; }
+  .proj-subtask { display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--teal-subtle);border-radius:var(--border-radius-md);cursor:pointer;transition:background 0.1s; }
+  .proj-subtask:hover { background:var(--cream-deeper); }
+  .proj-subtask.st-done span.st-label { text-decoration:line-through;color:var(--warm-faint); }
+  .proj-subtask-check { width:14px;height:14px;border-radius:50%;border:1.5px solid var(--color-border-secondary);flex-shrink:0;transition:all 0.15s;display:flex;align-items:center;justify-content:center; }
+  .proj-subtask.st-done .proj-subtask-check { background:var(--teal);border-color:var(--teal); }
+  .proj-subtask.st-done .proj-subtask-check::after { content:'';display:block;width:4px;height:6px;border:1.5px solid #fff;border-left:none;border-top:none;transform:rotate(45deg) translate(-1px,-1px); }
+
   /* ── Contacts ── */
   .contacts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .contact-card {
@@ -1160,6 +1186,52 @@
 
     </div>
 
+    <!-- ══ PROJECTS ══ -->
+    <div class="tab-page" id="page-projects">
+
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+        <div id="proj-summary" style="font-size:12px;color:var(--color-text-secondary);"></div>
+        <button id="proj-add-btn" style="padding:6px 14px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:11px;font-family:var(--font-sans);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;">+ Add Project</button>
+      </div>
+
+      <!-- Add project form -->
+      <div id="proj-add-form" style="display:none;background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1rem;">
+        <div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">New project</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <input id="proj-new-name" type="text" placeholder="Project name *" style="grid-column:1/-1;font-size:13px;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+          <select id="proj-new-category" style="font-size:13px;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;cursor:pointer;">
+            <option>Pool & Outdoor</option>
+            <option>Landscaping</option>
+            <option>Bedrooms</option>
+            <option>Primary Bedroom</option>
+            <option>Kitchen</option>
+            <option>Bathrooms</option>
+            <option>Basement</option>
+            <option>Living Areas</option>
+            <option>Exterior</option>
+            <option>Other</option>
+          </select>
+          <select id="proj-new-priority" style="font-size:13px;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;cursor:pointer;">
+            <option value="before-move">Before move-in</option>
+            <option value="soon">Soon</option>
+            <option value="someday">Someday</option>
+          </select>
+          <input id="proj-new-cost-est" type="text" placeholder="Est. cost ($)" style="font-size:13px;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+          <input id="proj-new-contractor" type="text" placeholder="Contractor / vendor" style="font-size:13px;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+          <input id="proj-new-notes" type="text" placeholder="Notes" style="grid-column:1/-1;font-size:13px;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+          <button id="proj-add-cancel" style="padding:7px 14px;background:transparent;color:var(--color-text-secondary);border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Cancel</button>
+          <button id="proj-add-save" style="padding:7px 18px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Add project</button>
+        </div>
+      </div>
+
+      <!-- Projects list grouped by category -->
+      <div id="proj-list"></div>
+
+    </div>
+
     <div class="tab-page" id="page-contacts">
       <div class="section-title">Key contacts</div>
       <div class="contacts-grid">
@@ -1289,6 +1361,7 @@ const tabs = [
   { id: 'notes',      label: 'Notes',      icon: '📝' },
   { id: 'shopping',   label: 'Shopping',   icon: '🛒' },
   { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
+  { id: 'projects',   label: 'Projects',   icon: '🏗️' },
   { id: 'contacts',   label: 'Contacts',   icon: '👥' },
   { id: 'drive',      label: 'Drive',      icon: '📁' },
 ];
@@ -2157,6 +2230,7 @@ let noteStagedImg = null;
 let shoppingRooms = [];
 let milestones = [];
 let utilities = [];
+let projects = [];
 const MS_COLORS = {
   key:      { fill: '#1d5c52', stroke: '#143d35', text: '#fff' },
   deadline: { fill: '#854f0b', stroke: '#633806', text: '#fff' },
@@ -2180,6 +2254,7 @@ function getFullState() {
     shoppingRooms,
     milestones,
     utilities,
+    projects,
   };
 }
 
@@ -2243,6 +2318,10 @@ function applyState(s) {
   if (s.utilities && Array.isArray(s.utilities)) {
     utilities = s.utilities;
     renderUtilities();
+  }
+  if (s.projects && Array.isArray(s.projects)) {
+    projects = s.projects;
+    renderProjects();
   }
   } catch(e) { console.error('applyState error:', e); }
 }
@@ -2490,7 +2569,7 @@ async function pushToGitHub() {
     ['nav-items','mobile-nav','task-list','gallery-root','quicklinks-list',
      'expenses-list','notes-feed','custom-task-list','user-photos-grid',
      'calc-amort-body','calc-compare-grid','shop-rooms-list','bulk-tbody',
-     'milestone-svg-wrap','notes-feed','util-list'].forEach(id => {
+     'milestone-svg-wrap','notes-feed','util-list','proj-list'].forEach(id => {
       const el = clone.querySelector('#' + id);
       if (el) el.innerHTML = '';
     });
@@ -3766,6 +3845,371 @@ document.getElementById('util-new-type').addEventListener('keydown', e => { if (
 
 initUtilities();
 renderUtilities();
+
+// ── Projects ─────────────────────────────────────────────────────
+
+const DEFAULT_PROJECTS = [
+  {
+    id: 'p-pool', name: 'Pool inspection & opening', category: 'Pool & Outdoor',
+    priority: 'before-move', status: 'planning', costEst: '', costActual: '',
+    contractor: '', notes: 'Pool was covered — need full inspection before using',
+    subtasks: [
+      { id: 'ps-1', title: 'Schedule pool inspection', done: false },
+      { id: 'ps-2', title: 'Get pool service company recommendation', done: false },
+      { id: 'ps-3', title: 'Opening service (remove cover, equipment check)', done: false },
+      { id: 'ps-4', title: 'Water chemistry test & balance', done: false },
+      { id: 'ps-5', title: 'Buy pool chemicals & maintenance supplies', done: false },
+      { id: 'ps-6', title: 'Set up ongoing maintenance schedule', done: false },
+    ]
+  },
+  {
+    id: 'p-landscape', name: 'Spring landscaping', category: 'Landscaping',
+    priority: 'soon', status: 'planning', costEst: '', costActual: '',
+    contractor: '', notes: 'Elevated 1/3-acre lot — yard extends beyond fenced area',
+    subtasks: [
+      { id: 'pl-1', title: 'Assess current lawn & garden condition', done: false },
+      { id: 'pl-2', title: 'Lawn aeration & overseeding', done: false },
+      { id: 'pl-3', title: 'Mulch garden beds', done: false },
+      { id: 'pl-4', title: 'Trim/prune trees and shrubs', done: false },
+      { id: 'pl-5', title: 'Plan lower yard beyond fence', done: false },
+    ]
+  },
+  {
+    id: 'p-padded', name: 'Remove padded walls', category: 'Living Areas',
+    priority: 'before-move', status: 'planning', costEst: '', costActual: '',
+    contractor: '', notes: 'Identify which rooms, assess wall condition underneath',
+    subtasks: [
+      { id: 'pp-1', title: 'Identify all rooms with padded walls', done: false },
+      { id: 'pp-2', title: 'Remove padding & assess drywall condition', done: false },
+      { id: 'pp-3', title: 'Patch/repair drywall as needed', done: false },
+      { id: 'pp-4', title: 'Prime and paint', done: false },
+    ]
+  },
+  {
+    id: 'p-ethan', name: "Paint Ethan's room", category: 'Bedrooms',
+    priority: 'soon', status: 'planning', costEst: '', costActual: '',
+    contractor: '', notes: 'Let Ethan pick the color',
+    subtasks: [
+      { id: 'pe-1', title: 'Pick paint color with Ethan', done: false },
+      { id: 'pe-2', title: 'Buy paint & supplies', done: false },
+      { id: 'pe-3', title: 'Prep room (tape, drop cloths)', done: false },
+      { id: 'pe-4', title: 'Paint', done: false },
+    ]
+  },
+  {
+    id: 'p-elle', name: "Paint Elle's room", category: 'Bedrooms',
+    priority: 'soon', status: 'planning', costEst: '', costActual: '',
+    contractor: '', notes: 'Let Elle pick the color',
+    subtasks: [
+      { id: 'pelle-1', title: 'Pick paint color with Elle', done: false },
+      { id: 'pelle-2', title: 'Buy paint & supplies', done: false },
+      { id: 'pelle-3', title: 'Prep room (tape, drop cloths)', done: false },
+      { id: 'pelle-4', title: 'Paint', done: false },
+    ]
+  },
+  {
+    id: 'p-riley', name: "Paint Riley's room", category: 'Bedrooms',
+    priority: 'soon', status: 'planning', costEst: '', costActual: '',
+    contractor: '', notes: 'Let Riley pick the color',
+    subtasks: [
+      { id: 'pr-1', title: "Pick paint color with Riley", done: false },
+      { id: 'pr-2', title: 'Buy paint & supplies', done: false },
+      { id: 'pr-3', title: 'Prep room (tape, drop cloths)', done: false },
+      { id: 'pr-4', title: 'Paint', done: false },
+    ]
+  },
+  {
+    id: 'p-master-trim', name: 'Trim in primary bedroom', category: 'Primary Bedroom',
+    priority: 'soon', status: 'planning', costEst: '', costActual: '',
+    contractor: '', notes: '',
+    subtasks: [
+      { id: 'pt-1', title: 'Assess existing trim condition', done: false },
+      { id: 'pt-2', title: 'Select trim style / profile', done: false },
+      { id: 'pt-3', title: 'Get quote from carpenter', done: false },
+      { id: 'pt-4', title: 'Install trim', done: false },
+      { id: 'pt-5', title: 'Caulk, sand, and paint trim', done: false },
+    ]
+  },
+  {
+    id: 'p-master-paint', name: 'Paint primary bedroom', category: 'Primary Bedroom',
+    priority: 'soon', status: 'planning', costEst: '', costActual: '',
+    contractor: '', notes: 'Do after trim is installed',
+    subtasks: [
+      { id: 'pmp-1', title: 'Pick paint color', done: false },
+      { id: 'pmp-2', title: 'Buy paint & supplies', done: false },
+      { id: 'pmp-3', title: 'Prep room', done: false },
+      { id: 'pmp-4', title: 'Paint walls & ceiling', done: false },
+    ]
+  },
+];
+
+const PROJ_PRIORITY_LABELS = {
+  'before-move': 'Before move-in',
+  'soon': 'Soon',
+  'someday': 'Someday',
+};
+
+function initProjects() {
+  if (!projects.length) projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+}
+
+function renderProjects() {
+  initProjects();
+  const container = document.getElementById('proj-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const total = projects.length;
+  const done = projects.filter(p => p.status === 'complete').length;
+  const el = document.getElementById('proj-summary');
+  if (el) el.textContent = `${done} of ${total} complete`;
+
+  // Group by category
+  const cats = {};
+  projects.forEach((p, i) => {
+    if (!cats[p.category]) cats[p.category] = [];
+    cats[p.category].push({ ...p, _idx: i });
+  });
+
+  Object.entries(cats).forEach(([cat, catProjects]) => {
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-bottom:1.5rem;';
+
+    const catHeader = document.createElement('div');
+    catHeader.className = 'section-title';
+    catHeader.style.marginTop = '0';
+    catHeader.textContent = cat;
+    section.appendChild(catHeader);
+
+    catProjects.forEach(p => {
+      const i = p._idx;
+      section.appendChild(createProjCard(p, i));
+    });
+
+    container.appendChild(section);
+  });
+}
+
+function createProjCard(p, i) {
+  const priorityClass = { 'before-move': 'proj-priority-before', 'soon': 'proj-priority-soon', 'someday': 'proj-priority-someday' }[p.priority] || 'proj-priority-someday';
+  const statusClass = { 'planning': 'proj-status-planning', 'in-progress': 'proj-status-progress', 'complete': 'proj-status-complete' }[p.status] || 'proj-status-planning';
+  const statusLabel = { 'planning': 'Planning', 'in-progress': 'In progress', 'complete': 'Complete' }[p.status] || 'Planning';
+  const doneSubtasks = (p.subtasks || []).filter(s => s.done).length;
+  const totalSubtasks = (p.subtasks || []).length;
+
+  const card = document.createElement('div');
+  card.className = 'proj-card' + (p.status === 'complete' ? ' done' : '');
+  card.draggable = true;
+  card.dataset.projId = p.id;
+
+  card.innerHTML = `
+    <div class="proj-header">
+      <div class="proj-check"></div>
+      <div class="proj-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+          <div class="proj-name">${p.name}</div>
+          <div style="display:flex;gap:5px;flex-shrink:0;">
+            <button class="proj-edit-btn" style="background:none;border:1px solid var(--color-border-secondary);color:var(--teal);border-radius:var(--border-radius-md);font-size:11px;padding:3px 8px;cursor:pointer;font-family:var(--font-sans);">Edit</button>
+            <button class="proj-del-btn" style="background:none;border:none;color:var(--warm-faint);cursor:pointer;font-size:14px;padding:2px 4px;">✕</button>
+          </div>
+        </div>
+        <div class="proj-meta">
+          <span class="proj-tag ${priorityClass}">${PROJ_PRIORITY_LABELS[p.priority] || p.priority}</span>
+          <span class="proj-tag ${statusClass}">${statusLabel}</span>
+          ${p.costEst ? `<span style="font-size:11px;color:var(--warm-muted);">Est: $${p.costEst}</span>` : ''}
+          ${p.costActual ? `<span style="font-size:11px;color:var(--teal);">Actual: $${p.costActual}</span>` : ''}
+          ${p.contractor ? `<span style="font-size:11px;color:var(--warm-muted);">👷 ${p.contractor}</span>` : ''}
+          ${totalSubtasks > 0 ? `<span style="font-size:11px;color:var(--warm-faint);">${doneSubtasks}/${totalSubtasks} tasks</span>` : ''}
+        </div>
+        ${p.notes ? `<div style="font-size:11px;color:var(--warm-faint);margin-top:3px;">${p.notes}</div>` : ''}
+      </div>
+    </div>
+  `;
+
+  // Subtasks
+  if (p.subtasks && p.subtasks.length) {
+    const subtaskWrap = document.createElement('div');
+    subtaskWrap.className = 'proj-subtasks';
+    p.subtasks.forEach((st, si) => {
+      const stEl = document.createElement('div');
+      stEl.className = 'proj-subtask' + (st.done ? ' st-done' : '');
+      stEl.innerHTML = `
+        <div class="proj-subtask-check"></div>
+        <span class="st-label" style="font-size:12px;color:var(--warm-mid);flex:1;">${st.title}</span>
+        <button class="st-del" style="background:none;border:none;color:var(--warm-faint);cursor:pointer;font-size:12px;padding:0 2px;opacity:0;transition:opacity 0.15s;">✕</button>
+      `;
+      stEl.addEventListener('mouseenter', () => stEl.querySelector('.st-del').style.opacity = '1');
+      stEl.addEventListener('mouseleave', () => stEl.querySelector('.st-del').style.opacity = '0');
+      stEl.addEventListener('click', e => {
+        if (e.target.classList.contains('st-del')) return;
+        projects[i].subtasks[si].done = !projects[i].subtasks[si].done;
+        // Auto-mark project complete if all subtasks done
+        const allDone = projects[i].subtasks.every(s => s.done);
+        if (allDone && projects[i].subtasks.length > 0) projects[i].status = 'complete';
+        else if (projects[i].status === 'complete' && !allDone) projects[i].status = 'in-progress';
+        renderProjects(); persistAll();
+      });
+      stEl.querySelector('.st-del').addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm('Remove this task?')) return;
+        projects[i].subtasks.splice(si, 1);
+        renderProjects(); persistAll();
+      });
+      subtaskWrap.appendChild(stEl);
+    });
+
+    // Add subtask input
+    const addStWrap = document.createElement('div');
+    addStWrap.style.cssText = 'display:flex;gap:6px;margin-top:4px;';
+    addStWrap.innerHTML = `
+      <input class="add-st-input" type="text" placeholder="+ Add task…" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+    `;
+    const stInput = addStWrap.querySelector('.add-st-input');
+    stInput.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const title = stInput.value.trim();
+      if (!title) return;
+      projects[i].subtasks.push({ id: 'st-' + Date.now(), title, done: false });
+      stInput.value = '';
+      renderProjects(); persistAll();
+    });
+    subtaskWrap.appendChild(addStWrap);
+    card.appendChild(subtaskWrap);
+  } else {
+    // No subtasks yet — show add input
+    const subtaskWrap = document.createElement('div');
+    subtaskWrap.className = 'proj-subtasks';
+    const addStWrap = document.createElement('div');
+    addStWrap.style.cssText = 'display:flex;gap:6px;';
+    addStWrap.innerHTML = `<input class="add-st-input" type="text" placeholder="+ Add task…" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />`;
+    const stInput = addStWrap.querySelector('.add-st-input');
+    stInput.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const title = stInput.value.trim();
+      if (!title) return;
+      if (!projects[i].subtasks) projects[i].subtasks = [];
+      projects[i].subtasks.push({ id: 'st-' + Date.now(), title, done: false });
+      stInput.value = '';
+      renderProjects(); persistAll();
+    });
+    subtaskWrap.appendChild(addStWrap);
+    card.appendChild(subtaskWrap);
+  }
+
+  // Inline edit form
+  const editForm = document.createElement('div');
+  editForm.style.cssText = 'display:none;border-top:1px solid var(--color-border-tertiary);padding:14px 16px;background:var(--teal-subtle);';
+  editForm.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <input class="pe-name" type="text" value="${p.name.replace(/"/g,'&quot;')}" placeholder="Project name" style="grid-column:1/-1;font-size:13px;padding:7px 9px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+      <select class="pe-priority" style="font-size:12px;padding:7px 9px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;cursor:pointer;">
+        <option value="before-move" ${p.priority==='before-move'?'selected':''}>Before move-in</option>
+        <option value="soon" ${p.priority==='soon'?'selected':''}>Soon</option>
+        <option value="someday" ${p.priority==='someday'?'selected':''}>Someday</option>
+      </select>
+      <select class="pe-status" style="font-size:12px;padding:7px 9px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;cursor:pointer;">
+        <option value="planning" ${p.status==='planning'?'selected':''}>Planning</option>
+        <option value="in-progress" ${p.status==='in-progress'?'selected':''}>In progress</option>
+        <option value="complete" ${p.status==='complete'?'selected':''}>Complete</option>
+      </select>
+      <input class="pe-cost-est" type="text" value="${p.costEst||''}" placeholder="Est. cost ($)" style="font-size:12px;padding:7px 9px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+      <input class="pe-cost-actual" type="text" value="${p.costActual||''}" placeholder="Actual cost ($)" style="font-size:12px;padding:7px 9px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+      <input class="pe-contractor" type="text" value="${(p.contractor||'').replace(/"/g,'&quot;')}" placeholder="Contractor / vendor" style="font-size:12px;padding:7px 9px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+      <input class="pe-notes" type="text" value="${(p.notes||'').replace(/"/g,'&quot;')}" placeholder="Notes" style="grid-column:1/-1;font-size:12px;padding:7px 9px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:#fff;color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="pe-cancel" style="padding:6px 12px;background:transparent;color:var(--color-text-secondary);border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Cancel</button>
+      <button class="pe-save" style="padding:6px 14px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Save</button>
+    </div>
+  `;
+  card.appendChild(editForm);
+
+  // Check toggle
+  card.querySelector('.proj-check').addEventListener('click', e => {
+    e.stopPropagation();
+    projects[i].status = projects[i].status === 'complete' ? 'planning' : 'complete';
+    renderProjects(); persistAll();
+  });
+
+  // Edit toggle
+  card.querySelector('.proj-edit-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    editForm.style.display = editForm.style.display === 'none' ? 'block' : 'none';
+    if (editForm.style.display === 'block') editForm.querySelector('.pe-name').focus();
+  });
+
+  // Save edit
+  editForm.querySelector('.pe-save').addEventListener('click', () => {
+    projects[i].name = editForm.querySelector('.pe-name').value.trim() || projects[i].name;
+    projects[i].priority = editForm.querySelector('.pe-priority').value;
+    projects[i].status = editForm.querySelector('.pe-status').value;
+    projects[i].costEst = editForm.querySelector('.pe-cost-est').value.trim();
+    projects[i].costActual = editForm.querySelector('.pe-cost-actual').value.trim();
+    projects[i].contractor = editForm.querySelector('.pe-contractor').value.trim();
+    projects[i].notes = editForm.querySelector('.pe-notes').value.trim();
+    renderProjects(); persistAll();
+  });
+  editForm.querySelector('.pe-cancel').addEventListener('click', () => { editForm.style.display = 'none'; });
+
+  // Delete
+  card.querySelector('.proj-del-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    if (!confirm(`Remove "${p.name}"?`)) return;
+    projects.splice(i, 1);
+    renderProjects(); persistAll();
+  });
+
+  // Drag to reorder
+  card.addEventListener('dragstart', e => { card.style.opacity = '0.4'; e.dataTransfer.setData('proj-id', p.id); });
+  card.addEventListener('dragend', () => { card.style.opacity = '1'; });
+  card.addEventListener('dragover', e => { e.preventDefault(); card.style.outline = '2px dashed var(--teal)'; });
+  card.addEventListener('dragleave', () => { card.style.outline = ''; });
+  card.addEventListener('drop', e => {
+    e.preventDefault(); card.style.outline = '';
+    const fromId = e.dataTransfer.getData('proj-id');
+    if (!fromId || fromId === p.id) return;
+    const fromIdx = projects.findIndex(x => x.id === fromId);
+    const toIdx = i;
+    const [moved] = projects.splice(fromIdx, 1);
+    projects.splice(toIdx, 0, moved);
+    renderProjects(); persistAll();
+  });
+
+  return card;
+}
+
+function addProject() {
+  const name = document.getElementById('proj-new-name').value.trim();
+  if (!name) { document.getElementById('proj-new-name').focus(); return; }
+  projects.push({
+    id: 'p-' + Date.now(),
+    name,
+    category: document.getElementById('proj-new-category').value,
+    priority: document.getElementById('proj-new-priority').value,
+    status: 'planning',
+    costEst: document.getElementById('proj-new-cost-est').value.trim(),
+    costActual: '',
+    contractor: document.getElementById('proj-new-contractor').value.trim(),
+    notes: document.getElementById('proj-new-notes').value.trim(),
+    subtasks: [],
+  });
+  ['proj-new-name','proj-new-cost-est','proj-new-contractor','proj-new-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('proj-add-form').style.display = 'none';
+  gaEvent('add_project', { category: projects[projects.length-1].category });
+  renderProjects(); persistAll();
+}
+
+document.getElementById('proj-add-btn').addEventListener('click', () => {
+  const form = document.getElementById('proj-add-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') document.getElementById('proj-new-name').focus();
+});
+document.getElementById('proj-add-save').addEventListener('click', addProject);
+document.getElementById('proj-add-cancel').addEventListener('click', () => { document.getElementById('proj-add-form').style.display = 'none'; });
+document.getElementById('proj-new-name').addEventListener('keydown', e => { if (e.key === 'Enter') addProject(); });
+
+initProjects();
+renderProjects();
 
 // Expose functions needed by remaining inline handlers
 window.exportData = exportData;
