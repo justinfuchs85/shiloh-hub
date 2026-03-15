@@ -1761,9 +1761,9 @@ document.getElementById('new-task-title').addEventListener('keydown', e => {
 
 
 // ── Photo gallery ───────────────────────────────────────────────
-const photoCategories = [
+let photoCategories = [
   {
-    name: "Exterior & Aerial",
+    id: 'pc-ext', name: "Exterior & Aerial",
     photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847067792000000-o.jpg", alt: "Front of home" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847194875000000-o.jpg", alt: "Exterior" },
@@ -1775,9 +1775,7 @@ const photoCategories = [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847304240000000-o.jpg", alt: "Summer Season" },
     ]
   },
-  {
-    name: "Living Room & Fireplace",
-    photos: [
+  { id: 'pc-living', name: "Living Room & Fireplace", photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024532802394000000-o.jpg", alt: "Living" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024533636226000000-o.jpg", alt: "Living" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024534588599000000-o.jpg", alt: "Living" },
@@ -1788,24 +1786,18 @@ const photoCategories = [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847504086000000-o.jpg", alt: "Living with fireplace" },
     ]
   },
-  {
-    name: "Kitchen & Dining",
-    photos: [
+  { id: 'pc-kitchen', name: "Kitchen & Dining", photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847641344000000-o.jpg", alt: "Stainless Steel" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847686221000000-o.jpg", alt: "Living - Dining - Kitchen" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847730216000000-o.jpg", alt: "Living - Dining - Kitchen" },
     ]
   },
-  {
-    name: "Main Floor",
-    photos: [
+  { id: 'pc-main', name: "Main Floor", photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847776423000000-o.jpg", alt: "Main Floor ½ Bath" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847823382000000-o.jpg", alt: "Laundry" },
     ]
   },
-  {
-    name: "Owner Suite",
-    photos: [
+  { id: 'pc-owner', name: "Owner Suite", photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847866153000000-o.jpg", alt: "Owner Suite" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847910640000000-o.jpg", alt: "Owner Suite" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160847957108000000-o.jpg", alt: "Owner Suite" },
@@ -1813,9 +1805,7 @@ const photoCategories = [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024542641357000000-o.jpg", alt: "Owner Suite" },
     ]
   },
-  {
-    name: "Bedrooms & Upper Bath",
-    photos: [
+  { id: 'pc-beds', name: "Bedrooms & Upper Bath", photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160848140186000000-o.jpg", alt: "Upper bedroom" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160848186930000000-o.jpg", alt: "Upper bedroom" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160848233278000000-o.jpg", alt: "Upper bedroom" },
@@ -1826,9 +1816,7 @@ const photoCategories = [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024548088204000000-o.jpg", alt: "Bedroom" },
     ]
   },
-  {
-    name: "Lower Level / Basement",
-    photos: [
+  { id: 'pc-lower', name: "Lower Level / Basement", photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024545591269000000-o.jpg", alt: "Lower Level Rec" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024547349258000000-o.jpg", alt: "Lower Level Rec" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024546440102000000-o.jpg", alt: "Lower Level Rec" },
@@ -1838,9 +1826,7 @@ const photoCategories = [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260311024548767691000000-o.jpg", alt: "Lower Level" },
     ]
   },
-  {
-    name: "Pool & Backyard",
-    photos: [
+  { id: 'pc-pool', name: "Pool & Backyard", photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160848849022000000-o.jpg", alt: "Pool Fun" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160848785128000000-o.jpg", alt: "Pool Fun" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160849050935000000-o.jpg", alt: "Pool Fun" },
@@ -1852,9 +1838,7 @@ const photoCategories = [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160849191486000000-o.jpg", alt: "Full backyard" },
     ]
   },
-  {
-    name: "Floor Plans",
-    photos: [
+  { id: 'pc-plans', name: "Floor Plans", photos: [
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160849378228000000-o.jpg", alt: "Floor Plan 1" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160849416283000000-o.jpg", alt: "Floor Plan 2" },
       { url: "https://cdn.photos.sparkplatform.com/ric/20260309160849458342000000-o.jpg", alt: "Floor Plan 3" },
@@ -1867,24 +1851,56 @@ let lbCatIdx = 0, lbPhotoIdx = 0;
 let userPhotos = []; // { url, caption, category }  url = base64 or external
 let stagedFiles = []; // { dataUrl, name } — pending before user confirms
 
+let _dragPhotoIdx = null; // index into userPhotos being dragged
+
 function buildGallery() {
   const root = document.getElementById('gallery-root');
+  if (!root) return;
   root.innerHTML = '';
 
-  // Build a lookup of user photos by category name
+  // Sync staging category selects
+  const selects = document.querySelectorAll('[data-staged-category]');
+  selects.forEach(sel => {
+    const currentVal = sel.value;
+    sel.innerHTML = photoCategories.map(c => `<option value="${c.name}"${c.name === currentVal ? ' selected' : ''}>${c.name}</option>`).join('');
+  });
+
   const userByCat = {};
   userPhotos.forEach((p, idx) => {
     (userByCat[p.category] = userByCat[p.category] || []).push({ ...p, idx });
   });
 
   photoCategories.forEach((cat, ci) => {
-    const div = document.createElement('div');
-    div.className = 'gallery-category';
-    div.innerHTML = `<div class="gallery-category-title">${cat.name}</div>`;
+    const section = document.createElement('div');
+    section.className = 'gallery-category';
+    section.dataset.catId = cat.id;
+
+    // Category header with edit/add/delete controls
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px;';
+    header.innerHTML = `
+      <div class="gallery-category-title" style="flex:1;margin-bottom:0;">${cat.name}</div>
+      <button class="cat-rename-btn" data-ci="${ci}" title="Rename category" style="background:none;border:1px solid var(--color-border-secondary);color:var(--teal);border-radius:6px;font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--font-sans);">Rename</button>
+      ${cat.id.startsWith('pcu-') ? `<button class="cat-del-btn" data-ci="${ci}" title="Delete category" style="background:none;border:none;color:var(--warm-faint);font-size:13px;cursor:pointer;padding:2px 4px;">✕</button>` : ''}
+    `;
+    section.appendChild(header);
+
+    // Inline rename form (hidden by default)
+    const renameForm = document.createElement('div');
+    renameForm.className = 'cat-rename-form';
+    renameForm.style.cssText = 'display:none;margin-bottom:10px;display:none;flex-gap:8px;align-items:center;gap:8px;';
+    renameForm.innerHTML = `
+      <input class="cat-rename-input" type="text" value="${cat.name}" style="flex:1;font-size:13px;padding:6px 9px;border:1px solid var(--teal);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+      <button class="cat-rename-save" style="padding:6px 12px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Save</button>
+      <button class="cat-rename-cancel" style="padding:6px 10px;background:transparent;border:1px solid var(--color-border-secondary);color:var(--color-text-secondary);border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Cancel</button>
+    `;
+    section.appendChild(renameForm);
+
     const grid = document.createElement('div');
     grid.className = 'gallery-grid';
+    grid.dataset.catName = cat.name;
 
-    // MLS photos
+    // MLS photos (not draggable)
     cat.photos.forEach((p, pi) => {
       const img = document.createElement('img');
       img.src = p.url;
@@ -1894,29 +1910,139 @@ function buildGallery() {
       grid.appendChild(img);
     });
 
-    // User photos assigned to this MLS category
+    // User photos — draggable
     (userByCat[cat.name] || []).forEach(p => {
       const wrap = document.createElement('div');
-      wrap.style.cssText = 'position:relative;';
+      wrap.style.cssText = 'position:relative;cursor:grab;';
+      wrap.draggable = true;
+      wrap.dataset.photoIdx = p.idx;
+
       const img = document.createElement('img');
       img.src = p.url;
       img.alt = p.caption;
       img.title = p.caption;
       img.loading = 'lazy';
-      img.style.cssText = 'width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer;display:block;';
+      img.style.cssText = 'width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer;display:block;transition:opacity 0.15s;';
       img.onclick = () => openUserLightbox(p.idx);
+
       const del = document.createElement('button');
       del.innerHTML = '&#x2715;';
       del.title = 'Remove';
       del.style.cssText = 'position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
       del.onclick = e => { e.stopPropagation(); if (confirm('Remove this photo?')) { userPhotos.splice(p.idx, 1); buildGallery(); persistAll(); }};
+
+      // Caption edit on double-click
+      const caption = document.createElement('div');
+      caption.style.cssText = 'position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:10px;padding:3px 6px;border-radius:0 0 8px 8px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;';
+      caption.textContent = p.caption;
+      caption.title = 'Double-click to edit caption';
+      caption.ondblclick = e => {
+        e.stopPropagation();
+        const newCap = prompt('Edit caption:', p.caption);
+        if (newCap !== null) { userPhotos[p.idx].caption = newCap.trim() || p.caption; buildGallery(); persistAll(); }
+      };
+
       wrap.appendChild(img);
       wrap.appendChild(del);
+      wrap.appendChild(caption);
+
+      // Drag handlers
+      wrap.addEventListener('dragstart', e => {
+        _dragPhotoIdx = p.idx;
+        wrap.style.opacity = '0.4';
+        e.dataTransfer.setData('photo-idx', String(p.idx));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      wrap.addEventListener('dragend', () => {
+        _dragPhotoIdx = null;
+        wrap.style.opacity = '1';
+      });
+
       grid.appendChild(wrap);
     });
 
-    div.appendChild(grid);
-    root.appendChild(div);
+    // Drop zone for dragged user photos
+    grid.addEventListener('dragover', e => {
+      if (_dragPhotoIdx === null) return;
+      e.preventDefault();
+      grid.style.outline = '2px dashed var(--teal)';
+      grid.style.outlineOffset = '4px';
+    });
+    grid.addEventListener('dragleave', () => {
+      grid.style.outline = '';
+      grid.style.outlineOffset = '';
+    });
+    grid.addEventListener('drop', e => {
+      e.preventDefault();
+      grid.style.outline = '';
+      grid.style.outlineOffset = '';
+      const idx = parseInt(e.dataTransfer.getData('photo-idx'));
+      if (isNaN(idx)) return;
+      userPhotos[idx].category = cat.name;
+      buildGallery();
+      persistAll();
+    });
+
+    section.appendChild(grid);
+    root.appendChild(section);
+
+    // Wire rename btn
+    header.querySelector('.cat-rename-btn').addEventListener('click', () => {
+      renameForm.style.display = renameForm.style.display === 'none' ? 'flex' : 'none';
+      if (renameForm.style.display === 'flex') renameForm.querySelector('.cat-rename-input').focus();
+    });
+    renameForm.querySelector('.cat-rename-save').addEventListener('click', () => {
+      const newName = renameForm.querySelector('.cat-rename-input').value.trim();
+      if (!newName) return;
+      const oldName = cat.name;
+      cat.name = newName;
+      // Update any user photos referencing old name
+      userPhotos.forEach(p => { if (p.category === oldName) p.category = newName; });
+      buildGallery(); persistAll();
+    });
+    renameForm.querySelector('.cat-rename-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') renameForm.querySelector('.cat-rename-save').click();
+      if (e.key === 'Escape') renameForm.querySelector('.cat-rename-cancel').click();
+    });
+    renameForm.querySelector('.cat-rename-cancel').addEventListener('click', () => { renameForm.style.display = 'none'; });
+
+    // Wire delete btn (custom categories only)
+    const delBtn = header.querySelector('.cat-del-btn');
+    if (delBtn) {
+      delBtn.addEventListener('click', () => {
+        const hasPhotos = (userByCat[cat.name] || []).length > 0;
+        const msg = hasPhotos ? `Delete "${cat.name}"? ${userByCat[cat.name].length} photo(s) will move to the first category.` : `Delete category "${cat.name}"?`;
+        if (!confirm(msg)) return;
+        if (hasPhotos) {
+          const fallback = photoCategories[0].name;
+          userPhotos.forEach(p => { if (p.category === cat.name) p.category = fallback; });
+        }
+        photoCategories.splice(ci, 1);
+        buildGallery(); persistAll();
+      });
+    }
+  });
+
+  // Add category button at bottom
+  const addCatWrap = document.createElement('div');
+  addCatWrap.style.cssText = 'margin-top:1rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap;';
+  addCatWrap.innerHTML = `
+    <input id="new-cat-input" type="text" placeholder="New category name…" style="font-size:13px;padding:7px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;flex:1;min-width:160px;" />
+    <button id="new-cat-btn" style="padding:7px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">+ Add category</button>
+  `;
+  root.appendChild(addCatWrap);
+
+  document.getElementById('new-cat-btn').addEventListener('click', () => {
+    const input = document.getElementById('new-cat-input');
+    const name = input.value.trim();
+    if (!name) { input.focus(); return; }
+    if (photoCategories.find(c => c.name === name)) { input.focus(); return; }
+    photoCategories.push({ id: 'pcu-' + Date.now(), name, photos: [] });
+    input.value = '';
+    buildGallery(); persistAll();
+  });
+  document.getElementById('new-cat-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('new-cat-btn').click();
   });
 }
 
@@ -2097,14 +2223,7 @@ function renderStaging() {
         style="font-size:12px;padding:6px 8px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
       <select data-staged-category="${i}"
         style="font-size:12px;padding:6px 8px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;cursor:pointer;">
-        <option value="Exterior &amp; Aerial">Exterior &amp; Aerial</option>
-        <option value="Living Room &amp; Fireplace">Living Room &amp; Fireplace</option>
-        <option value="Kitchen &amp; Dining">Kitchen &amp; Dining</option>
-        <option value="Owner Suite">Owner Suite</option>
-        <option value="Bedrooms &amp; Upper Bath">Bedrooms &amp; Upper Bath</option>
-        <option value="Lower Level / Basement">Lower Level / Basement</option>
-        <option value="Pool &amp; Backyard">Pool &amp; Backyard</option>
-        <option value="Floor Plans">Floor Plans</option>
+        ${photoCategories.map(c => `<option value="${c.name}">${c.name}</option>`).join('')}
       </select>
       <button onclick="removeStagedFile(${i})" title="Remove" style="background:none;border:none;color:var(--color-text-tertiary);cursor:pointer;font-size:16px;padding:2px 4px;">&#x2715;</button>
     `;
@@ -2130,7 +2249,7 @@ function commitStagedPhotos() {
     userPhotos.push({
       url: f.dataUrl,
       caption: capEl ? capEl.value.trim() || f.name : f.name,
-      category: catEl ? catEl.value.trim() || 'Exterior & Aerial' : 'Exterior & Aerial',
+      category: catEl ? catEl.value.trim() || photoCategories[0].name : photoCategories[0].name,
     });
   });
   stagedFiles = [];
@@ -2144,7 +2263,7 @@ function commitStagedPhotos() {
 function addPhotoFromUrl() {
   const raw = document.getElementById('photo-url-input').value.trim();
   if (!raw) return;
-  userPhotos.push({ url: gdriveDirect(raw), caption: 'Photo', category: 'Exterior & Aerial' });
+  userPhotos.push({ url: gdriveDirect(raw), caption: 'Photo', category: photoCategories[0].name });
   document.getElementById('photo-url-input').value = '';
   buildGallery();
   persistAll();
@@ -2248,6 +2367,7 @@ function getFullState() {
     fields,
     taskPhases,
     userPhotos,
+    photoCategories: photoCategories.map(c => ({ id: c.id, name: c.name })), // save names/order, not MLS photos
     quickLinks: quickLinks.filter(l => !l.locked),
     expenses,
     sharedNotes,
@@ -2293,6 +2413,19 @@ function applyState(s) {
   }
   if (s.userPhotos && Array.isArray(s.userPhotos)) {
     userPhotos = s.userPhotos;
+    // Restore any custom category names/order from saved state
+    if (s.photoCategories && Array.isArray(s.photoCategories)) {
+      s.photoCategories.forEach(saved => {
+        const existing = photoCategories.find(c => c.id === saved.id);
+        if (existing) existing.name = saved.name;
+      });
+      // Add any saved custom categories (id starts with 'pcu-')
+      s.photoCategories.filter(c => c.id.startsWith('pcu-')).forEach(saved => {
+        if (!photoCategories.find(c => c.id === saved.id)) {
+          photoCategories.push({ id: saved.id, name: saved.name, photos: [] });
+        }
+      });
+    }
     buildGallery();
   }
   if (s.quickLinks && Array.isArray(s.quickLinks)) {
