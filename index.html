@@ -1851,7 +1851,9 @@ let lbCatIdx = 0, lbPhotoIdx = 0;
 let userPhotos = []; // { url, caption, category }  url = base64 or external
 let stagedFiles = []; // { dataUrl, name } — pending before user confirms
 
-let _dragPhotoIdx = null; // index into userPhotos being dragged
+// Track dragging — either a user photo (by userPhotos index) or an MLS photo (by catId+photoIdx)
+let _dragPhotoIdx = null;      // userPhotos index
+let _dragMlsRef = null;        // { catId, photoIdx }
 
 function buildGallery() {
   const root = document.getElementById('gallery-root');
@@ -1875,20 +1877,20 @@ function buildGallery() {
     section.className = 'gallery-category';
     section.dataset.catId = cat.id;
 
-    // Category header with edit/add/delete controls
+    // Category header
     const header = document.createElement('div');
     header.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px;';
     header.innerHTML = `
       <div class="gallery-category-title" style="flex:1;margin-bottom:0;">${cat.name}</div>
-      <button class="cat-rename-btn" data-ci="${ci}" title="Rename category" style="background:none;border:1px solid var(--color-border-secondary);color:var(--teal);border-radius:6px;font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--font-sans);">Rename</button>
-      ${cat.id.startsWith('pcu-') ? `<button class="cat-del-btn" data-ci="${ci}" title="Delete category" style="background:none;border:none;color:var(--warm-faint);font-size:13px;cursor:pointer;padding:2px 4px;">✕</button>` : ''}
+      <button class="cat-rename-btn" data-ci="${ci}" style="background:none;border:1px solid var(--color-border-secondary);color:var(--teal);border-radius:6px;font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--font-sans);">Rename</button>
+      ${cat.id.startsWith('pcu-') ? `<button class="cat-del-btn" data-ci="${ci}" style="background:none;border:none;color:var(--warm-faint);font-size:13px;cursor:pointer;padding:2px 4px;">✕</button>` : ''}
     `;
     section.appendChild(header);
 
-    // Inline rename form (hidden by default)
+    // Inline rename form
     const renameForm = document.createElement('div');
     renameForm.className = 'cat-rename-form';
-    renameForm.style.cssText = 'display:none;margin-bottom:10px;display:none;flex-gap:8px;align-items:center;gap:8px;';
+    renameForm.style.cssText = 'display:none;margin-bottom:10px;align-items:center;gap:8px;';
     renameForm.innerHTML = `
       <input class="cat-rename-input" type="text" value="${cat.name}" style="flex:1;font-size:13px;padding:6px 9px;border:1px solid var(--teal);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
       <button class="cat-rename-save" style="padding:6px 12px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Save</button>
@@ -1900,29 +1902,51 @@ function buildGallery() {
     grid.className = 'gallery-grid';
     grid.dataset.catName = cat.name;
 
-    // MLS photos (not draggable)
+    // Helper: make a draggable photo wrapper
+    function makeDraggable(imgEl, onDragStart, onDragEnd) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;cursor:grab;';
+      wrap.draggable = true;
+      wrap.appendChild(imgEl);
+      wrap.addEventListener('dragstart', e => {
+        wrap.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+        onDragStart(e);
+      });
+      wrap.addEventListener('dragend', () => {
+        wrap.style.opacity = '1';
+        _dragPhotoIdx = null;
+        _dragMlsRef = null;
+      });
+      return wrap;
+    }
+
+    // MLS photos — now draggable
     cat.photos.forEach((p, pi) => {
       const img = document.createElement('img');
       img.src = p.url;
       img.alt = p.alt;
       img.loading = 'lazy';
+      img.style.cssText = 'width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;display:block;';
       img.onclick = () => openGallery(ci, pi);
-      grid.appendChild(img);
+
+      const wrap = makeDraggable(img, e => {
+        _dragMlsRef = { catId: cat.id, photoIdx: pi };
+        _dragPhotoIdx = null;
+        e.dataTransfer.setData('mls-cat-id', cat.id);
+        e.dataTransfer.setData('mls-photo-idx', String(pi));
+      }, () => {});
+      grid.appendChild(wrap);
     });
 
     // User photos — draggable
     (userByCat[cat.name] || []).forEach(p => {
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'position:relative;cursor:grab;';
-      wrap.draggable = true;
-      wrap.dataset.photoIdx = p.idx;
-
       const img = document.createElement('img');
       img.src = p.url;
       img.alt = p.caption;
       img.title = p.caption;
       img.loading = 'lazy';
-      img.style.cssText = 'width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer;display:block;transition:opacity 0.15s;';
+      img.style.cssText = 'width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer;display:block;';
       img.onclick = () => openUserLightbox(p.idx);
 
       const del = document.createElement('button');
@@ -1931,62 +1955,61 @@ function buildGallery() {
       del.style.cssText = 'position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
       del.onclick = e => { e.stopPropagation(); if (confirm('Remove this photo?')) { userPhotos.splice(p.idx, 1); buildGallery(); persistAll(); }};
 
-      // Caption edit on double-click
       const caption = document.createElement('div');
       caption.style.cssText = 'position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:10px;padding:3px 6px;border-radius:0 0 8px 8px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;';
       caption.textContent = p.caption;
-      caption.title = 'Double-click to edit caption';
       caption.ondblclick = e => {
         e.stopPropagation();
         const newCap = prompt('Edit caption:', p.caption);
         if (newCap !== null) { userPhotos[p.idx].caption = newCap.trim() || p.caption; buildGallery(); persistAll(); }
       };
 
-      wrap.appendChild(img);
+      const wrap = makeDraggable(img, e => {
+        _dragPhotoIdx = p.idx;
+        _dragMlsRef = null;
+        e.dataTransfer.setData('photo-idx', String(p.idx));
+      }, () => {});
       wrap.appendChild(del);
       wrap.appendChild(caption);
-
-      // Drag handlers
-      wrap.addEventListener('dragstart', e => {
-        _dragPhotoIdx = p.idx;
-        wrap.style.opacity = '0.4';
-        e.dataTransfer.setData('photo-idx', String(p.idx));
-        e.dataTransfer.effectAllowed = 'move';
-      });
-      wrap.addEventListener('dragend', () => {
-        _dragPhotoIdx = null;
-        wrap.style.opacity = '1';
-      });
-
       grid.appendChild(wrap);
     });
 
-    // Drop zone for dragged user photos
+    // Drop zone
     grid.addEventListener('dragover', e => {
-      if (_dragPhotoIdx === null) return;
+      if (_dragPhotoIdx === null && _dragMlsRef === null) return;
       e.preventDefault();
       grid.style.outline = '2px dashed var(--teal)';
       grid.style.outlineOffset = '4px';
     });
-    grid.addEventListener('dragleave', () => {
-      grid.style.outline = '';
-      grid.style.outlineOffset = '';
-    });
+    grid.addEventListener('dragleave', () => { grid.style.outline = ''; grid.style.outlineOffset = ''; });
     grid.addEventListener('drop', e => {
       e.preventDefault();
-      grid.style.outline = '';
-      grid.style.outlineOffset = '';
-      const idx = parseInt(e.dataTransfer.getData('photo-idx'));
-      if (isNaN(idx)) return;
-      userPhotos[idx].category = cat.name;
-      buildGallery();
-      persistAll();
+      grid.style.outline = ''; grid.style.outlineOffset = '';
+
+      // User photo drop
+      const uIdx = e.dataTransfer.getData('photo-idx');
+      if (uIdx !== '') {
+        const idx = parseInt(uIdx);
+        if (!isNaN(idx)) { userPhotos[idx].category = cat.name; buildGallery(); persistAll(); }
+        return;
+      }
+
+      // MLS photo drop
+      const mlsCatId = e.dataTransfer.getData('mls-cat-id');
+      const mlsPi = parseInt(e.dataTransfer.getData('mls-photo-idx'));
+      if (mlsCatId && !isNaN(mlsPi)) {
+        const srcCat = photoCategories.find(c => c.id === mlsCatId);
+        if (!srcCat || srcCat.id === cat.id) return;
+        const [photo] = srcCat.photos.splice(mlsPi, 1);
+        cat.photos.push(photo);
+        buildGallery(); persistAll();
+      }
     });
 
     section.appendChild(grid);
     root.appendChild(section);
 
-    // Wire rename btn
+    // Wire rename
     header.querySelector('.cat-rename-btn').addEventListener('click', () => {
       renameForm.style.display = renameForm.style.display === 'none' ? 'flex' : 'none';
       if (renameForm.style.display === 'flex') renameForm.querySelector('.cat-rename-input').focus();
@@ -1996,7 +2019,6 @@ function buildGallery() {
       if (!newName) return;
       const oldName = cat.name;
       cat.name = newName;
-      // Update any user photos referencing old name
       userPhotos.forEach(p => { if (p.category === oldName) p.category = newName; });
       buildGallery(); persistAll();
     });
@@ -2006,24 +2028,22 @@ function buildGallery() {
     });
     renameForm.querySelector('.cat-rename-cancel').addEventListener('click', () => { renameForm.style.display = 'none'; });
 
-    // Wire delete btn (custom categories only)
     const delBtn = header.querySelector('.cat-del-btn');
     if (delBtn) {
       delBtn.addEventListener('click', () => {
-        const hasPhotos = (userByCat[cat.name] || []).length > 0;
-        const msg = hasPhotos ? `Delete "${cat.name}"? ${userByCat[cat.name].length} photo(s) will move to the first category.` : `Delete category "${cat.name}"?`;
+        const count = (userByCat[cat.name] || []).length + cat.photos.length;
+        const msg = count ? `Delete "${cat.name}"? ${count} photo(s) will move to the first category.` : `Delete category "${cat.name}"?`;
         if (!confirm(msg)) return;
-        if (hasPhotos) {
-          const fallback = photoCategories[0].name;
-          userPhotos.forEach(p => { if (p.category === cat.name) p.category = fallback; });
-        }
+        const fallback = photoCategories[0];
+        cat.photos.forEach(p => fallback.photos.push(p));
+        userPhotos.forEach(p => { if (p.category === cat.name) p.category = fallback.name; });
         photoCategories.splice(ci, 1);
         buildGallery(); persistAll();
       });
     }
   });
 
-  // Add category button at bottom
+  // Add category button
   const addCatWrap = document.createElement('div');
   addCatWrap.style.cssText = 'margin-top:1rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap;';
   addCatWrap.innerHTML = `
@@ -2035,8 +2055,7 @@ function buildGallery() {
   document.getElementById('new-cat-btn').addEventListener('click', () => {
     const input = document.getElementById('new-cat-input');
     const name = input.value.trim();
-    if (!name) { input.focus(); return; }
-    if (photoCategories.find(c => c.name === name)) { input.focus(); return; }
+    if (!name || photoCategories.find(c => c.name === name)) { input.focus(); return; }
     photoCategories.push({ id: 'pcu-' + Date.now(), name, photos: [] });
     input.value = '';
     buildGallery(); persistAll();
@@ -2355,6 +2374,17 @@ const MS_COLORS = {
   deadline: { fill: '#854f0b', stroke: '#633806', text: '#fff' },
   done:     { fill: '#2d6b3f', stroke: '#1a4025', text: '#fff' },
 };
+const UTIL_STATUS_COLORS = {
+  'Not set up':          { bg: 'var(--color-background-secondary)', color: 'var(--warm-muted)' },
+  'Transfer in progress':{ bg: 'var(--teal-muted)',                 color: 'var(--teal-dark)' },
+  'Active':              { bg: '#e8f2ec',                           color: '#2d6b3f' },
+  'Cancelled':           { bg: 'var(--color-background-danger)',    color: 'var(--color-text-danger)' },
+};
+const PROJ_PRIORITY_LABELS = {
+  'before-move': 'Before move-in',
+  'soon': 'Soon',
+  'someday': 'Someday',
+};
 const AUTHOR_COLORS = {
   Justin:  { bg: 'var(--color-background-info)',    text: 'var(--color-text-info)' },
   Natalie: { bg: 'var(--color-background-success)', text: 'var(--color-text-success)' },
@@ -2367,7 +2397,7 @@ function getFullState() {
     fields,
     taskPhases,
     userPhotos,
-    photoCategories: photoCategories.map(c => ({ id: c.id, name: c.name })), // save names/order, not MLS photos
+    photoCategories: photoCategories.map(c => ({ id: c.id, name: c.name, photos: c.photos })),
     quickLinks: quickLinks.filter(l => !l.locked),
     expenses,
     sharedNotes,
@@ -2413,16 +2443,18 @@ function applyState(s) {
   }
   if (s.userPhotos && Array.isArray(s.userPhotos)) {
     userPhotos = s.userPhotos;
-    // Restore any custom category names/order from saved state
     if (s.photoCategories && Array.isArray(s.photoCategories)) {
       s.photoCategories.forEach(saved => {
         const existing = photoCategories.find(c => c.id === saved.id);
-        if (existing) existing.name = saved.name;
+        if (existing) {
+          existing.name = saved.name;
+          if (Array.isArray(saved.photos) && saved.photos.length) existing.photos = saved.photos;
+        }
       });
-      // Add any saved custom categories (id starts with 'pcu-')
+      // Restore custom categories
       s.photoCategories.filter(c => c.id.startsWith('pcu-')).forEach(saved => {
         if (!photoCategories.find(c => c.id === saved.id)) {
-          photoCategories.push({ id: saved.id, name: saved.name, photos: [] });
+          photoCategories.push({ id: saved.id, name: saved.name, photos: Array.isArray(saved.photos) ? saved.photos : [] });
         }
       });
     }
@@ -3833,13 +3865,6 @@ const DEFAULT_UTILITIES = [
   { id: 'u-security', type: 'Home Security', provider: '', phone: '', website: '', account: '', username: '', cost: '', status: 'Not set up', notes: '' },
 ];
 
-const UTIL_STATUS_COLORS = {
-  'Not set up':          { bg: 'var(--color-background-secondary)', color: 'var(--warm-muted)' },
-  'Transfer in progress':{ bg: 'var(--teal-muted)',                 color: 'var(--teal-dark)' },
-  'Active':              { bg: '#e8f2ec',                           color: '#2d6b3f' },
-  'Cancelled':           { bg: 'var(--color-background-danger)',    color: 'var(--color-text-danger)' },
-};
-
 function initUtilities() {
   if (!utilities.length) utilities = JSON.parse(JSON.stringify(DEFAULT_UTILITIES));
 }
@@ -4075,12 +4100,6 @@ const DEFAULT_PROJECTS = [
     ]
   },
 ];
-
-const PROJ_PRIORITY_LABELS = {
-  'before-move': 'Before move-in',
-  'soon': 'Soon',
-  'someday': 'Someday',
-};
 
 function initProjects() {
   if (!projects.length) projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
