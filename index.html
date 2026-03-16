@@ -585,7 +585,7 @@
   <div class="main">
 
     <!-- ══ OVERVIEW ══ -->
-    <div class="tab-page active" id="page-overview">
+    <div class="tab-page" id="page-overview">
       <div class="hero">
         <div class="hero-main">
           <img src="https://cdn.photos.sparkplatform.com/ric/20260309160847067792000000-o.jpg" alt="Front of home">
@@ -1093,17 +1093,17 @@
 
       <!-- Feed -->
       <div id="notes-feed"></div>
-      <div id="notes-empty" style="font-size: 13px; color: var(--color-text-tertiary); text-align: center; padding: 2rem 0px; display: block;">No notes yet — add the first one above.</div>
+      <div id="notes-empty" style="font-size: 13px; color: var(--color-text-tertiary); text-align: center; padding: 2rem 0px; display: none;">No notes yet — add the first one above.</div>
     </div>
 
     <!-- ══ SHOPPING ══ -->
-    <div class="tab-page" id="page-shopping">
+    <div class="tab-page active" id="page-shopping">
 
       <!-- Header bar -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:12px;">
-          <span id="shop-count" style="font-size:12px;color:var(--color-text-secondary);">0 of 7 items done</span>
-          <span id="shop-total" style="font-size:12px;color:var(--teal);font-weight:500;">Est. total: $1,852</span>
+          <span id="shop-count" style="font-size:12px;color:var(--color-text-secondary);">0 of 3 items done</span>
+          <span id="shop-total" style="font-size:12px;color:var(--teal);font-weight:500;">Est. total: $319</span>
         </div>
         <div style="display:flex;gap:8px;">
           <select id="shop-filter-room" style="font-size:12px;padding:6px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;cursor:pointer;"><option value="">All rooms</option><option value="r-living">Living Room</option><option value="r-kitchen">Kitchen</option><option value="r-primary">Primary Bedroom</option><option value="r-bed2">Ethan's Room</option><option value="r-bed3">Elle's Room</option><option value="r-bed4">Riley's Room</option><option value="r-bath">Bathrooms</option><option value="r-basement">Basement</option><option value="r-outdoor">Outdoor / Pool</option><option value="r-garage">Garage</option><option value="r-home">Whole Home</option></select>
