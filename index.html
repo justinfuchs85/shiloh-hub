@@ -571,7 +571,7 @@
     <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;">Data</div>
-        <span id="sync-status" style="font-size: 10px; color: var(--color-text-success);">● Live</span>
+        <span id="sync-status" style="font-size: 10px; color: var(--color-text-success);">✓ Saved</span>
       </div>
       <button id="gh-push-btn" style="width:100%;padding:7px 10px;margin-bottom:5px;background:rgba(196,151,58,0.15);color:var(--gold-light);border:1px solid rgba(196,151,58,0.25);border-radius:var(--border-radius-md);font-size:11px;font-family:var(--font-sans);cursor:pointer;text-align:left;letter-spacing:0.04em;" disabled="">↑ Pushing…</button>
       <button onclick="exportData()" style="width:100%;padding:7px 10px;margin-bottom:5px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:var(--border-radius-md);font-size:11px;font-family:var(--font-sans);cursor:pointer;text-align:left;">⬇ Export JSON</button>
@@ -692,7 +692,7 @@
     </div>
 
     <!-- ══ TIMELINE ══ -->
-    <div class="tab-page" id="page-timeline">
+    <div class="tab-page active" id="page-timeline">
 
       <!-- Milestone diagram -->
       <div style="background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1.25rem;">
@@ -716,7 +716,7 @@
             <span style="width:10px;height:1.5px;background:var(--gold);display:inline-block;flex-shrink:0;"></span>Today
           </div>
         </div>
-        <div id="milestone-add-form" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--color-border-tertiary);">
+        <div id="milestone-add-form" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-border-tertiary);">
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
             <div style="flex:1;min-width:160px;">
               <div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Label</div>
@@ -1093,7 +1093,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:12px;">
           <span id="shop-count" style="font-size:12px;color:var(--color-text-secondary);">0 of 6 items done</span>
-          <span id="shop-total" style="font-size:12px;color:var(--teal);font-weight:500;">Est. total: $90</span>
+          <span id="shop-total" style="font-size:12px;color:var(--teal);font-weight:500;">Est. total: $1,533</span>
         </div>
         <div style="display:flex;gap:8px;">
           <select id="shop-filter-room" style="font-size:12px;padding:6px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;cursor:pointer;"><option value="">All rooms</option><option value="r-living">Living Room</option><option value="r-kitchen">Kitchen</option><option value="r-primary">Primary Bedroom</option><option value="r-bed2">Ethan's Room</option><option value="r-bed3">Elle's Room</option><option value="r-bed4">Riley's Room</option><option value="r-bath">Bathrooms</option><option value="r-basement">Basement</option><option value="r-outdoor">Outdoor / Pool</option><option value="r-garage">Garage</option><option value="r-home">Whole Home</option></select>
@@ -1227,7 +1227,7 @@
 
     </div>
 
-    <div class="tab-page active" id="page-contacts">
+    <div class="tab-page" id="page-contacts">
       <div class="section-title">Key contacts</div>
       <div class="contacts-grid">
 
