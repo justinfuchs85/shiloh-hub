@@ -5,7 +5,7 @@
   const ROOMS = ['Living Room','Kitchen','Primary Bedroom',"Ethan's Room","Elle's Room","Riley's Room",'Bathrooms','Basement','Outdoor / Pool','Garage','Whole Home'];
 
   function getTitle() {
-    const h = document.hostname;
+    const h = (window.location||location).hostname||"";
     if (h.includes('amazon.')) {
       const amz = ['#productTitle','#title span','h1.a-size-large','.product-title-word-break'];
       for (const s of amz) { const el = document.querySelector(s); if (el && el.textContent.trim()) return el.textContent.trim().slice(0,120); }
@@ -32,7 +32,7 @@
 
   const title = getTitle();
   const price = getPrice();
-  const store = location.hostname.replace('www.','');
+  const store = ((window.location||location).hostname||"").replace('www.','');
 
   const overlay = document.createElement('div');
   overlay.id = '__shiloh_bm__';
@@ -106,7 +106,7 @@
         status: 'Need to buy',
         store: document.getElementById('__shiloh_store__').value.trim(),
         priceEst: document.getElementById('__shiloh_price__').value.trim(),
-        priceActual: '', dims: '', qty: 1, assignee: '', link: location.href,
+        priceActual: '', dims: '', qty: 1, assignee: '', link: (window.location||location).href,
         notes: document.getElementById('__shiloh_notes__').value.trim(),
         done: false,
       });
