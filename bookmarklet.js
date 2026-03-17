@@ -26,19 +26,43 @@
     return '';
   }
 
+  function getImage(){
+    // og:image is the most reliable across all retailers
+    var og=document.querySelector('meta[property="og:image"],meta[name="og:image"]');
+    if(og&&og.content)return og.content;
+    // Amazon specific
+    var amzImg=document.querySelector('#landingImage,#imgBlkFront,#main-image');
+    if(amzImg&&amzImg.src)return amzImg.src;
+    // Generic product image
+    var schemaImg=document.querySelector('[itemprop="image"]');
+    if(schemaImg){var src=schemaImg.getAttribute('content')||schemaImg.src;if(src)return src;}
+    return '';
+  }
+
   var title=getTitle();
   var price=getPrice();
+  var imgUrl=getImage();
   var store=((window.location||location).hostname||'').replace('www.','');
   var d=document;
   var ov=d.createElement('div');
   ov.id='__shiloh_bm__';
   ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:2147483647;background:rgba(10,25,22,0.65);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
   var roomOpts=ROOMS.map(function(r){return'<option>'+r+'</option>';}).join('');
+
+  // Thumbnail preview HTML — only show if we got an image
+  var thumbHtml = imgUrl
+    ? '<div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">'
+      + '<img src="'+imgUrl+'" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #ddd;flex-shrink:0;" onerror="this.style.display=\'none\'" />'
+      + '<div style="font-size:12px;color:#888;line-height:1.4;">Product image<br><span style="font-size:10px;color:#bbb;">from og:image</span></div>'
+      + '</div>'
+    : '';
+
   ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:24px;width:340px;max-width:calc(100vw - 32px);box-shadow:0 16px 48px rgba(0,0,0,0.3);">'
-  +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+  +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
   +'<div style="font-size:16px;font-weight:600;color:#1d5c52;">&#x1F6D2; Save to Shiloh Hub</div>'
   +'<button id="__shc__" style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;">&#x2715;</button>'
   +'</div>'
+  + thumbHtml
   +'<div style="display:flex;flex-direction:column;gap:10px;">'
   +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:3px;">Item name</div>'
   +'<input id="__shn__" value="'+title.replace(/"/g,'&quot;').replace(/'/g,'&#39;')+'" style="width:100%;box-sizing:border-box;font-size:13px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;outline:none;color:#222;" /></div>'
@@ -58,6 +82,7 @@
   +'<div id="__shst__" style="font-size:12px;color:#aaa;min-height:16px;text-align:center;"></div>'
   +'<button id="__shsv__" style="width:100%;padding:11px;background:#1d5c52;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;">Save to Shopping</button>'
   +'</div></div>';
+
   d.body.appendChild(ov);
   d.getElementById('__shn__').select();
   d.getElementById('__shc__').onclick=function(){ov.remove();};
@@ -76,12 +101,12 @@
       priceEst:d.getElementById('__shp__').value.trim(),
       priceActual:'',dims:'',qty:1,assignee:'',
       link:location.href,
+      image:imgUrl,
       notes:d.getElementById('__shno__').value.trim(),
       done:false
     };
     var roomName=d.getElementById('__shr__').value;
     try{
-      // Use XMLHttpRequest instead of fetch to avoid CORS preflight issues
       var rooms=await new Promise(function(resolve,reject){
         var xhr=new XMLHttpRequest();
         xhr.open('GET',DB+'/hub/shoppingRooms.json',true);
