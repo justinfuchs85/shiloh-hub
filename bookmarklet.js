@@ -10,6 +10,10 @@
       var amz=['#productTitle','#title span','h1.a-size-large','.product-title-word-break'];
       for(var i=0;i<amz.length;i++){var el=document.querySelector(amz[i]);if(el&&el.textContent.trim())return el.textContent.trim().slice(0,120);}
     }
+    if(h.indexOf('walmart.')>-1){
+      var wm=document.querySelector('[itemprop="name"] span,[data-automation-id="product-title"],h1.prod-ProductTitle');
+      if(wm&&wm.textContent.trim())return wm.textContent.trim().slice(0,120);
+    }
     var og=document.querySelector('meta[property="og:title"]');
     if(og&&og.content)return og.content.trim().slice(0,120);
     var h1=document.querySelector('h1');
@@ -18,7 +22,9 @@
   }
 
   function getPrice(){
-    var sels=['.a-price .a-offscreen','#priceblock_ourprice','#priceblock_dealprice','[data-automation="product-price"]','.price','#price','[itemprop="price"]'];
+    var sels=['.a-price .a-offscreen','#priceblock_ourprice','#priceblock_dealprice',
+      '[data-automation="product-price"]','[itemprop="price"]','.price','#price',
+      '[data-testid="price-wrap"] span','[data-automation-id="product-price"] span'];
     for(var i=0;i<sels.length;i++){
       var el=document.querySelector(sels[i]);
       if(el){var txt=(el.getAttribute('content')||el.textContent||'').trim();var m=txt.match(/\$[\d,]+\.?\d*/);if(m)return m[0];}
@@ -27,16 +33,44 @@
   }
 
   function getImage(){
-    // og:image is the most reliable across all retailers
     var og=document.querySelector('meta[property="og:image"],meta[name="og:image"]');
     if(og&&og.content)return og.content;
-    // Amazon specific
     var amzImg=document.querySelector('#landingImage,#imgBlkFront,#main-image');
     if(amzImg&&amzImg.src)return amzImg.src;
-    // Generic product image
-    var schemaImg=document.querySelector('[itemprop="image"]');
-    if(schemaImg){var src=schemaImg.getAttribute('content')||schemaImg.src;if(src)return src;}
+    var schema=document.querySelector('[itemprop="image"]');
+    if(schema){var src=schema.getAttribute('content')||schema.src;if(src)return src;}
     return '';
+  }
+
+  // Test if XHR to Firebase works on this domain
+  // Some sites (Walmart, etc.) block cross-origin XHR via CSP
+  // In that case, fall back to opening the hub in a popup with params
+  function tryXHR(item, roomName, onSuccess, onFail){
+    var xhr=new XMLHttpRequest();
+    xhr.open('GET',DB+'/hub/shoppingRooms.json',true);
+    xhr.timeout=5000;
+    xhr.onload=function(){
+      if(xhr.status<200||xhr.status>=300){onFail('Read failed: '+xhr.status);return;}
+      try{
+        var rooms=JSON.parse(xhr.responseText);
+        if(!rooms||!Array.isArray(rooms)){onFail('No rooms found');return;}
+        var idx=rooms.findIndex(function(r){return r.name===roomName;});
+        if(idx===-1){onFail('Room not found: '+roomName);return;}
+        if(!Array.isArray(rooms[idx].items))rooms[idx].items=[];
+        rooms[idx].items.push(item);
+        var xhr2=new XMLHttpRequest();
+        xhr2.open('PUT',DB+'/hub/shoppingRooms.json',true);
+        xhr2.setRequestHeader('Content-Type','application/json');
+        xhr2.timeout=5000;
+        xhr2.onload=function(){xhr2.status>=200&&xhr2.status<300?onSuccess():onFail('Write failed: '+xhr2.status);};
+        xhr2.onerror=function(){onFail('Write network error');};
+        xhr2.ontimeout=function(){onFail('Write timeout');};
+        xhr2.send(JSON.stringify(rooms));
+      }catch(e){onFail('Parse error');}
+    };
+    xhr.onerror=function(){onFail('Network error — opening hub popup instead');};
+    xhr.ontimeout=function(){onFail('Timeout — opening hub popup instead');};
+    xhr.send();
   }
 
   var title=getTitle();
@@ -49,20 +83,19 @@
   ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:2147483647;background:rgba(10,25,22,0.65);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
   var roomOpts=ROOMS.map(function(r){return'<option>'+r+'</option>';}).join('');
 
-  // Thumbnail preview HTML — only show if we got an image
-  var thumbHtml = imgUrl
-    ? '<div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">'
-      + '<img src="'+imgUrl+'" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #ddd;flex-shrink:0;" onerror="this.style.display=\'none\'" />'
-      + '<div style="font-size:12px;color:#888;line-height:1.4;">Product image<br><span style="font-size:10px;color:#bbb;">from og:image</span></div>'
-      + '</div>'
-    : '';
+  var thumbHtml=imgUrl
+    ?'<div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;">'
+      +'<img src="'+imgUrl+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;flex-shrink:0;" onerror="this.parentNode.style.display=\'none\'" />'
+      +'<div style="font-size:11px;color:#aaa;line-height:1.5;">Product image detected</div>'
+      +'</div>'
+    :'';
 
   ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:24px;width:340px;max-width:calc(100vw - 32px);box-shadow:0 16px 48px rgba(0,0,0,0.3);">'
   +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
   +'<div style="font-size:16px;font-weight:600;color:#1d5c52;">&#x1F6D2; Save to Shiloh Hub</div>'
   +'<button id="__shc__" style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;">&#x2715;</button>'
   +'</div>'
-  + thumbHtml
+  +thumbHtml
   +'<div style="display:flex;flex-direction:column;gap:10px;">'
   +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:3px;">Item name</div>'
   +'<input id="__shn__" value="'+title.replace(/"/g,'&quot;').replace(/'/g,'&#39;')+'" style="width:100%;box-sizing:border-box;font-size:13px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;outline:none;color:#222;" /></div>'
@@ -88,7 +121,7 @@
   d.getElementById('__shc__').onclick=function(){ov.remove();};
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
 
-  d.getElementById('__shsv__').onclick=async function(){
+  d.getElementById('__shsv__').onclick=function(){
     var btn=d.getElementById('__shsv__');
     var st=d.getElementById('__shst__');
     btn.disabled=true;btn.textContent='Saving...';
@@ -106,33 +139,20 @@
       done:false
     };
     var roomName=d.getElementById('__shr__').value;
-    try{
-      var rooms=await new Promise(function(resolve,reject){
-        var xhr=new XMLHttpRequest();
-        xhr.open('GET',DB+'/hub/shoppingRooms.json',true);
-        xhr.onload=function(){xhr.status>=200&&xhr.status<300?resolve(JSON.parse(xhr.responseText)):reject(new Error('Read failed: '+xhr.status));};
-        xhr.onerror=function(){reject(new Error('Network error on read'));};
-        xhr.send();
-      });
-      if(!rooms||!Array.isArray(rooms))throw new Error('Could not read shopping rooms');
-      var idx=rooms.findIndex(function(r){return r.name===roomName;});
-      if(idx===-1)throw new Error('Room not found: '+roomName);
-      if(!Array.isArray(rooms[idx].items))rooms[idx].items=[];
-      rooms[idx].items.push(item);
-      await new Promise(function(resolve,reject){
-        var xhr=new XMLHttpRequest();
-        xhr.open('PUT',DB+'/hub/shoppingRooms.json',true);
-        xhr.setRequestHeader('Content-Type','application/json');
-        xhr.onload=function(){xhr.status>=200&&xhr.status<300?resolve():reject(new Error('Write failed: '+xhr.status));};
-        xhr.onerror=function(){reject(new Error('Network error on write'));};
-        xhr.send(JSON.stringify(rooms));
-      });
-      btn.textContent='Saved!';btn.style.background='#2d6b3f';
-      st.textContent='Added to '+roomName;st.style.color='#2d6b3f';
-      setTimeout(function(){ov.remove();},1400);
-    }catch(err){
-      btn.disabled=false;btn.textContent='Save to Shopping';
-      st.textContent='Error: '+err.message;st.style.color='#c0392b';
-    }
+
+    tryXHR(item, roomName,
+      function(){ // success
+        btn.textContent='Saved!';btn.style.background='#2d6b3f';
+        st.textContent='Added to '+roomName;st.style.color='#2d6b3f';
+        setTimeout(function(){ov.remove();},1400);
+      },
+      function(errMsg){ // failure — open hub in popup with item as JSON param
+        st.style.color='#c0392b';
+        st.textContent='Direct save blocked — opening hub...';
+        var param=encodeURIComponent(JSON.stringify(item))+'&room='+encodeURIComponent(roomName);
+        window.open('https://justinfuchs85.github.io/shiloh-hub/?bm='+param,'_blank','width=500,height=700');
+        setTimeout(function(){ov.remove();},1500);
+      }
+    );
   };
 })();
