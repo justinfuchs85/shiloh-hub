@@ -3459,8 +3459,13 @@ function createShopItemEl(item, roomIdx, itemIdx) {
   const dimsHTML = item.dims ? `<span style="font-size:11px;color:var(--warm-faint);">${item.dims}</span>` : '';
   const linkHTML = item.link ? `<a href="${item.link}" target="_blank" rel="noopener" style="font-size:11px;color:var(--teal);text-decoration:none;" onclick="event.stopPropagation()">🔗 View</a>` : '';
 
+  const thumbHTML = item.image
+    ? `<img src="${item.image}" style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--color-border-tertiary);" onerror="this.style.display='none'" />`
+    : '';
+
   div.innerHTML = `
     <div class="shop-item-check"></div>
+    ${thumbHTML}
     <div class="shop-item-body">
       <div class="shop-item-name">${item.name}</div>
       <div class="shop-item-meta">
@@ -4294,6 +4299,65 @@ const DEFAULT_PROJECTS = [
       { id: 'pmp-2', title: 'Buy paint & supplies', done: false },
       { id: 'pmp-3', title: 'Prep room', done: false },
       { id: 'pmp-4', title: 'Paint walls & ceiling', done: false },
+    ]
+  },
+  {
+    id: 'p-smart-doorbell', name: 'Install video doorbell', category: 'Exterior & Curb Appeal',
+    priority: 'soon', status: 'planning', costEst: '250', costActual: '',
+    contractor: '', notes: 'Nest Doorbell (wired) recommended — uses existing doorbell wiring',
+    subtasks: [
+      { id: 'sd-1', title: 'Check existing doorbell wiring & voltage', done: false },
+      { id: 'sd-2', title: 'Purchase Nest Doorbell (wired)', done: false },
+      { id: 'sd-3', title: 'Install & connect to Google Home app', done: false },
+      { id: 'sd-4', title: 'Set up motion zones & alert preferences', done: false },
+    ]
+  },
+  {
+    id: 'p-smart-floodlight', name: 'Install floodlight camera', category: 'Exterior & Curb Appeal',
+    priority: 'soon', status: 'planning', costEst: '280', costActual: '',
+    contractor: '', notes: 'Needs wired outdoor junction box — may need electrician for mounting location',
+    subtasks: [
+      { id: 'sf-1', title: 'Choose mounting location (garage corner or back of house)', done: false },
+      { id: 'sf-2', title: 'Confirm wired junction box available or hire electrician', done: false },
+      { id: 'sf-3', title: 'Purchase Nest Cam with floodlight', done: false },
+      { id: 'sf-4', title: 'Install & connect to Google Home', done: false },
+      { id: 'sf-5', title: 'Set motion zones', done: false },
+    ]
+  },
+  {
+    id: 'p-smart-pool-cam', name: 'Install pool camera', category: 'Pool & Backyard',
+    priority: 'soon', status: 'planning', costEst: '180', costActual: '',
+    contractor: '', notes: 'Arlo Pro 4 or Nest Cam (battery) — weatherproof, no wiring needed for pool area',
+    subtasks: [
+      { id: 'sp-1', title: 'Choose mounting spot overlooking pool', done: false },
+      { id: 'sp-2', title: 'Purchase weatherproof camera (Arlo Pro 4 or Nest Cam battery)', done: false },
+      { id: 'sp-3', title: 'Mount and connect to app', done: false },
+      { id: 'sp-4', title: 'Set activity zones around pool perimeter', done: false },
+    ]
+  },
+  {
+    id: 'p-smart-garage', name: 'Smart garage door opener', category: 'Garage',
+    priority: 'soon', status: 'planning', costEst: '30', costActual: '',
+    contractor: '', notes: 'myQ by Chamberlain — check opener compatibility at myq.com first',
+    subtasks: [
+      { id: 'sg-1', title: 'Check existing opener compatibility at myq.com', done: false },
+      { id: 'sg-2', title: 'Purchase myQ Smart Garage Controller', done: false },
+      { id: 'sg-3', title: 'Install sensor on door & hub near opener', done: false },
+      { id: 'sg-4', title: 'Connect to myQ app', done: false },
+      { id: 'sg-5', title: 'Share access with Natalie', done: false },
+    ]
+  },
+  {
+    id: 'p-smart-security', name: 'Nest security system', category: 'Whole Home',
+    priority: 'soon', status: 'planning', costEst: '400', costActual: '',
+    contractor: '', notes: 'Nest Secure or Google Nest Alarm — integrates with doorbell & cameras. Consider professional monitoring ($6/mo)',
+    subtasks: [
+      { id: 'ss-1', title: 'Decide on DIY vs professional monitoring plan', done: false },
+      { id: 'ss-2', title: 'Purchase Nest security starter kit', done: false },
+      { id: 'ss-3', title: 'Install door/window sensors (front, back, garage entry)', done: false },
+      { id: 'ss-4', title: 'Place Nest Guard hub in central location', done: false },
+      { id: 'ss-5', title: 'Set up Google Home integration with cameras & doorbell', done: false },
+      { id: 'ss-6', title: 'Add family members & set entry codes', done: false },
     ]
   },
 ];
