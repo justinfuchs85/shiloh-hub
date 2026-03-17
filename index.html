@@ -478,6 +478,33 @@
   .shop-room-count { font-size:10px;color:var(--warm-faint); }
   .shop-items { display:flex;flex-direction:column;gap:2px; }
   .shop-item { background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:grab;transition:box-shadow 0.15s; }
+
+  /* ── Inventory ── */
+  .inv-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px; }
+  .inv-list { display:flex;flex-direction:column;gap:8px; }
+  .inv-card { background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;transition:box-shadow 0.15s; }
+  .inv-card:hover { box-shadow:0 2px 12px rgba(29,92,82,0.1); }
+  .inv-card-photo { width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--warm-faint); }
+  .inv-card-body { padding:10px 12px; }
+  .inv-card-title { font-size:13px;font-weight:500;color:var(--warm-dark);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .inv-card-meta { display:flex;flex-wrap:wrap;gap:4px; }
+  .inv-badge { font-size:10px;padding:2px 7px;border-radius:20px;letter-spacing:0.02em; }
+  .inv-badge-keep { background:#e8f2ec;color:#2d6b3f; }
+  .inv-badge-sell { background:#faeeda;color:#854f0b; }
+  .inv-badge-donate { background:#e6f1fb;color:#185fa5; }
+  .inv-badge-trash { background:#fcebeb;color:#a32d2d; }
+  .inv-badge-undecided { background:var(--color-background-secondary);color:var(--color-text-tertiary); }
+  .inv-badge-dup { background:#f0eafc;color:#6b3fa0; }
+  .inv-list-row { background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:box-shadow 0.15s; }
+  .inv-list-row:hover { box-shadow:0 2px 8px rgba(29,92,82,0.08); }
+  .inv-list-thumb { width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:20px; }
+  .inv-status-btn { padding:6px 12px;border-radius:20px;font-size:12px;border:1.5px solid transparent;cursor:pointer;font-family:var(--font-sans);transition:all 0.15s; }
+  .inv-status-btn.active-Keep { background:#e8f2ec;color:#2d6b3f;border-color:#2d6b3f; }
+  .inv-status-btn.active-Sell { background:#faeeda;color:#854f0b;border-color:#854f0b; }
+  .inv-status-btn.active-Donate { background:#e6f1fb;color:#185fa5;border-color:#185fa5; }
+  .inv-status-btn.active-Trash { background:#fcebeb;color:#a32d2d;border-color:#a32d2d; }
+  .inv-status-btn.active-Undecided { background:var(--color-background-secondary);color:var(--color-text-secondary);border-color:var(--color-border-secondary); }
+  .inv-status-btn:not([class*="active"]) { background:var(--color-background-secondary);color:var(--color-text-secondary);border-color:var(--color-border-tertiary); }
   .shop-item:hover { box-shadow:0 2px 8px rgba(29,92,82,0.08); }
   .shop-item.done-item { opacity:0.5; }
   .shop-item.done-item .shop-item-name { text-decoration:line-through;color:var(--warm-faint); }
@@ -560,7 +587,6 @@
   <div class="mobile-nav" id="mobile-nav"></div>
   <!-- Mobile floating action buttons (hidden on desktop) -->
   <div id="mobile-fab" style="display:none;position:fixed;bottom:20px;right:16px;z-index:500;display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
-    <button id="mobile-push-btn" style="padding:10px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:24px;font-size:12px;font-family:var(--font-sans);cursor:pointer;letter-spacing:0.06em;box-shadow:0 4px 16px rgba(20,61,53,0.35);white-space:nowrap;">↑ Push to GitHub</button>
     <button onclick="signOut()" style="padding:8px 14px;background:rgba(20,61,53,0.7);color:rgba(255,255,255,0.6);border:none;border-radius:24px;font-size:11px;font-family:var(--font-sans);cursor:pointer;letter-spacing:0.06em;box-shadow:0 2px 8px rgba(0,0,0,0.2);">🔒 Lock</button>
   </div>
   <!-- Sidebar -->
@@ -575,7 +601,6 @@
         <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;">Data</div>
         <span id="sync-status" style="font-size:10px;color:rgba(255,255,255,0.35);"></span>
       </div>
-      <button id="gh-push-btn" style="width:100%;padding:7px 10px;margin-bottom:5px;background:rgba(196,151,58,0.15);color:var(--gold-light);border:1px solid rgba(196,151,58,0.25);border-radius:var(--border-radius-md);font-size:11px;font-family:var(--font-sans);cursor:pointer;text-align:left;letter-spacing:0.04em;">↑ Push to GitHub</button>
       <button onclick="exportData()" style="width:100%;padding:7px 10px;margin-bottom:5px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:var(--border-radius-md);font-size:11px;font-family:var(--font-sans);cursor:pointer;text-align:left;">⬇ Export JSON</button>
       <label style="width:100%;display:block;padding:7px 10px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:var(--border-radius-md);font-size:11px;cursor:pointer;text-align:left;">⬆ Import JSON<input id="import-input" type="file" accept=".json" style="display:none;" /></label>
     </div>
@@ -1173,6 +1198,108 @@
       </div>
     </div>
 
+    <!-- ══ INVENTORY ══ -->
+    <div class="tab-page" id="page-inventory">
+
+      <!-- Summary bar -->
+      <div id="inv-summary" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.25rem;"></div>
+
+      <!-- Toolbar -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
+        <select id="inv-filter-status" style="font-size:12px;padding:6px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;">
+          <option value="">All statuses</option>
+          <option value="Undecided">Undecided</option>
+          <option value="Keep">Keep</option>
+          <option value="Sell">Sell</option>
+          <option value="Donate">Donate</option>
+          <option value="Trash">Trash</option>
+        </select>
+        <select id="inv-filter-owner" style="font-size:12px;padding:6px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;">
+          <option value="">Both owners</option>
+          <option value="Justin">Justin</option>
+          <option value="Natalie">Natalie</option>
+          <option value="Both">Both / Shared</option>
+        </select>
+        <select id="inv-filter-space" style="font-size:12px;padding:6px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;">
+          <option value="">All spaces</option>
+        </select>
+        <select id="inv-view" style="font-size:12px;padding:6px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;">
+          <option value="grid">Grid view</option>
+          <option value="list">List view</option>
+        </select>
+        <button id="inv-add-btn" style="margin-left:auto;padding:7px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">+ Add Item</button>
+      </div>
+
+      <!-- Item grid/list -->
+      <div id="inv-grid"></div>
+    </div>
+
+    <!-- ══ INVENTORY ADD/EDIT MODAL ══ -->
+    <div id="inv-modal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(10,20,18,0.7);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;">
+      <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);width:100%;max-width:500px;box-shadow:0 24px 64px rgba(0,0,0,0.3);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--color-border-tertiary);">
+          <div id="inv-modal-title" style="font-family:var(--font-serif);font-size:20px;font-weight:300;color:var(--warm-dark);">Add Item</div>
+          <button id="inv-modal-close" style="background:none;border:none;font-size:22px;color:var(--warm-muted);cursor:pointer;padding:4px;">✕</button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+
+          <!-- Photo -->
+          <div>
+            <div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Photo</div>
+            <div id="inv-photo-preview" style="display:none;margin-bottom:8px;">
+              <img id="inv-photo-img" style="width:100%;max-height:200px;object-fit:cover;border-radius:var(--border-radius-md);border:1px solid var(--color-border-tertiary);" />
+            </div>
+            <label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:1.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--teal);background:var(--teal-subtle);">
+              📷 Take Photo / Upload
+              <input id="inv-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" />
+            </label>
+          </div>
+
+          <!-- Title -->
+          <div>
+            <div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Item name *</div>
+            <input id="inv-title" type="text" placeholder="e.g. IKEA MALM Dresser" style="width:100%;box-sizing:border-box;font-size:13px;padding:9px 11px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+          </div>
+
+          <!-- Owner + Space row -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Owner</div>
+              <select id="inv-owner" style="width:100%;font-size:13px;padding:9px 11px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;">
+                <option value="Justin">Justin</option>
+                <option value="Natalie">Natalie</option>
+                <option value="Both">Both / Shared</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Space</div>
+              <select id="inv-space" style="width:100%;font-size:13px;padding:9px 11px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;"></select>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Decision</div>
+            <div id="inv-status-btns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+
+          <!-- Duplicate flag -->
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--color-text-secondary);cursor:pointer;">
+            <input id="inv-duplicate" type="checkbox" style="width:16px;height:16px;cursor:pointer;" />
+            Mark as duplicate (we both have one of these)
+          </label>
+
+          <!-- Notes -->
+          <div>
+            <div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Notes</div>
+            <input id="inv-notes" type="text" placeholder="Optional — condition, estimated value, etc." style="width:100%;box-sizing:border-box;font-size:13px;padding:9px 11px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
+          </div>
+
+          <button id="inv-save-btn" style="width:100%;padding:11px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);">Save Item</button>
+        </div>
+      </div>
+    </div>
+
     <div class="tab-page" id="page-utilities">
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
@@ -1384,6 +1511,7 @@ const tabs = [
   { id: 'notes',      label: 'Notes',      icon: '📝' },
   { id: 'shopping',   label: 'Shopping',   icon: '🛒' },
   { id: 'spaces',    label: 'Spaces',    icon: '🏘️' },
+  { id: 'inventory', label: 'Inventory',  icon: '📦' },
   { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
   { id: 'projects',   label: 'Projects',   icon: '🏗️' },
   { id: 'contacts',   label: 'Contacts',   icon: '👥' },
@@ -2439,6 +2567,7 @@ let milestones = [];
 let utilities = [];
 let projects = [];
 let spaces = [];
+let inventory = [];
 // ── Canonical Spaces ─────────────────────────────────────────────
 // Single source of truth for all room/area categories across
 // Photos, Shopping, Projects, and Notes.
@@ -2514,6 +2643,7 @@ function getFullState() {
     utilities,
     projects,
     spaces,
+    inventory,
   };
 }
 
@@ -2599,6 +2729,10 @@ function applyState(s) {
   }
   if (s.spaces && Array.isArray(s.spaces)) {
     spaces = s.spaces;
+  }
+  if (s.inventory && Array.isArray(s.inventory)) {
+    inventory = s.inventory;
+    renderInventory();
   }
   } catch(e) { console.error('applyState error:', e); }
 }
@@ -2790,143 +2924,6 @@ document.getElementById('upload-toggle-btn').addEventListener('click', () => {
 
 // Wire import file input
 document.getElementById('import-input').addEventListener('change', importData);
-document.getElementById('gh-push-btn').addEventListener('click', () => pushToGitHub());
-document.getElementById('mobile-push-btn').addEventListener('click', () => pushToGitHub());
-
-// ── GitHub self-push ──
-const GH_OWNER  = 'justinfuchs85';
-const GH_REPO   = 'shiloh-hub';
-const GH_PATH   = 'index.html';
-const GH_API    = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
-const GH_TOKEN_KEY = 'shiloh-gh-token';
-
-function getGHToken() {
-  return localStorage.getItem(GH_TOKEN_KEY) || null;
-}
-
-function promptNewToken(msg) {
-  const t = prompt((msg || 'Enter GitHub Personal Access Token (repo scope):\n\ngithub.com → Settings → Developer settings → Personal access tokens → Generate new token (classic)\nScope: repo | Expiration: No expiration'));
-  if (t && t.trim().startsWith('ghp_')) {
-    localStorage.setItem(GH_TOKEN_KEY, t.trim());
-    return t.trim();
-  }
-  if (t !== null) alert('That doesn\'t look like a valid token (should start with ghp_). Try again.');
-  return null;
-}
-
-async function pushToGitHub() {
-  const btn = document.getElementById('gh-push-btn');
-  const mBtn = document.getElementById('mobile-push-btn');
-  const orig = btn.textContent;
-  const mOrig = mBtn.textContent;
-
-  function resetBtns(label) {
-    btn.textContent = label || orig; btn.disabled = false;
-    mBtn.textContent = label || mOrig; mBtn.disabled = false;
-  }
-
-  [btn, mBtn].forEach(b => { b.textContent = '↑ Pushing…'; b.disabled = true; });
-
-  const fetchWithTimeout = (url, opts, ms = 20000) => {
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), ms);
-    return fetch(url, { ...opts, signal: controller.signal }).finally(() => clearTimeout(tid));
-  };
-
-  const doFetch = async (token) => {
-    const meta = await fetchWithTimeout(GH_API, {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
-    });
-    if (meta.status === 401) return { expired: true };
-    if (!meta.ok) throw new Error(`GitHub fetch failed: ${meta.status}`);
-    const { sha } = await meta.json();
-
-    const clone = document.documentElement.cloneNode(true);
-
-    // Clear dynamically rendered containers
-    ['nav-items','mobile-nav','task-list','gallery-root','quicklinks-list',
-     'expenses-list','notes-feed','custom-task-list','user-photos-grid',
-     'calc-amort-body','calc-compare-grid','shop-rooms-list','bulk-tbody',
-     'milestone-svg-wrap','notes-feed','util-list','proj-list','spaces-grid'].forEach(id => {
-      const el = clone.querySelector('#' + id);
-      if (el) el.innerHTML = '';
-    });
-
-    // Hide auth overlay and app shell (restored by JS on load)
-    const shell = clone.querySelector('#app-shell');
-    if (shell) shell.style.display = 'none';
-    const overlay = clone.querySelector('#auth-overlay');
-    if (overlay) overlay.style.display = 'none';
-
-    // Strip all inline base64 images from the clone to keep file tiny
-    // (all real data lives in Firebase — we only need the code)
-    clone.querySelectorAll('img[src^="data:"]').forEach(img => img.remove());
-
-    const html = clone.outerHTML;
-
-    // Check size before encoding — warn if > 5MB
-    const sizeKB = Math.round(html.length / 1024);
-    if (sizeKB > 5000) {
-      const go = confirm(`File is ${sizeKB}KB — this may be slow. Continue?`);
-      if (!go) { return { cancelled: true }; }
-    }
-
-    const encoded = btoa(unescape(encodeURIComponent(html)));
-
-    const res = await fetchWithTimeout(GH_API, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `Hub update ${new Date().toLocaleString()}`,
-        content: encoded,
-        sha
-      })
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || res.status);
-    }
-    return { ok: true };
-  };
-
-  try {
-    let token = getGHToken();
-
-    // No token saved yet — prompt before doing anything
-    if (!token) {
-      token = promptNewToken('No GitHub token found. You\'ll need to generate one to push.\n\ngithub.com → Settings → Developer settings → Personal access tokens → Generate new token (classic)\nScope: repo | Expiration: No expiration\n\nPaste your token below:');
-      if (!token) { resetBtns(); return; }
-    }
-
-    let result = await doFetch(token);
-
-    if (result.cancelled) { resetBtns(); return; }
-    if (result.expired) {
-      localStorage.removeItem(GH_TOKEN_KEY); // Clear the bad token
-      resetBtns('✕ Token expired');
-      const newToken = promptNewToken('Token expired or revoked by GitHub.\n\nGenerate a new one at:\ngithub.com → Settings → Developer settings → Personal access tokens\n\nPaste your new token:');
-      if (!newToken) { setTimeout(() => resetBtns(), 3000); return; }
-      [btn, mBtn].forEach(b => { b.textContent = '↑ Pushing…'; b.disabled = true; });
-      result = await doFetch(newToken);
-      if (result.expired) { resetBtns('✕ Bad token'); setTimeout(() => resetBtns(), 3000); return; }
-    }
-
-    [btn, mBtn].forEach(b => { b.textContent = '✓ Pushed!'; });
-    gaEvent('push_to_github');
-    setTimeout(() => resetBtns(), 3000);
-  } catch (e) {
-    console.error('GitHub push failed:', e);
-    const msg = e.name === 'AbortError' ? 'Request timed out' : e.message;
-    resetBtns('✕ Failed');
-    setTimeout(() => resetBtns(), 4000);
-    alert(`Push failed: ${msg}`);
-  }
-}
-
 // ── Expenses ──
 function parseMoney(s) {
   const n = parseFloat((s || '').replace(/[^0-9.]/g, ''));
@@ -4936,6 +4933,280 @@ document.getElementById('gallery-root') && document.getElementById('gallery-root
   if (tag) openSpaceSummary(tag.dataset.spaceLink);
 });
 
+// ── Inventory ────────────────────────────────────────────────────
+
+const INV_STATUSES = ['Undecided', 'Keep', 'Sell', 'Donate', 'Trash'];
+
+let _invEditId = null;
+let _invStagedPhoto = null;
+
+function initInventoryUI() {
+  // Populate space filter and modal space select from canonical spaces
+  const filterSel = document.getElementById('inv-filter-space');
+  const modalSel  = document.getElementById('inv-space');
+  spaceNames().forEach(n => {
+    [filterSel, modalSel].forEach(sel => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = n;
+      sel.appendChild(opt);
+    });
+  });
+
+  // Status buttons in modal
+  const btnWrap = document.getElementById('inv-status-btns');
+  INV_STATUSES.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'inv-status-btn';
+    btn.textContent = s;
+    btn.dataset.status = s;
+    btn.addEventListener('click', () => {
+      btnWrap.querySelectorAll('.inv-status-btn').forEach(b => {
+        b.className = 'inv-status-btn';
+      });
+      btn.className = `inv-status-btn active-${s}`;
+    });
+    btnWrap.appendChild(btn);
+  });
+  // Default Undecided selected
+  btnWrap.querySelector('[data-status="Undecided"]').className = 'inv-status-btn active-Undecided';
+
+  // Photo input
+  document.getElementById('inv-photo-input').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      _invStagedPhoto = ev.target.result;
+      document.getElementById('inv-photo-img').src = _invStagedPhoto;
+      document.getElementById('inv-photo-preview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Add button
+  document.getElementById('inv-add-btn').addEventListener('click', () => openInvModal());
+
+  // Modal close
+  document.getElementById('inv-modal-close').addEventListener('click', closeInvModal);
+  document.getElementById('inv-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('inv-modal')) closeInvModal();
+  });
+
+  // Save button
+  document.getElementById('inv-save-btn').addEventListener('click', saveInvItem);
+
+  // Filters + view toggle
+  ['inv-filter-status','inv-filter-owner','inv-filter-space','inv-view'].forEach(id => {
+    document.getElementById(id).addEventListener('change', renderInventory);
+  });
+}
+
+function openInvModal(itemId) {
+  _invEditId = itemId || null;
+  _invStagedPhoto = null;
+
+  const modal = document.getElementById('inv-modal');
+  document.getElementById('inv-modal-title').textContent = itemId ? 'Edit Item' : 'Add Item';
+  document.getElementById('inv-photo-preview').style.display = 'none';
+  document.getElementById('inv-photo-img').src = '';
+  document.getElementById('inv-title').value = '';
+  document.getElementById('inv-owner').value = 'Justin';
+  document.getElementById('inv-space').value = 'General';
+  document.getElementById('inv-notes').value = '';
+  document.getElementById('inv-duplicate').checked = false;
+  // Reset status to Undecided
+  document.querySelectorAll('.inv-status-btn').forEach(b => {
+    b.className = `inv-status-btn${b.dataset.status === 'Undecided' ? ' active-Undecided' : ''}`;
+  });
+
+  if (itemId) {
+    const item = inventory.find(i => i.id === itemId);
+    if (item) {
+      document.getElementById('inv-title').value = item.title;
+      document.getElementById('inv-owner').value = item.owner;
+      document.getElementById('inv-space').value = item.space || 'General';
+      document.getElementById('inv-notes').value = item.notes || '';
+      document.getElementById('inv-duplicate').checked = !!item.duplicate;
+      if (item.photo) {
+        _invStagedPhoto = item.photo;
+        document.getElementById('inv-photo-img').src = item.photo;
+        document.getElementById('inv-photo-preview').style.display = 'block';
+      }
+      document.querySelectorAll('.inv-status-btn').forEach(b => {
+        b.className = `inv-status-btn${b.dataset.status === item.status ? ` active-${item.status}` : ''}`;
+      });
+    }
+  }
+
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('inv-title').focus(), 100);
+}
+
+function closeInvModal() {
+  document.getElementById('inv-modal').style.display = 'none';
+  _invEditId = null;
+  _invStagedPhoto = null;
+}
+
+function saveInvItem() {
+  const title = document.getElementById('inv-title').value.trim();
+  if (!title) { document.getElementById('inv-title').focus(); return; }
+
+  const activeBtn = document.querySelector('.inv-status-btn[class*="active-"]');
+  const status = activeBtn ? activeBtn.dataset.status : 'Undecided';
+
+  const item = {
+    id: _invEditId || ('inv-' + Date.now()),
+    title,
+    owner: document.getElementById('inv-owner').value,
+    space: document.getElementById('inv-space').value,
+    status,
+    duplicate: document.getElementById('inv-duplicate').checked,
+    notes: document.getElementById('inv-notes').value.trim(),
+    photo: _invStagedPhoto || (_invEditId ? (inventory.find(i => i.id === _invEditId)?.photo || null) : null),
+    ts: _invEditId ? (inventory.find(i => i.id === _invEditId)?.ts || Date.now()) : Date.now(),
+  };
+
+  if (_invEditId) {
+    const idx = inventory.findIndex(i => i.id === _invEditId);
+    if (idx !== -1) inventory[idx] = item;
+  } else {
+    inventory.push(item);
+  }
+
+  closeInvModal();
+  renderInventory();
+  persistAll();
+}
+
+function deleteInvItem(id) {
+  if (!confirm('Remove this item from inventory?')) return;
+  inventory = inventory.filter(i => i.id !== id);
+  renderInventory();
+  persistAll();
+}
+
+function renderInventory() {
+  const grid    = document.getElementById('inv-grid');
+  const summary = document.getElementById('inv-summary');
+  if (!grid) return;
+
+  const filterStatus = document.getElementById('inv-filter-status')?.value || '';
+  const filterOwner  = document.getElementById('inv-filter-owner')?.value  || '';
+  const filterSpace  = document.getElementById('inv-filter-space')?.value  || '';
+  const viewMode     = document.getElementById('inv-view')?.value || 'grid';
+
+  // Filtered items
+  const filtered = inventory.filter(item => {
+    if (filterStatus && item.status !== filterStatus) return false;
+    if (filterOwner  && item.owner  !== filterOwner)  return false;
+    if (filterSpace  && item.space  !== filterSpace)   return false;
+    return true;
+  });
+
+  // Summary bar
+  const counts = { Undecided: 0, Keep: 0, Sell: 0, Donate: 0, Trash: 0, Duplicate: 0 };
+  inventory.forEach(i => {
+    if (counts[i.status] !== undefined) counts[i.status]++;
+    if (i.duplicate) counts.Duplicate++;
+  });
+  const summaryColors = {
+    Undecided: { bg:'var(--color-background-secondary)', color:'var(--color-text-secondary)' },
+    Keep:      { bg:'#e8f2ec', color:'#2d6b3f' },
+    Sell:      { bg:'#faeeda', color:'#854f0b' },
+    Donate:    { bg:'#e6f1fb', color:'#185fa5' },
+    Trash:     { bg:'#fcebeb', color:'#a32d2d' },
+    Duplicate: { bg:'#f0eafc', color:'#6b3fa0' },
+  };
+  summary.innerHTML = Object.entries(counts)
+    .filter(([,n]) => n > 0)
+    .map(([k,n]) => `<span style="font-size:11px;padding:4px 10px;border-radius:20px;background:${summaryColors[k].bg};color:${summaryColors[k].color};font-weight:500;">${n} ${k}</span>`)
+    .join('');
+
+  // Empty state
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--warm-faint);">
+      <div style="font-size:32px;margin-bottom:12px;">📦</div>
+      <div style="font-size:14px;">${inventory.length === 0 ? 'No items yet — tap + Add Item to get started' : 'No items match the current filters'}</div>
+    </div>`;
+    return;
+  }
+
+  if (viewMode === 'grid') {
+    grid.className = 'inv-grid';
+    grid.innerHTML = '';
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'inv-card';
+
+      const photoEl = item.photo
+        ? `<img src="${item.photo}" class="inv-card-photo" style="display:block;" />`
+        : `<div class="inv-card-photo">📦</div>`;
+
+      const statusBadge = `<span class="inv-badge inv-badge-${item.status.toLowerCase()}">${item.status}</span>`;
+      const ownerBadge  = `<span class="inv-badge" style="background:var(--color-background-secondary);color:var(--color-text-secondary);">${item.owner}</span>`;
+      const dupBadge    = item.duplicate ? `<span class="inv-badge inv-badge-dup">Duplicate</span>` : '';
+
+      card.innerHTML = `
+        ${photoEl}
+        <div class="inv-card-body">
+          <div class="inv-card-title">${item.title}</div>
+          <div class="inv-card-meta">${statusBadge}${ownerBadge}${dupBadge}</div>
+          ${item.notes ? `<div style="font-size:11px;color:var(--warm-muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.notes}</div>` : ''}
+        </div>
+      `;
+      card.addEventListener('click', () => openInvModal(item.id));
+
+      // Long-press or right-click to delete
+      card.addEventListener('contextmenu', e => { e.preventDefault(); deleteInvItem(item.id); });
+
+      grid.appendChild(card);
+    });
+
+  } else {
+    // List view
+    grid.className = 'inv-list';
+    grid.innerHTML = '';
+    filtered.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'inv-list-row';
+
+      const thumbEl = item.photo
+        ? `<img src="${item.photo}" class="inv-list-thumb" />`
+        : `<div class="inv-list-thumb" style="font-size:20px;color:var(--warm-faint);">📦</div>`;
+
+      const statusBadge = `<span class="inv-badge inv-badge-${item.status.toLowerCase()}">${item.status}</span>`;
+      const ownerBadge  = `<span class="inv-badge" style="background:var(--color-background-secondary);color:var(--color-text-secondary);">${item.owner}</span>`;
+      const dupBadge    = item.duplicate ? `<span class="inv-badge inv-badge-dup">Dup</span>` : '';
+
+      row.innerHTML = `
+        ${thumbEl}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:500;color:var(--warm-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.title}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">${statusBadge}${ownerBadge}${dupBadge}</div>
+          ${item.space && item.space !== 'General' ? `<div style="font-size:11px;color:var(--warm-muted);margin-top:3px;" class="space-link" data-space="${item.space}">${item.space}</div>` : ''}
+        </div>
+        <button class="inv-del-btn" style="background:none;border:none;color:var(--warm-faint);cursor:pointer;font-size:14px;padding:4px;flex-shrink:0;">✕</button>
+      `;
+
+      row.addEventListener('click', e => {
+        if (e.target.classList.contains('inv-del-btn')) return;
+        openInvModal(item.id);
+      });
+      row.querySelector('.inv-del-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        deleteInvItem(item.id);
+      });
+
+      grid.appendChild(row);
+    });
+  }
+}
+
+initInventoryUI();
+renderInventory();
+window.deleteInvItem = deleteInvItem;
+
 // Expose functions needed by remaining inline handlers
 window.exportData = exportData;
 window.signOut = signOut;
@@ -4954,7 +5225,6 @@ window.openUserLightbox = openUserLightbox;
 window.deleteNote = deleteNote;
 window.removeExpense = removeExpense;
 window.updateExpenseField = updateExpenseField;
-window.pushToGitHub = pushToGitHub;
 
 
 
