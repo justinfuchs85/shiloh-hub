@@ -1,0 +1,35 @@
+{
+  "name": "shiloh-hub-backend",
+  "version": "1.0.0",
+  "description": "Payload CMS backend for Shiloh Hub",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap"
+  },
+  "dependencies": {
+    "@payloadcms/db-sqlite": "^3.17.0",
+    "@payloadcms/next": "^3.17.0",
+    "@payloadcms/richtext-lexical": "^3.17.0",
+    "@payloadcms/storage-uploadthing": "^3.17.0",
+    "graphql": "^16.9.0",
+    "next": "^15.1.0",
+    "payload": "^3.17.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "0.32.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": "^18.20.2 || >=20.9.0"
+  }
+}
