@@ -29,7 +29,6 @@ export default buildConfig({
     user: Users.slug,
     meta: {
       titleSuffix: '— Shiloh Hub',
-      favicon: '/favicon.ico',
     },
   },
   collections: [
