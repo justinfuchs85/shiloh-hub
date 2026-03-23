@@ -1,0 +1,95 @@
+/* ── Careers ── */
+.careers {
+  background: #ffffff;
+  padding: 6rem 0;
+}
+
+.careers__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.careers__header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3.5rem;
+}
+
+/* Perks grid */
+.careers__perks {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3.5rem;
+}
+
+.perk-card {
+  background: #f8f8f8;
+  border-radius: 6px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.perk-card:hover {
+  background: #fff;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 32px rgba(0,0,0,0.08);
+}
+
+.perk-card__icon {
+  display: block;
+  font-size: 2.4rem;
+  margin-bottom: 1rem;
+}
+
+.perk-card__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #002855;
+  margin-bottom: 0.5rem;
+}
+
+.perk-card__desc {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: #666;
+}
+
+/* CTA */
+.careers__cta {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #002855, #003580);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.careers__cta-text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 1.5rem;
+}
+
+.btn--large {
+  padding: 1rem 2.5rem;
+  font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .careers__perks {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .careers__perks {
+    grid-template-columns: 1fr;
+  }
+}
