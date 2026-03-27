@@ -673,6 +673,127 @@
       </div>
     </div>
 
+    <!-- ══ MAINTENANCE ══ -->
+    <div class="tab-page" id="page-maintenance">
+
+      <!-- Header row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-family:var(--font-serif);font-size:26px;font-weight:300;color:var(--warm-dark);">Home Maintenance</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:3px;">4496 Shiloh Way — ongoing calendar</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden;">
+            <button id="maint-view-schedule" onclick="setMaintView('schedule')" style="padding:6px 14px;font-size:11px;font-family:var(--font-sans);border:none;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;background:var(--teal-dark);color:#fff;transition:all 0.15s;">Schedule</button>
+            <button id="maint-view-calendar" onclick="setMaintView('calendar')" style="padding:6px 14px;font-size:11px;font-family:var(--font-sans);border:none;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;background:transparent;color:var(--color-text-secondary);transition:all 0.15s;">Calendar</button>
+          </div>
+          <select id="maint-filter-season" onchange="renderMaintenance()" style="font-size:12px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;cursor:pointer;">
+            <option value="">All seasons</option>
+            <option value="Spring">Spring</option>
+            <option value="Summer">Summer</option>
+            <option value="Fall">Fall</option>
+            <option value="Winter">Winter</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Annual">Annual</option>
+          </select>
+          <button onclick="openMaintHistory()" style="padding:6px 14px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">📋 History</button>
+          <button onclick="openMaintForm()" style="padding:6px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;letter-spacing:0.04em;">+ Add Task</button>
+        </div>
+      </div>
+
+      <div id="maint-summary-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;"></div>
+
+      <div id="maint-schedule-view">
+        <div id="maint-schedule-list"></div>
+      </div>
+
+      <div id="maint-calendar-view" style="display:none;">
+        <div id="maint-calendar-grid"></div>
+      </div>
+
+      <!-- History modal -->
+      <div id="maint-history-backdrop" onclick="closeMaintHistoryBackdrop(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center;">
+        <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);width:min(620px,95vw);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+          <!-- Modal header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0;">
+            <div>
+              <div style="font-family:var(--font-serif);font-size:22px;font-weight:400;color:var(--warm-dark);">Maintenance History</div>
+              <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:2px;">All completed tasks by year</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <select id="maint-history-year" onchange="renderMaintHistoryModal()" style="font-size:13px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;cursor:pointer;"></select>
+              <button onclick="closeMaintHistory()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--color-text-tertiary);line-height:1;padding:2px 4px;">✕</button>
+            </div>
+          </div>
+          <!-- Modal body -->
+          <div id="maint-history-body" style="overflow-y:auto;padding:1.25rem 1.5rem;flex:1;"></div>
+          <!-- Modal footer -->
+          <div id="maint-history-footer" style="padding:12px 1.5rem;border-top:0.5px solid var(--color-border-tertiary);flex-shrink:0;display:flex;gap:16px;flex-wrap:wrap;"></div>
+        </div>
+      </div>
+
+      <!-- Add / Edit modal -->
+      <div id="maint-modal-backdrop" onclick="closeMaintModalBackdrop(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center;">
+        <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:1.5rem;width:min(500px,92vw);box-shadow:0 8px 40px rgba(0,0,0,0.25);position:relative;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">
+          <div style="font-family:var(--font-serif);font-size:20px;font-weight:400;margin-bottom:1rem;color:var(--warm-dark);" id="maint-modal-title">Add Maintenance Task</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Task name *</div>
+              <input id="maint-f-title" type="text" placeholder="e.g. Replace furnace filter" style="width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Season / frequency</div>
+                <select id="maint-f-season" style="width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;cursor:pointer;">
+                  <option value="Spring">Spring</option>
+                  <option value="Summer">Summer</option>
+                  <option value="Fall">Fall</option>
+                  <option value="Winter">Winter</option>
+                  <option value="Monthly">Monthly</option>
+                  <option value="Annual">Annual</option>
+                </select>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Month (optional)</div>
+                <select id="maint-f-month" style="width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;cursor:pointer;">
+                  <option value="">—</option>
+                  <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                  <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                  <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Space</div>
+                <select id="maint-f-space" style="width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;cursor:pointer;">
+                  <option value="">General</option>
+                </select>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Est. cost</div>
+                <div style="position:relative;">
+                  <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--color-text-tertiary);">$</span>
+                  <input id="maint-f-cost" type="number" min="0" placeholder="0" style="width:100%;font-size:13px;padding:8px 10px 8px 22px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Notes</div>
+              <textarea id="maint-f-notes" rows="2" placeholder="Details, contractor info, reminders…" style="width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;resize:vertical;"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;">
+            <button onclick="closeMaintModal()" style="padding:8px 16px;background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);">Cancel</button>
+            <button id="maint-modal-delete" onclick="deleteMaintTask()" style="display:none;padding:8px 14px;background:var(--color-background-danger);color:var(--color-text-danger);border:0.5px solid rgba(163,45,45,0.25);border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);">Delete</button>
+            <button onclick="saveMaintTask()" style="padding:8px 20px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);">Save</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     <!-- ══ PHOTOS ══ -->
     <div class="tab-page" id="page-photos">
 
@@ -1496,6 +1617,52 @@
       <textarea class="notes-area" data-key="notes" placeholder="Add notes about the property, negotiation details, things to inspect, etc..."></textarea>
     </div>
 
+
+    <!-- ══ FAMILY SEAL ══ -->
+    <div class="tab-page" id="page-seal">
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-family:var(--font-serif);font-size:26px;font-weight:300;color:var(--warm-dark);">Family Seal Generator</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:3px;">AI-generated heraldic coat of arms · powered by Claude</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:1rem;max-width:480px;">
+        <input id="seal-surname-input" type="text" placeholder="Enter a surname — e.g. Fuchs, O'Brien…"
+          style="flex:1;font-family:var(--font-serif);font-size:17px;padding:10px 14px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);outline:none;letter-spacing:.02em;"
+          maxlength="60" onkeydown="if(event.key==='Enter')generateSeal()" />
+        <button id="seal-generate-btn" onclick="generateSeal()"
+          style="padding:10px 22px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap;">
+          Generate
+        </button>
+      </div>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center;">
+        <span style="font-size:11px;color:var(--color-text-tertiary);letter-spacing:.04em;">Try:</span>
+        <button onclick="sealQuick('Fuchs')" style="padding:3px 10px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font-sans);">Fuchs</button>
+        <button onclick="sealQuick('O'Brien')" style="padding:3px 10px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font-sans);">O'Brien</button>
+        <button onclick="sealQuick('Nakamura')" style="padding:3px 10px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font-sans);">Nakamura</button>
+        <button onclick="sealQuick('Kowalski')" style="padding:3px 10px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font-sans);">Kowalski</button>
+        <button onclick="sealQuick('Okonkwo')" style="padding:3px 10px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font-sans);">Okonkwo</button>
+      </div>
+
+      <div id="seal-status" style="margin-bottom:1rem;min-height:24px;font-size:12px;color:var(--teal);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px;"></div>
+
+      <div id="seal-output">
+        <div style="text-align:center;color:var(--color-text-tertiary);padding:3rem 0;">
+          <div style="font-size:48px;opacity:.15;margin-bottom:10px;">🛡️</div>
+          <div style="font-size:13px;letter-spacing:.04em;">Your family crest will appear here</div>
+        </div>
+      </div>
+
+      <div id="seal-saved-section" style="display:none;margin-top:2.5rem;padding-top:1.5rem;border-top:0.5px solid var(--color-border-tertiary);">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:12px;">Saved seals</div>
+        <div id="seal-saved-list" style="display:flex;gap:14px;flex-wrap:wrap;"></div>
+      </div>
+
+    </div>
+
   </div><!-- /main -->
 </div><!-- /shell -->
 
@@ -1504,7 +1671,8 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 // ── Navigation ──────────────────────────────────────────────────
 const tabs = [
-  { id: 'overview',  label: 'Overview',  icon: '🏠' },
+  { id: 'overview',    label: 'Overview',    icon: '🏠' },
+  { id: 'maintenance', label: 'Maintenance', icon: '🔧' },
   { id: 'photos',    label: 'Photos',    icon: '📷' },
   { id: 'timeline',  label: 'Timeline',  icon: '✅' },
   { id: 'details',   label: 'Details',   icon: '📋' },
@@ -1517,6 +1685,7 @@ const tabs = [
   { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
   { id: 'projects',   label: 'Projects',   icon: '🏗️' },
   { id: 'contacts',   label: 'Contacts',   icon: '👥' },
+  { id: 'seal',       label: 'Family Seal', icon: '🛡️' },
   { id: 'drive',      label: 'Drive',      icon: '📁' },
 ];
 
@@ -2629,6 +2798,946 @@ const AUTHOR_COLORS = {
   Natalie: { bg: 'var(--color-background-success)', text: 'var(--color-text-success)' },
 };
 
+// ── Maintenance ──────────────────────────────────────────────────
+
+const SEASON_META = {
+  Spring:  { color: '#2d6b3f', bg: '#e8f2ec', icon: '🌱', months: [3,4,5] },
+  Summer:  { color: '#8a6010', bg: '#faf0e0', icon: '☀️', months: [6,7,8] },
+  Fall:    { color: '#854f0b', bg: '#fdf3e7', icon: '🍂', months: [9,10,11] },
+  Winter:  { color: '#1d5c52', bg: '#e8f0ef', icon: '❄️', months: [12,1,2] },
+  Monthly: { color: '#5a3d8a', bg: '#f3eeff', icon: '📅', months: [] },
+  Annual:  { color: '#4a4540', bg: '#f0ede8', icon: '🗓️', months: [] },
+};
+
+const MONTH_NAMES = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const DEFAULT_MAINT_TASKS = [
+  // Spring
+  { id:'mt-001', title:'Service HVAC / AC — tune-up', season:'Spring', month:4, space:'', cost:120, notes:'Change filter, clean coils, check refrigerant', done:false, custom:false },
+  { id:'mt-002', title:'Inspect and clean gutters', season:'Spring', month:4, space:'Exterior & Curb Appeal', cost:0, notes:'Remove winter debris; check for sagging or separation', done:false, custom:false },
+  { id:'mt-003', title:'Check roof for winter damage', season:'Spring', month:4, space:'Exterior & Curb Appeal', cost:0, notes:'Inspect shingles, flashing, and chimney cap', done:false, custom:false },
+  { id:'mt-004', title:'Test smoke & CO detectors', season:'Spring', month:4, space:'Whole Home', cost:0, notes:'Replace batteries; verify test function on all units', done:false, custom:false },
+  { id:'mt-005', title:'Open and inspect pool', season:'Spring', month:5, space:'Pool & Backyard', cost:200, notes:'Balance chemicals, inspect pump/filter, remove cover', done:false, custom:false },
+  { id:'mt-006', title:'Inspect deck and fence', season:'Spring', month:5, space:'Pool & Backyard', cost:0, notes:'Check for rot, loose boards, nail pops; apply sealer if needed', done:false, custom:false },
+  { id:'mt-007', title:'Exterior caulk & weatherstripping check', season:'Spring', month:4, space:'Exterior & Curb Appeal', cost:30, notes:'Around windows, doors, and foundation penetrations', done:false, custom:false },
+  { id:'mt-008', title:'Lawn spring startup', season:'Spring', month:4, space:'Landscaping', cost:60, notes:'Aerate, overseed bare spots, apply pre-emergent, edge beds', done:false, custom:false },
+  { id:'mt-009', title:'Test GFCIs and outdoor outlets', season:'Spring', month:4, space:'Exterior & Curb Appeal', cost:0, notes:'Press test/reset on all GFCI outlets; especially pool area', done:false, custom:false },
+  { id:'mt-010', title:'Flush water heater', season:'Spring', month:5, space:'Laundry Room', cost:0, notes:'Drain 1–2 gallons to remove sediment buildup', done:false, custom:false },
+  // Summer
+  { id:'mt-011', title:'Check and clean dryer vent duct', season:'Summer', month:6, space:'Laundry Room', cost:0, notes:'Disconnect and vacuum full duct length; fire prevention', done:false, custom:false },
+  { id:'mt-012', title:'Inspect and clean garage door', season:'Summer', month:6, space:'Garage', cost:0, notes:'Lubricate springs, rollers, hinges; test auto-reverse', done:false, custom:false },
+  { id:'mt-013', title:'Check sump pump operation', season:'Summer', month:6, space:'Basement / Lower Level', cost:0, notes:'Pour water in pit to trigger float switch; confirm discharge', done:false, custom:false },
+  { id:'mt-014', title:'Pool mid-season service', season:'Summer', month:7, space:'Pool & Backyard', cost:60, notes:'Shock, rebalance chemicals, backwash filter', done:false, custom:false },
+  { id:'mt-015', title:'Check attic ventilation & insulation', season:'Summer', month:7, space:'Whole Home', cost:0, notes:'Look for moisture, pests, or gaps in insulation', done:false, custom:false },
+  { id:'mt-016', title:'Inspect window and door screens', season:'Summer', month:6, space:'Whole Home', cost:20, notes:'Repair or replace torn screens before mosquito season', done:false, custom:false },
+  { id:'mt-017', title:'Lawn irrigation check', season:'Summer', month:6, space:'Landscaping', cost:0, notes:'Inspect hoses, soaker lines, sprinkler heads for leaks', done:false, custom:false },
+  // Fall
+  { id:'mt-018', title:'Service furnace / heating system', season:'Fall', month:9, space:'', cost:120, notes:'Annual tune-up before heating season; replace filter', done:false, custom:false },
+  { id:'mt-019', title:'Winterize pool', season:'Fall', month:9, space:'Pool & Backyard', cost:150, notes:'Balance chemicals, lower water level, blow out lines, cover', done:false, custom:false },
+  { id:'mt-020', title:'Clean gutters (post-leaf fall)', season:'Fall', month:10, space:'Exterior & Curb Appeal', cost:0, notes:'Clear leaves and debris before first freeze', done:false, custom:false },
+  { id:'mt-021', title:'Drain and store outdoor hoses', season:'Fall', month:10, space:'Exterior & Curb Appeal', cost:0, notes:'Shut off exterior spigots and drain to prevent freeze damage', done:false, custom:false },
+  { id:'mt-022', title:'Check fireplace and chimney', season:'Fall', month:10, space:'Living Room', cost:150, notes:'Inspect flue, damper, firebox; schedule sweeping if needed', done:false, custom:false },
+  { id:'mt-023', title:'Test smoke & CO detectors', season:'Fall', month:10, space:'Whole Home', cost:0, notes:'Change batteries with daylight saving time change (Nov)', done:false, custom:false },
+  { id:'mt-024', title:'Caulk and seal windows before winter', season:'Fall', month:10, space:'Whole Home', cost:20, notes:'Re-caulk drafty windows; add door sweeps if needed', done:false, custom:false },
+  { id:'mt-025', title:'Lawn fall fertilizer and overseeding', season:'Fall', month:9, space:'Landscaping', cost:60, notes:'Apply winterizer fertilizer; overseed thin areas', done:false, custom:false },
+  { id:'mt-026', title:'Check attic and roof before winter', season:'Fall', month:10, space:'Exterior & Curb Appeal', cost:0, notes:'Inspect for leaks, gaps in insulation, and pest entry points', done:false, custom:false },
+  // Winter
+  { id:'mt-027', title:'Check and replace furnace filter', season:'Winter', month:1, space:'', cost:25, notes:'Check monthly in heating season; replace every 1–3 months', done:false, custom:false },
+  { id:'mt-028', title:'Inspect for ice dams and icicles', season:'Winter', month:1, space:'Exterior & Curb Appeal', cost:0, notes:'Rake snow off eaves if ice dams form; check for leaks inside', done:false, custom:false },
+  { id:'mt-029', title:'Check plumbing for freeze risk', season:'Winter', month:12, space:'Whole Home', cost:0, notes:'Insulate exposed pipes; let faucets drip in extreme cold', done:false, custom:false },
+  { id:'mt-030', title:'Reverse ceiling fans (clockwise)', season:'Winter', month:12, space:'Whole Home', cost:0, notes:'Low speed clockwise pushes warm air down; reduces heating costs', done:false, custom:false },
+  { id:'mt-031', title:'Test garage door seal / weather strip', season:'Winter', month:12, space:'Garage', cost:30, notes:'Replace bottom seal if daylight is visible; prevents cold drafts', done:false, custom:false },
+  // Monthly
+  { id:'mt-032', title:'Check furnace/AC filter', season:'Monthly', month:'', space:'', cost:10, notes:'Inspect monthly; replace every 1–3 months depending on use', done:false, custom:false },
+  { id:'mt-033', title:'Test smoke and CO alarms', season:'Monthly', month:'', space:'Whole Home', cost:0, notes:'Press test button on each unit', done:false, custom:false },
+  { id:'mt-034', title:'Run water in unused fixtures', season:'Monthly', month:'', space:'Whole Home', cost:0, notes:'Prevents sewer gas from P-traps drying out in guest baths', done:false, custom:false },
+  { id:'mt-035', title:'Check for plumbing leaks under sinks', season:'Monthly', month:'', space:'Whole Home', cost:0, notes:'Quick visual check under kitchen, bath, and laundry sinks', done:false, custom:false },
+  // Annual
+  { id:'mt-036', title:'Deep clean range hood and kitchen exhaust', season:'Annual', month:3, space:'Kitchen & Dining', cost:0, notes:'Degrease hood filters; clean blower if accessible', done:false, custom:false },
+  { id:'mt-037', title:'Pest inspection', season:'Annual', month:4, space:'Whole Home', cost:100, notes:'Annual walk-through for signs of termites, mice, or wasps', done:false, custom:false },
+  { id:'mt-038', title:'Clean refrigerator coils', season:'Annual', month:3, space:'Kitchen & Dining', cost:0, notes:'Pull fridge out and vacuum coils underneath/behind', done:false, custom:false },
+  { id:'mt-039', title:'Deep clean washer and dryer', season:'Annual', month:3, space:'Laundry Room', cost:0, notes:'Run washer cleaning cycle; wipe down door gasket and drum', done:false, custom:false },
+  { id:'mt-040', title:'Restock emergency supplies', season:'Annual', month:1, space:'', cost:50, notes:'Check first aid kit, flashlight batteries, fire extinguisher date', done:false, custom:false },
+];
+
+// maintTasks stores task definitions. Completions are stored separately in maintLog.
+// maintLog: [ { taskId, date (ISO), year, note, cost } ]
+// A task is "done this year" if maintLog has an entry with taskId + current year.
+// Monthly tasks are "done this month" if there's an entry in the current year+month.
+
+let maintTasks = JSON.parse(JSON.stringify(DEFAULT_MAINT_TASKS));
+let maintLog = []; // completion history
+let _maintEditId = null;
+let _maintView = 'schedule';
+let _maintLogTaskId = null; // which task's log drawer is open
+
+const THIS_YEAR = new Date().getFullYear();
+const THIS_MONTH = new Date().getMonth() + 1;
+
+function maintIsDoneThisPeriod(t) {
+  if (t.season === 'Monthly') {
+    return maintLog.some(e => e.taskId === t.id && e.year === THIS_YEAR && e.month === THIS_MONTH);
+  }
+  return maintLog.some(e => e.taskId === t.id && e.year === THIS_YEAR);
+}
+
+function maintLastEntry(taskId) {
+  const entries = maintLog.filter(e => e.taskId === taskId).sort((a,b) => b.date.localeCompare(a.date));
+  return entries[0] || null;
+}
+
+function maintTaskEntries(taskId) {
+  return maintLog.filter(e => e.taskId === taskId).sort((a,b) => b.date.localeCompare(a.date));
+}
+
+// ── Views ──
+
+function setMaintView(v) {
+  _maintView = v;
+  document.getElementById('maint-view-schedule').style.background = v === 'schedule' ? 'var(--teal-dark)' : 'transparent';
+  document.getElementById('maint-view-schedule').style.color = v === 'schedule' ? '#fff' : 'var(--color-text-secondary)';
+  document.getElementById('maint-view-calendar').style.background = v === 'calendar' ? 'var(--teal-dark)' : 'transparent';
+  document.getElementById('maint-view-calendar').style.color = v === 'calendar' ? '#fff' : 'var(--color-text-secondary)';
+  document.getElementById('maint-schedule-view').style.display = v === 'schedule' ? '' : 'none';
+  document.getElementById('maint-calendar-view').style.display = v === 'calendar' ? '' : 'none';
+  renderMaintenance();
+}
+window.setMaintView = setMaintView;
+
+function renderMaintenance() {
+  renderMaintSummary();
+  if (_maintView === 'schedule') renderMaintSchedule();
+  else renderMaintCalendar();
+}
+
+// ── Summary chips ──
+
+function renderMaintSummary() {
+  const chips = document.getElementById('maint-summary-chips');
+  if (!chips) return;
+  const total = maintTasks.length;
+  const done = maintTasks.filter(t => maintIsDoneThisPeriod(t)).length;
+  const seasons = ['Spring','Summer','Fall','Winter','Monthly','Annual'];
+  chips.innerHTML = `
+    <div style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:20px;font-size:12px;color:var(--color-text-secondary);">
+      <span style="font-weight:500;color:var(--color-text-primary);">${done}</span>/<span>${total}</span>&nbsp;done ${THIS_YEAR}
+    </div>
+    ${seasons.map(s => {
+      const m = SEASON_META[s];
+      const sts = maintTasks.filter(t => t.season === s);
+      const doneCount = sts.filter(t => maintIsDoneThisPeriod(t)).length;
+      return `<div style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:${m.bg};border-radius:20px;font-size:12px;color:${m.color};cursor:pointer;" onclick="filterMaintSeason('${s}')" title="Filter to ${s}">
+        ${m.icon} ${s} <span style="opacity:0.7;">${doneCount}/${sts.length}</span>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+window.filterMaintSeason = function(s) {
+  document.getElementById('maint-filter-season').value = s;
+  renderMaintenance();
+};
+
+// ── Schedule view ──
+
+function renderMaintSchedule() {
+  const list = document.getElementById('maint-schedule-list');
+  if (!list) return;
+  const filterSeason = document.getElementById('maint-filter-season').value;
+  const seasons = filterSeason ? [filterSeason] : ['Spring','Summer','Fall','Winter','Monthly','Annual'];
+  list.innerHTML = seasons.map(season => {
+    const tasks = maintTasks.filter(t => t.season === season);
+    if (!tasks.length) return '';
+    const m = SEASON_META[season];
+    const doneCount = tasks.filter(t => maintIsDoneThisPeriod(t)).length;
+    return `
+      <div style="margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:18px;">${m.icon}</span>
+          <span style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:${m.color};">${season}</span>
+          <span style="font-size:11px;color:var(--color-text-tertiary);margin-left:2px;">${doneCount}/${tasks.length} done</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${tasks.map(t => renderMaintTaskRow(t)).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMaintTaskRow(t) {
+  const isDone = maintIsDoneThisPeriod(t);
+  const monthLabel = t.month ? MONTH_NAMES[parseInt(t.month)] : '';
+  const last = maintLastEntry(t.id);
+  const histCount = maintTaskEntries(t.id).length;
+  const logOpen = _maintLogTaskId === t.id;
+
+  return `
+    <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;${isDone ? 'opacity:0.6;' : ''}">
+        <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleMaintDone('${t.id}',this.checked)"
+          style="margin-top:3px;flex-shrink:0;accent-color:var(--teal);width:15px;height:15px;cursor:pointer;" />
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:13px;font-weight:400;color:var(--color-text-primary);${isDone ? 'text-decoration:line-through;' : ''}">${t.title}</span>
+            ${t.custom ? `<span style="font-size:10px;padding:1px 7px;background:var(--color-background-info);color:var(--color-text-info);border-radius:10px;">custom</span>` : ''}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;align-items:center;">
+            ${monthLabel ? `<span style="font-size:11px;color:var(--color-text-tertiary);">📅 ${monthLabel}</span>` : ''}
+            ${t.space ? `<span style="font-size:11px;color:var(--color-text-tertiary);">🏠 ${t.space}</span>` : ''}
+            ${t.cost ? `<span style="font-size:11px;color:var(--color-text-tertiary);">~$${t.cost}</span>` : ''}
+            ${t.notes ? `<span style="font-size:11px;color:var(--color-text-tertiary);font-style:italic;">${t.notes}</span>` : ''}
+          </div>
+          ${last ? `<div style="margin-top:5px;font-size:11px;color:var(--color-text-success);">✓ Last done: ${formatMaintDate(last.date)}${last.cost ? ' · $'+last.cost : ''}${last.note ? ' — '+last.note : ''}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button onclick="toggleMaintLog('${t.id}')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:${histCount ? '0.8' : '0.3'};padding:2px 5px;" title="${histCount} completion${histCount!==1?'s':''} logged">
+            🕐${histCount ? `<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:1px;">${histCount}</span>` : ''}
+          </button>
+          <button onclick="openMaintForm('${t.id}')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:0.35;padding:2px 4px;" title="Edit">✏️</button>
+        </div>
+      </div>
+      ${logOpen ? renderMaintLogDrawer(t) : ''}
+    </div>
+  `;
+}
+
+function renderMaintLogDrawer(t) {
+  const entries = maintTaskEntries(t.id);
+  return `
+    <div style="border-top:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);padding:12px 14px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-text-tertiary);margin-bottom:8px;">Completion history</div>
+      ${entries.length ? `
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+          ${entries.map(e => `
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+              <div>
+                <span style="font-size:12px;font-weight:500;color:var(--color-text-success);">✓ ${formatMaintDate(e.date)}</span>
+                ${e.cost ? `<span style="font-size:11px;color:var(--color-text-secondary);margin-left:6px;">$${e.cost}</span>` : ''}
+                ${e.note ? `<div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;font-style:italic;">${e.note}</div>` : ''}
+              </div>
+              <button onclick="deleteMaintLogEntry('${e.id}')" style="background:none;border:none;font-size:11px;color:var(--color-text-tertiary);cursor:pointer;opacity:0.5;flex-shrink:0;padding:0 2px;" title="Remove">✕</button>
+            </div>
+          `).join('')}
+        </div>
+      ` : `<div style="font-size:12px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:10px;">No completions logged yet.</div>`}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <input id="maint-log-note-${t.id}" type="text" placeholder="Note (optional)" style="flex:1;min-width:120px;font-size:12px;padding:6px 8px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+        <div style="position:relative;">
+          <span style="position:absolute;left:7px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--color-text-tertiary);">$</span>
+          <input id="maint-log-cost-${t.id}" type="number" min="0" placeholder="Cost" style="width:80px;font-size:12px;padding:6px 8px 6px 18px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+        </div>
+        <button onclick="logMaintCompletion('${t.id}')" style="padding:6px 14px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">Log complete</button>
+      </div>
+    </div>
+  `;
+}
+
+function formatMaintDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ── Calendar view ──
+
+function renderMaintCalendar() {
+  const grid = document.getElementById('maint-calendar-grid');
+  if (!grid) return;
+  const filterSeason = document.getElementById('maint-filter-season').value;
+  const months = [
+    {n:'January',m:1},{n:'February',m:2},{n:'March',m:3},{n:'April',m:4},
+    {n:'May',m:5},{n:'June',m:6},{n:'July',m:7},{n:'August',m:8},
+    {n:'September',m:9},{n:'October',m:10},{n:'November',m:11},{n:'December',m:12}
+  ];
+  grid.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+    ${months.map(({n,m}) => {
+      const tasks = maintTasks.filter(t => {
+        if (filterSeason && t.season !== filterSeason) return false;
+        if (t.season === 'Monthly') return true;
+        if (t.month && parseInt(t.month) === m) return true;
+        if (!t.month && SEASON_META[t.season] && SEASON_META[t.season].months.includes(m)) return true;
+        return false;
+      });
+      const doneInMonth = tasks.filter(t => {
+        if (t.season === 'Monthly') return maintLog.some(e => e.taskId === t.id && e.year === THIS_YEAR && e.month === m);
+        return maintLog.some(e => e.taskId === t.id && e.year === THIS_YEAR);
+      }).length;
+      const isCurrent = m === THIS_MONTH;
+      return `<div style="background:var(--color-background-primary);border:0.5px solid ${isCurrent ? 'var(--teal)' : 'var(--color-border-tertiary)'};border-radius:var(--border-radius-md);overflow:hidden;">
+        <div style="padding:8px 12px;background:${isCurrent ? 'var(--teal-dark)' : 'var(--color-background-secondary)'};display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:12px;font-weight:500;color:${isCurrent ? '#fff' : 'var(--color-text-primary)'};letter-spacing:0.04em;">${n}</span>
+          ${tasks.length ? `<span style="font-size:10px;color:${isCurrent ? 'rgba(255,255,255,0.6)' : 'var(--color-text-tertiary)'};">${doneInMonth}/${tasks.length}</span>` : ''}
+        </div>
+        <div style="padding:8px 10px;display:flex;flex-direction:column;gap:5px;min-height:40px;">
+          ${tasks.length ? tasks.map(t => {
+            const d = t.season === 'Monthly'
+              ? maintLog.some(e => e.taskId === t.id && e.year === THIS_YEAR && e.month === m)
+              : maintLog.some(e => e.taskId === t.id && e.year === THIS_YEAR);
+            return `<div style="display:flex;align-items:center;gap:5px;">
+              <span style="font-size:13px;">${d ? '✅' : '⬜'}</span>
+              <span style="font-size:11px;color:var(--color-text-secondary);${d?'text-decoration:line-through;opacity:0.55;':''}line-height:1.3;cursor:pointer;" onclick="toggleMaintLog('${t.id}');setMaintView('schedule');filterMaintSeason('${t.season}')">${SEASON_META[t.season].icon} ${t.title}</span>
+            </div>`;
+          }).join('') : `<span style="font-size:11px;color:var(--color-text-tertiary);font-style:italic;">No tasks</span>`}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ── Log actions ──
+
+function toggleMaintLog(taskId) {
+  _maintLogTaskId = _maintLogTaskId === taskId ? null : taskId;
+  renderMaintenance();
+}
+window.toggleMaintLog = toggleMaintLog;
+
+function logMaintCompletion(taskId) {
+  const noteEl = document.getElementById('maint-log-note-' + taskId);
+  const costEl = document.getElementById('maint-log-cost-' + taskId);
+  const today = new Date();
+  const iso = today.toISOString().slice(0,10);
+  maintLog.push({
+    id: 'ml-' + Date.now(),
+    taskId,
+    date: iso,
+    year: today.getFullYear(),
+    month: today.getMonth() + 1,
+    note: noteEl ? noteEl.value.trim() : '',
+    cost: costEl ? (parseFloat(costEl.value) || 0) : 0,
+  });
+  persistAll();
+  renderMaintenance();
+  gaEvent('maint_task_logged', { task_id: taskId });
+}
+window.logMaintCompletion = logMaintCompletion;
+
+function deleteMaintLogEntry(entryId) {
+  maintLog = maintLog.filter(e => e.id !== entryId);
+  persistAll();
+  renderMaintenance();
+}
+window.deleteMaintLogEntry = deleteMaintLogEntry;
+
+// Checking the checkbox opens the log drawer pre-filled to log; unchecking removes most recent THIS_YEAR entry
+function toggleMaintDone(id, checked) {
+  if (checked) {
+    // Open log drawer so they can add details
+    _maintLogTaskId = id;
+    renderMaintenance();
+    // Scroll the drawer into view
+    setTimeout(() => {
+      const noteEl = document.getElementById('maint-log-note-' + id);
+      if (noteEl) { noteEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); noteEl.focus(); }
+    }, 80);
+  } else {
+    // Uncheck = remove most recent THIS_YEAR completion
+    const t = maintTasks.find(t => t.id === id);
+    const entries = maintLog.filter(e => {
+      if (e.taskId !== id) return false;
+      if (t && t.season === 'Monthly') return e.year === THIS_YEAR && e.month === THIS_MONTH;
+      return e.year === THIS_YEAR;
+    }).sort((a,b) => b.date.localeCompare(a.date));
+    if (entries.length) maintLog = maintLog.filter(e => e.id !== entries[0].id);
+    persistAll();
+    renderMaintenance();
+  }
+}
+window.toggleMaintDone = toggleMaintDone;
+
+// ── Add / Edit task form ──
+
+function openMaintForm(id) {
+  _maintEditId = id || null;
+  const modal = document.getElementById('maint-modal-backdrop');
+  const titleEl = document.getElementById('maint-modal-title');
+  const delBtn = document.getElementById('maint-modal-delete');
+  const spaceSelect = document.getElementById('maint-f-space');
+  spaceSelect.innerHTML = '<option value="">General</option>' + spaceNames().map(n => `<option value="${n}">${n}</option>`).join('');
+  if (id) {
+    const t = maintTasks.find(t => t.id === id);
+    if (!t) return;
+    titleEl.textContent = 'Edit Maintenance Task';
+    document.getElementById('maint-f-title').value = t.title;
+    document.getElementById('maint-f-season').value = t.season;
+    document.getElementById('maint-f-month').value = t.month || '';
+    spaceSelect.value = t.space || '';
+    document.getElementById('maint-f-cost').value = t.cost || '';
+    document.getElementById('maint-f-notes').value = t.notes || '';
+    delBtn.style.display = '';
+  } else {
+    titleEl.textContent = 'Add Maintenance Task';
+    document.getElementById('maint-f-title').value = '';
+    document.getElementById('maint-f-season').value = 'Spring';
+    document.getElementById('maint-f-month').value = '';
+    spaceSelect.value = '';
+    document.getElementById('maint-f-cost').value = '';
+    document.getElementById('maint-f-notes').value = '';
+    delBtn.style.display = 'none';
+  }
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('maint-f-title').focus(), 50);
+}
+window.openMaintForm = openMaintForm;
+
+function closeMaintModal() {
+  document.getElementById('maint-modal-backdrop').style.display = 'none';
+  _maintEditId = null;
+}
+window.closeMaintModal = closeMaintModal;
+
+function closeMaintModalBackdrop(e) {
+  if (e.target === document.getElementById('maint-modal-backdrop')) closeMaintModal();
+}
+window.closeMaintModalBackdrop = closeMaintModalBackdrop;
+
+function saveMaintTask() {
+  const title = document.getElementById('maint-f-title').value.trim();
+  if (!title) { document.getElementById('maint-f-title').focus(); return; }
+  const data = {
+    title,
+    season: document.getElementById('maint-f-season').value,
+    month: document.getElementById('maint-f-month').value,
+    space: document.getElementById('maint-f-space').value,
+    cost: parseFloat(document.getElementById('maint-f-cost').value) || 0,
+    notes: document.getElementById('maint-f-notes').value.trim(),
+  };
+  if (_maintEditId) {
+    const idx = maintTasks.findIndex(t => t.id === _maintEditId);
+    if (idx >= 0) maintTasks[idx] = { ...maintTasks[idx], ...data };
+  } else {
+    maintTasks.push({ id: 'mt-' + Date.now(), custom: true, ...data });
+  }
+  closeMaintModal();
+  persistAll();
+  renderMaintenance();
+}
+window.saveMaintTask = saveMaintTask;
+
+function deleteMaintTask() {
+  if (!_maintEditId) return;
+  if (!confirm('Remove this maintenance task? History will also be deleted.')) return;
+  maintLog = maintLog.filter(e => e.taskId !== _maintEditId);
+  maintTasks = maintTasks.filter(t => t.id !== _maintEditId);
+  closeMaintModal();
+  persistAll();
+  renderMaintenance();
+}
+window.deleteMaintTask = deleteMaintTask;
+
+// ── Maintenance History Modal ──────────────────────────────────────
+
+function openMaintHistory() {
+  const backdrop = document.getElementById('maint-history-backdrop');
+  // Build year options from log + current year
+  const years = [...new Set([THIS_YEAR, ...maintLog.map(e => e.year)])].sort((a,b) => b - a);
+  const sel = document.getElementById('maint-history-year');
+  sel.innerHTML = years.map(y => `<option value="${y}"${y === THIS_YEAR ? ' selected' : ''}>${y}</option>`).join('');
+  backdrop.style.display = 'flex';
+  renderMaintHistoryModal();
+}
+window.openMaintHistory = openMaintHistory;
+
+function closeMaintHistory() {
+  document.getElementById('maint-history-backdrop').style.display = 'none';
+}
+window.closeMaintHistory = closeMaintHistory;
+
+function closeMaintHistoryBackdrop(e) {
+  if (e.target === document.getElementById('maint-history-backdrop')) closeMaintHistory();
+}
+window.closeMaintHistoryBackdrop = closeMaintHistoryBackdrop;
+
+function renderMaintHistoryModal() {
+  const year = parseInt(document.getElementById('maint-history-year').value);
+  const body = document.getElementById('maint-history-body');
+  const footer = document.getElementById('maint-history-footer');
+
+  // All log entries for this year, sorted by date descending
+  const yearEntries = maintLog
+    .filter(e => e.year === year)
+    .sort((a,b) => b.date.localeCompare(a.date));
+
+  if (!yearEntries.length) {
+    body.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;">
+      <div style="font-size:32px;margin-bottom:10px;">📋</div>
+      <div style="font-size:14px;color:var(--color-text-secondary);">No completions logged for ${year} yet.</div>
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:6px;">Check off tasks in the schedule to start building your history.</div>
+    </div>`;
+    footer.innerHTML = '';
+    return;
+  }
+
+  // Group by season, then task
+  const seasons = ['Spring','Summer','Fall','Winter','Monthly','Annual'];
+  const byTask = {};
+  yearEntries.forEach(e => {
+    if (!byTask[e.taskId]) byTask[e.taskId] = [];
+    byTask[e.taskId].push(e);
+  });
+
+  // Build season groups
+  let totalCost = 0;
+  yearEntries.forEach(e => { totalCost += (e.cost || 0); });
+
+  const html = seasons.map(season => {
+    const tasks = maintTasks.filter(t => t.season === season && byTask[t.id]);
+    if (!tasks.length) return '';
+    const m = SEASON_META[season];
+    return `
+      <div style="margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary);">
+          <span style="font-size:16px;">${m.icon}</span>
+          <span style="font-family:var(--font-serif);font-size:17px;font-weight:400;color:${m.color};">${season}</span>
+          <span style="font-size:11px;color:var(--color-text-tertiary);">${tasks.length} task${tasks.length!==1?'s':''}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${tasks.map(t => {
+            const entries = byTask[t.id].sort((a,b) => b.date.localeCompare(a.date));
+            const taskCost = entries.reduce((s,e) => s + (e.cost||0), 0);
+            return `
+              <div style="padding:10px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:${entries.length > 1 ? '8px' : '0'};">
+                  <div style="font-size:13px;font-weight:400;color:var(--color-text-primary);">✓ ${t.title}</div>
+                  ${taskCost ? `<div style="font-size:12px;font-weight:500;color:var(--color-text-success);flex-shrink:0;">$${taskCost.toLocaleString()}</div>` : ''}
+                </div>
+                ${entries.map((e,i) => `
+                  <div style="display:flex;align-items:baseline;gap:8px;${i > 0 ? 'margin-top:5px;padding-top:5px;border-top:0.5px solid var(--color-border-tertiary);' : ''}">
+                    <span style="font-size:11px;color:var(--color-text-tertiary);flex-shrink:0;">${formatMaintDate(e.date)}</span>
+                    ${e.cost ? `<span style="font-size:11px;color:var(--color-text-success);">$${e.cost}</span>` : ''}
+                    ${e.note ? `<span style="font-size:11px;color:var(--color-text-secondary);font-style:italic;">${e.note}</span>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Also show any logged tasks that aren't in the default task list (deleted tasks)
+  const orphanTaskIds = Object.keys(byTask).filter(tid => !maintTasks.find(t => t.id === tid));
+  const orphanHtml = orphanTaskIds.length ? `
+    <div style="margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary);">
+        <span style="font-size:16px;">🗃️</span>
+        <span style="font-family:var(--font-serif);font-size:17px;font-weight:400;color:var(--color-text-secondary);">Other</span>
+        <span style="font-size:11px;color:var(--color-text-tertiary);">(removed tasks)</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${orphanTaskIds.map(tid => {
+          const entries = byTask[tid].sort((a,b) => b.date.localeCompare(a.date));
+          const label = entries[0].taskId;
+          return `<div style="padding:10px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);opacity:0.7;">
+            <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:6px;">Task ID: ${label}</div>
+            ${entries.map(e => `
+              <div style="font-size:11px;color:var(--color-text-secondary);">
+                ${formatMaintDate(e.date)}${e.cost ? ' · $'+e.cost : ''}${e.note ? ' — '+e.note : ''}
+              </div>
+            `).join('')}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  body.innerHTML = html + orphanHtml || `<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;">No completions yet.</div>`;
+
+  // Footer summary
+  const completedCount = Object.keys(byTask).length;
+  footer.innerHTML = `
+    <div style="font-size:12px;color:var(--color-text-secondary);">
+      <span style="font-weight:500;color:var(--color-text-primary);">${completedCount}</span> task${completedCount!==1?'s':''} completed
+    </div>
+    <div style="font-size:12px;color:var(--color-text-secondary);">
+      <span style="font-weight:500;color:var(--color-text-primary);">${yearEntries.length}</span> total log entr${yearEntries.length!==1?'ies':'y'}
+    </div>
+    ${totalCost ? `<div style="font-size:12px;color:var(--color-text-success);font-weight:500;">$${totalCost.toLocaleString()} total spend</div>` : ''}
+    <div style="margin-left:auto;">
+      <button onclick="exportMaintHistory(${year})" style="padding:5px 12px;background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:11px;cursor:pointer;font-family:var(--font-sans);">⬇ Export CSV</button>
+    </div>
+  `;
+}
+window.renderMaintHistoryModal = renderMaintHistoryModal;
+
+function exportMaintHistory(year) {
+  const yearEntries = maintLog.filter(e => e.year === year).sort((a,b) => b.date.localeCompare(a.date));
+  if (!yearEntries.length) return;
+  const rows = [['Date','Task','Season','Space','Cost','Note']];
+  yearEntries.forEach(e => {
+    const t = maintTasks.find(t => t.id === e.taskId) || { title: e.taskId, season: '', space: '' };
+    rows.push([e.date, t.title, t.season, t.space||'', e.cost||0, e.note||'']);
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `shiloh-maintenance-${year}.csv`;
+  a.click();
+}
+window.exportMaintHistory = exportMaintHistory;
+
+
+// ── Family Seal Generator ────────────────────────────────────────
+
+let savedSeals = [];
+
+const SEAL_HERALDIC_PROMPT = (surname) => `You are a herald and expert in European and world heraldry. Given the surname "${surname}", research its etymology, geographic origin, and any known historical symbolism. Then design a coat of arms.
+
+Respond ONLY with a valid JSON object — no markdown, no explanation, no backticks. Exactly these fields:
+
+{
+  "surname": "${surname}",
+  "origin": "one short phrase, e.g. German — Rhine Valley",
+  "meaning": "one sentence about etymology",
+  "motto": "Latin or culturally appropriate motto, 4-7 words",
+  "motto_translation": "English translation",
+  "shield_style": "one of: quarterly, per_pale, per_fess, plain, per_bend, gyronny",
+  "tinctures": {
+    "primary": "one of: gules, azure, sable, vert, purpure, or, argent",
+    "secondary": "one of: or, argent, gules, azure, sable, vert",
+    "accent": "one of: or, argent, gules, sable"
+  },
+  "charges": [
+    { "symbol": "one of: fox, lion, eagle, cross, star, fleur_de_lis, tree, wave, tower, bear, wolf, fish, moon, sun, sword, rose, anchor, key, owl, boar, chevron_charge", "position": "center", "count": 1 }
+  ],
+  "lore": "2-3 sentences of vivid heraldic lore about this family. Make it feel authentic."
+}
+
+Charges array: 1-3 items. Choose symbols that genuinely relate to the name etymology or regional tradition.`;
+
+const SEAL_TINCTURES = {
+  gules:   '#B22222', azure:   '#1B3A8C', sable:   '#1C1C1C',
+  vert:    '#2A6B3A', purpure: '#5B2A6B', or:      '#C4973A', argent: '#F0EBE0',
+};
+function sTC(t) { return SEAL_TINCTURES[t] || '#888'; }
+function sTextOn(t) { return ['or','argent'].includes(t) ? '#2A1F0A' : '#F5F0E8'; }
+
+function sealQuick(name) {
+  document.getElementById('seal-surname-input').value = name;
+  generateSeal();
+}
+window.sealQuick = sealQuick;
+
+async function generateSeal() {
+  const surname = document.getElementById('seal-surname-input').value.trim();
+  if (!surname) { document.getElementById('seal-surname-input').focus(); return; }
+  const btn = document.getElementById('seal-generate-btn');
+  const status = document.getElementById('seal-status');
+  const output = document.getElementById('seal-output');
+  btn.disabled = true;
+  status.innerHTML = `<span style="display:inline-block;width:13px;height:13px;border:2px solid rgba(29,92,82,.2);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;"></span>Researching the ${surname} lineage…`;
+  output.innerHTML = '';
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: SEAL_HERALDIC_PROMPT(surname) }]
+      })
+    });
+    if (!resp.ok) {
+      const t = await resp.text().catch(() => '');
+      throw new Error(`HTTP ${resp.status}: ${t.slice(0,200)}`);
+    }
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    const raw = data.content?.find(b => b.type === 'text')?.text || '';
+    if (!raw) throw new Error('Empty API response');
+    let h;
+    try { h = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch(pe) { throw new Error('Could not parse heraldic data: ' + pe.message); }
+    status.innerHTML = '';
+    renderSealOutput(h, output);
+    gaEvent('family_seal_generated', { surname });
+  } catch(e) {
+    console.error('Seal error:', e);
+    status.innerHTML = '';
+    output.innerHTML = `<div style="padding:12px 16px;background:var(--color-background-danger);border-radius:var(--border-radius-md);color:var(--color-text-danger);font-size:13px;"><strong>Error:</strong> ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+window.generateSeal = generateSeal;
+
+function renderSealOutput(h, container) {
+  const svgStr = buildCoatOfArmsSVG(h);
+  container.innerHTML = `
+    <div style="display:flex;gap:2.5rem;flex-wrap:wrap;align-items:flex-start;animation:fadeSlideIn .5s ease;">
+      <div style="flex-shrink:0;text-align:center;">
+        ${svgStr}
+        <div style="font-family:var(--font-serif);font-size:20px;font-weight:300;letter-spacing:.16em;text-transform:uppercase;margin-top:10px;color:var(--warm-dark);">${h.surname}</div>
+        <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:3px;letter-spacing:.04em;">${h.origin}</div>
+        <button onclick="saveSeal(${JSON.stringify(JSON.stringify(h))})" style="margin-top:12px;padding:5px 14px;background:transparent;color:var(--teal);border:0.5px solid var(--teal);border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font-sans);letter-spacing:.04em;">🔖 Save this seal</button>
+      </div>
+      <div style="flex:1;min-width:220px;padding-top:8px;">
+        <div style="font-family:var(--font-serif);font-size:15px;font-style:italic;color:var(--warm-dark);margin-bottom:4px;">"${h.motto}"</div>
+        <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:1.25rem;letter-spacing:.03em;">${h.motto_translation}</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:6px;">Etymology</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:1.25rem;">${h.meaning}</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:6px;">Heraldic Record</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.7;">${h.lore}</div>
+        <div style="margin-top:1.25rem;display:flex;gap:8px;flex-wrap:wrap;">
+          ${['primary','secondary','accent'].map(k => {
+            const t = h.tinctures[k];
+            return `<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:50%;background:${sTC(t)};border:0.5px solid rgba(0,0,0,.15);"></div><span style="font-size:11px;color:var(--color-text-tertiary);text-transform:capitalize;">${t}</span></div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function saveSeal(jsonStr) {
+  try {
+    const h = JSON.parse(jsonStr);
+    if (savedSeals.find(s => s.surname.toLowerCase() === h.surname.toLowerCase())) {
+      alert('A seal for ' + h.surname + ' is already saved.');
+      return;
+    }
+    savedSeals.push(h);
+    persistAll();
+    renderSavedSeals();
+  } catch(e) { console.error(e); }
+}
+window.saveSeal = saveSeal;
+
+function removeSavedSeal(surname) {
+  savedSeals = savedSeals.filter(s => s.surname.toLowerCase() !== surname.toLowerCase());
+  persistAll();
+  renderSavedSeals();
+}
+window.removeSavedSeal = removeSavedSeal;
+
+function renderSavedSeals() {
+  const section = document.getElementById('seal-saved-section');
+  const list = document.getElementById('seal-saved-list');
+  if (!section || !list) return;
+  if (!savedSeals.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  list.innerHTML = savedSeals.map(h => `
+    <div style="text-align:center;cursor:pointer;position:relative;" onclick="sealQuick('${h.surname.replace(/'/,"\'")}')">
+      <div style="width:90px;margin:0 auto;">${buildCoatOfArmsSVG(h, 90)}</div>
+      <div style="font-family:var(--font-serif);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-top:6px;color:var(--warm-dark);">${h.surname}</div>
+      <button onclick="event.stopPropagation();removeSavedSeal('${h.surname.replace(/'/,"\'")}')" style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--color-background-danger);color:var(--color-text-danger);border:none;font-size:10px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+  `).join('');
+}
+
+// ── Coat of Arms SVG Builder ──────────────────────────────────────
+
+function buildCoatOfArmsSVG(h, width) {
+  const W = 300, H = 400;
+  const pri = sTC(h.tinctures.primary);
+  const sec = sTC(h.tinctures.secondary);
+  const acc = sTC(h.tinctures.accent);
+  const priTxt = sTextOn(h.tinctures.primary);
+  const style = h.shield_style || 'plain';
+
+  // Classic heater shield path
+  const SP = 'M 30 20 L 270 20 L 270 200 Q 270 300 150 370 Q 30 300 30 200 Z';
+
+  // Division fills
+  let fills = '';
+  const clip = `<clipPath id="sc-${h.surname}"><path d="${SP}"/></clipPath>`;
+  const cu = `clip-path="url(#sc-${h.surname})"`;
+
+  if (style === 'quarterly') {
+    fills = `${clip}<rect x="30" y="20" width="120" height="180" fill="${pri}" ${cu}/><rect x="150" y="20" width="120" height="180" fill="${sec}" ${cu}/><rect x="30" y="200" width="120" height="180" fill="${sec}" ${cu}/><rect x="150" y="200" width="120" height="180" fill="${pri}" ${cu}/>`;
+  } else if (style === 'per_pale') {
+    fills = `${clip}<rect x="30" y="20" width="120" height="370" fill="${pri}" ${cu}/><rect x="150" y="20" width="120" height="370" fill="${sec}" ${cu}/>`;
+  } else if (style === 'per_fess') {
+    fills = `${clip}<rect x="30" y="20" width="240" height="180" fill="${pri}" ${cu}/><rect x="30" y="200" width="240" height="180" fill="${sec}" ${cu}/>`;
+  } else if (style === 'per_bend') {
+    fills = `${clip}<polygon points="30,20 270,20 30,380" fill="${pri}" ${cu}/><polygon points="270,20 270,200 150,370 30,380" fill="${sec}" ${cu}/>`;
+  } else if (style === 'gyronny') {
+    fills = `${clip}<polygon points="150,195 30,20 270,20" fill="${pri}" ${cu}/><polygon points="150,195 270,20 270,195" fill="${sec}" ${cu}/><polygon points="150,195 270,195 210,330 150,370" fill="${pri}" ${cu}/><polygon points="150,195 150,370 90,330 30,195" fill="${sec}" ${cu}/><polygon points="150,195 30,195 30,20" fill="${sec}" ${cu}/><polygon points="150,195 90,330 150,370" fill="${pri}" ${cu}/>`;
+  } else {
+    fills = `${clip}<path d="${SP}" fill="${pri}" ${cu}/>`;
+  }
+
+  // Charges
+  const chargesSVG = (h.charges || []).map((ch, i) => {
+    const pos = sealChargePos(i, h.charges.length);
+    return sealCharge(ch.symbol, pos.x, pos.y, pos.r, sec, acc, pri);
+  }).join('');
+
+  // Wreath bumps
+  const w1 = pri, w2 = sec;
+  const wreathBumps = [-30,-18,-6,6,18,30].map((x,i) =>
+    `<ellipse cx="${x}" cy="0" rx="7" ry="5.5" fill="${i%2===0?w1:w2}" stroke="rgba(0,0,0,.25)" stroke-width=".8"/>`
+  ).join('');
+
+  // Motto ribbon
+  const ribbonY = 398;
+
+  const svgW = width || 240;
+  return `<svg width="${svgW}" height="${Math.round(svgW*H/W)}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
+  <defs>
+    <filter id="shd-${h.surname}" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(10,30,20,.2)"/>
+    </filter>
+  </defs>
+  <g filter="url(#shd-${h.surname})">
+    ${fills}
+    <path d="${SP}" fill="none" stroke="#8a6010" stroke-width="2.5"/>
+    <path d="${SP}" fill="none" stroke="rgba(240,217,168,.45)" stroke-width="1"/>
+  </g>
+  <clipPath id="chc-${h.surname}"><path d="${SP}"/></clipPath>
+  <g clip-path="url(#chc-${h.surname})">${chargesSVG}</g>
+  <g transform="translate(150,18)">
+    <ellipse cx="0" cy="-16" rx="26" ry="19" fill="${sec}" stroke="#8a6010" stroke-width="1.5"/>
+    <line x1="-16" y1="-12" x2="16" y2="-12" stroke="#8a6010" stroke-width="1.5"/>
+    <line x1="-20" y1="-8"  x2="20" y2="-8"  stroke="#8a6010" stroke-width="1.5"/>
+    <line x1="-22" y1="-4"  x2="22" y2="-4"  stroke="#8a6010" stroke-width="1.5"/>
+    ${wreathBumps}
+  </g>
+  <g transform="translate(150,${ribbonY})">
+    <path d="M-110,0 Q-90,-13 0,-13 Q90,-13 110,0 Q90,13 0,13 Q-90,13 -110,0Z" fill="${pri}" stroke="#8a6010" stroke-width="1.5"/>
+    <path d="M-110,0 Q-90,-13 0,-13 Q90,-13 110,0 Q90,13 0,13 Q-90,13 -110,0Z" fill="none" stroke="${acc}" stroke-width=".5" opacity=".5"/>
+    <text x="0" y="0" text-anchor="middle" dominant-baseline="central"
+      font-family="Cormorant Garamond,Georgia,serif" font-size="10" font-style="italic"
+      letter-spacing="1.5" fill="${priTxt}" opacity=".9">${(h.motto||'').slice(0,38)}</text>
+  </g>
+</svg>`;
+}
+
+function sealChargePos(idx, total) {
+  if (total === 1) return { x:150, y:195, r:58 };
+  if (total === 2) return { x: idx===0 ? 105 : 195, y:195, r:46 };
+  const positions = [{x:150,y:140,r:42},{x:100,y:245,r:38},{x:200,y:245,r:38}];
+  return positions[idx] || {x:150,y:195,r:40};
+}
+
+function sealCharge(symbol, cx, cy, r, fill, stroke, bg) {
+  const s = r;
+  const shapes = {
+    fox: () => `<g transform="translate(${cx},${cy})">
+      <ellipse cx="0" cy="${s*.15}" rx="${s*.6}" ry="${s*.38}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <ellipse cx="${s*.38}" cy="-${s*.18}" rx="${s*.3}" ry="${s*.24}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <polygon points="${s*.22},-${s*.36} ${s*.3},-${s*.52} ${s*.44},-${s*.34}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <polygon points="${s*.42},-${s*.28} ${s*.54},-${s*.44} ${s*.62},-${s*.26}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <ellipse cx="${s*.6}" cy="-${s*.1}" rx="${s*.08}" ry="${s*.06}" fill="${stroke}"/>
+      <path d="M-${s*.6},${s*.1} Q-${s*.9},-${s*.1} -${s*.72},-${s*.36} Q-${s*.52},-${s*.52} -${s*.36},-${s*.28}" fill="${fill}" stroke="${fill}" stroke-width="${s*.2}" stroke-linecap="round"/>
+      <ellipse cx="-${s*.72}" cy="-${s*.36}" rx="${s*.1}" ry="${s*.08}" fill="${bg==='argent'?'#e8e0d0':'#F0EBE0'}"/>
+    </g>`,
+    lion: () => `<g transform="translate(${cx},${cy})">
+      <ellipse cx="0" cy="${s*.1}" rx="${s*.52}" ry="${s*.36}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <circle cx="${s*.3}" cy="-${s*.2}" r="${s*.3}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      ${[0,45,90,135,180,225,270,315].map(a=>{const rad=a*Math.PI/180;const mx=s*.3+Math.cos(rad)*s*.42;const my=-s*.2+Math.sin(rad)*s*.42;return `<ellipse cx="${mx}" cy="${my}" rx="${s*.12}" ry="${s*.07}" fill="${stroke}" transform="rotate(${a},${mx},${my})"/>`;}).join('')}
+      <path d="M${s*.58},${s*.25} Q${s*.76},${s*.1} ${s*.78},-${s*.08} L${s*.88},-${s*.04}" fill="none" stroke="${fill}" stroke-width="${s*.18}" stroke-linecap="round"/>
+      <polygon points="${s*.88},-${s*.04} ${s*.96},${s*.04} ${s*.8},-${s*.14}" fill="${stroke}"/>
+    </g>`,
+    eagle: () => `<g transform="translate(${cx},${cy})">
+      <ellipse cx="0" cy="${s*.05}" rx="${s*.22}" ry="${s*.32}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <path d="M-${s*.22},-${s*.02} Q-${s*.74},-${s*.28} -${s*.84},-${s*.52} Q-${s*.62},-${s*.18} -${s*.22},${s*.12}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <path d="M${s*.22},-${s*.02} Q${s*.74},-${s*.28} ${s*.84},-${s*.52} Q${s*.62},-${s*.18} ${s*.22},${s*.12}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <circle cx="0" cy="-${s*.2}" r="${s*.2}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <path d="M-${s*.08},-${s*.06} L0,${s*.1} L${s*.08},-${s*.06}" fill="${stroke}"/>
+    </g>`,
+    cross: () => `<g transform="translate(${cx},${cy})">
+      <rect x="-${s*.13}" y="-${s*.52}" width="${s*.26}" height="${s}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <rect x="-${s*.52}" y="-${s*.13}" width="${s}" height="${s*.26}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+    </g>`,
+    star: () => {
+      const pts=[];for(let i=0;i<12;i++){const a=i*30*Math.PI/180-Math.PI/2;const rad=i%2===0?s*.52:s*.24;pts.push(`${cx+Math.cos(a)*rad},${cy+Math.sin(a)*rad}`);}
+      return `<polygon points="${pts.join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>`;
+    },
+    fleur_de_lis: () => `<g transform="translate(${cx},${cy}) scale(${s/58})">
+      <path d="M0,-30 Q10,-18 5,-8 Q14,-14 20,-8 Q12,2 0,0 Q-12,2 -20,-8 Q-14,-14 -5,-8 Q-10,-18 0,-30Z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+      <rect x="-11" y="0" width="22" height="7" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <path d="M0,7 Q15,15 11,27 L0,23 L-11,27 Q-15,15 0,7Z" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+    </g>`,
+    tree: () => `<g transform="translate(${cx},${cy})">
+      <rect x="-${s*.09}" y="${s*.12}" width="${s*.18}" height="${s*.42}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <polygon points="0,-${s*.52} -${s*.44},${s*.14} ${s*.44},${s*.14}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <polygon points="0,-${s*.3} -${s*.38},${s*.26} ${s*.38},${s*.26}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+    </g>`,
+    wave: () => `<g transform="translate(${cx},${cy})">
+      <path d="M-${s*.52},-${s*.18} Q-${s*.26},-${s*.44} 0,-${s*.18} Q${s*.26},${s*.08} ${s*.52},-${s*.18}" fill="none" stroke="${fill}" stroke-width="${s*.18}" stroke-linecap="round"/>
+      <path d="M-${s*.52},${s*.14} Q-${s*.26},-${s*.12} 0,${s*.14} Q${s*.26},${s*.4} ${s*.52},${s*.14}" fill="none" stroke="${fill}" stroke-width="${s*.18}" stroke-linecap="round"/>
+    </g>`,
+    tower: () => `<g transform="translate(${cx},${cy})">
+      <rect x="-${s*.32}" y="-${s*.48}" width="${s*.64}" height="${s*.95}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <rect x="-${s*.4}" y="-${s*.56}" width="${s*.18}" height="${s*.16}" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <rect x="-${s*.09}" y="-${s*.56}" width="${s*.18}" height="${s*.16}" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <rect x="${s*.22}" y="-${s*.56}" width="${s*.18}" height="${s*.16}" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <rect x="-${s*.11}" y="${s*.1}" width="${s*.22}" height="${s*.38}" rx="2" fill="${stroke}"/>
+    </g>`,
+    bear: () => `<g transform="translate(${cx},${cy})">
+      <ellipse cx="0" cy="${s*.1}" rx="${s*.5}" ry="${s*.36}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <circle cx="${s*.22}" cy="-${s*.16}" r="${s*.28}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <circle cx="${s*.08}" cy="-${s*.38}" r="${s*.11}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <circle cx="${s*.34}" cy="-${s*.38}" r="${s*.11}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+    </g>`,
+    wolf: () => `<g transform="translate(${cx},${cy})">
+      <ellipse cx="-${s*.05}" cy="${s*.1}" rx="${s*.52}" ry="${s*.32}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <ellipse cx="${s*.34}" cy="-${s*.16}" rx="${s*.26}" ry="${s*.22}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <polygon points="${s*.2},-${s*.34} ${s*.3},-${s*.5} ${s*.4},-${s*.32}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <polygon points="${s*.38},-${s*.28} ${s*.5},-${s*.44} ${s*.58},-${s*.26}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <line x1="${s*.58}" y1="-${s*.08}" x2="${s*.72}" y2="-${s*.12}" stroke="${fill}" stroke-width="${s*.12}" stroke-linecap="round"/>
+    </g>`,
+    fish: () => `<g transform="translate(${cx},${cy})">
+      <ellipse cx="0" cy="0" rx="${s*.5}" ry="${s*.24}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <polygon points="-${s*.5},0 -${s*.74},-${s*.22} -${s*.74},${s*.22}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <circle cx="${s*.28}" cy="-${s*.06}" r="${s*.06}" fill="${stroke}"/>
+    </g>`,
+    moon: () => `<g transform="translate(${cx},${cy})">
+      <path d="M${s*.2},-${s*.46} A${s*.46},${s*.46} 0 1,0 ${s*.2},${s*.46} A${s*.3},${s*.3} 0 1,1 ${s*.2},-${s*.46}Z" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+    </g>`,
+    sun: () => {
+      const rays=Array.from({length:8},(_,i)=>{const a=i*45*Math.PI/180;return `<line x1="${cx+Math.cos(a)*s*.36}" y1="${cy+Math.sin(a)*s*.36}" x2="${cx+Math.cos(a)*s*.54}" y2="${cy+Math.sin(a)*s*.54}" stroke="${fill}" stroke-width="2.5" stroke-linecap="round"/>`;}).join('');
+      return `${rays}<circle cx="${cx}" cy="${cy}" r="${s*.3}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>`;
+    },
+    sword: () => `<g transform="translate(${cx},${cy}) rotate(-20)">
+      <rect x="-${s*.07}" y="-${s*.54}" width="${s*.14}" height="${s*.84}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <polygon points="0,-${s*.54} -${s*.07},-${s*.38} ${s*.07},-${s*.38}" fill="${stroke}"/>
+      <rect x="-${s*.26}" y="${s*.26}" width="${s*.52}" height="${s*.11}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <rect x="-${s*.09}" y="${s*.32}" width="${s*.18}" height="${s*.22}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+    </g>`,
+    rose: () => {
+      const petals=Array.from({length:5},(_,i)=>{const a=i*72*Math.PI/180-Math.PI/2;const px=cx+Math.cos(a)*s*.34;const py=cy+Math.sin(a)*s*.34;return `<ellipse cx="${px}" cy="${py}" rx="${s*.24}" ry="${s*.16}" fill="${fill}" stroke="${stroke}" stroke-width="1" transform="rotate(${i*72-90},${px},${py})"/>`;}).join('');
+      return `${petals}<circle cx="${cx}" cy="${cy}" r="${s*.14}" fill="${stroke}" stroke="${stroke}" stroke-width="1"/>`;
+    },
+    anchor: () => `<g transform="translate(${cx},${cy})">
+      <circle cx="0" cy="-${s*.3}" r="${s*.15}" fill="none" stroke="${fill}" stroke-width="${s*.11}"/>
+      <line x1="0" y1="-${s*.15}" x2="0" y2="${s*.44}" stroke="${fill}" stroke-width="${s*.11}" stroke-linecap="round"/>
+      <line x1="-${s*.32}" y1="-${s*.08}" x2="${s*.32}" y2="-${s*.08}" stroke="${fill}" stroke-width="${s*.1}" stroke-linecap="round"/>
+      <path d="M-${s*.32},${s*.44} Q-${s*.44},${s*.3} -${s*.32},${s*.18}" fill="none" stroke="${fill}" stroke-width="${s*.1}" stroke-linecap="round"/>
+      <path d="M${s*.32},${s*.44} Q${s*.44},${s*.3} ${s*.32},${s*.18}" fill="none" stroke="${fill}" stroke-width="${s*.1}" stroke-linecap="round"/>
+    </g>`,
+    key: () => `<g transform="translate(${cx},${cy}) rotate(40)">
+      <circle cx="0" cy="-${s*.3}" r="${s*.22}" fill="none" stroke="${fill}" stroke-width="${s*.12}"/>
+      <line x1="0" y1="-${s*.08}" x2="0" y2="${s*.5}" stroke="${fill}" stroke-width="${s*.11}" stroke-linecap="round"/>
+      <line x1="0" y1="${s*.28}" x2="${s*.15}" y2="${s*.28}" stroke="${fill}" stroke-width="${s*.1}" stroke-linecap="round"/>
+      <line x1="0" y1="${s*.42}" x2="${s*.15}" y2="${s*.42}" stroke="${fill}" stroke-width="${s*.1}" stroke-linecap="round"/>
+    </g>`,
+    owl: () => `<g transform="translate(${cx},${cy})">
+      <ellipse cx="0" cy="${s*.08}" rx="${s*.34}" ry="${s*.46}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <ellipse cx="-${s*.16}" cy="-${s*.22}" rx="${s*.2}" ry="${s*.2}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <ellipse cx="${s*.16}" cy="-${s*.22}" rx="${s*.2}" ry="${s*.2}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <circle cx="-${s*.16}" cy="-${s*.22}" r="${s*.09}" fill="${stroke}"/>
+      <circle cx="${s*.16}" cy="-${s*.22}" r="${s*.09}" fill="${stroke}"/>
+      <polygon points="0,-${s*.12} -${s*.07},-${s*.04} ${s*.07},-${s*.04}" fill="${stroke}"/>
+    </g>`,
+    boar: () => `<g transform="translate(${cx},${cy})">
+      <ellipse cx="0" cy="${s*.08}" rx="${s*.54}" ry="${s*.32}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <ellipse cx="${s*.38}" cy="-${s*.1}" rx="${s*.24}" ry="${s*.2}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+      <polygon points="${s*.54},-${s*.08} ${s*.68},-${s*.2} ${s*.64},${s*.06}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+      <line x1="${s*.62}" y1="-${s*.04}" x2="${s*.76}" y2="-${s*.06}" stroke="${fill}" stroke-width="${s*.12}" stroke-linecap="round"/>
+      <path d="M-${s*.54},${s*.1} Q-${s*.64},-${s*.04} -${s*.58},-${s*.22}" fill="none" stroke="${fill}" stroke-width="${s*.18}" stroke-linecap="round"/>
+    </g>`,
+    chevron_charge: () => `<g transform="translate(${cx},${cy})">
+      <path d="M-${s*.52},${s*.3} L0,-${s*.3} L${s*.52},${s*.3} L${s*.52},${s*.1} L0,-${s*.5} L-${s*.52},${s*.1} Z" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+    </g>`,
+  };
+  const fn = shapes[symbol] || shapes['cross'];
+  return typeof fn === 'function' ? fn() : fn;
+}
+
 function getFullState() {
   const fields = {};
   document.querySelectorAll('[data-key]').forEach(el => { fields[el.dataset.key] = el.value; });
@@ -2646,6 +3755,9 @@ function getFullState() {
     projects,
     spaces,
     inventory,
+    maintTasks,
+    maintLog,
+    savedSeals,
   };
 }
 
@@ -2735,6 +3847,22 @@ function applyState(s) {
   if (s.inventory && Array.isArray(s.inventory)) {
     inventory = s.inventory;
     renderInventory();
+  }
+  if (s.maintTasks && Array.isArray(s.maintTasks)) {
+    const savedMap = {};
+    s.maintTasks.forEach(t => { savedMap[t.id] = t; });
+    maintTasks = DEFAULT_MAINT_TASKS.map(dt => savedMap[dt.id] ? { ...dt, ...savedMap[dt.id] } : dt);
+    s.maintTasks.filter(t => t.custom && !DEFAULT_MAINT_TASKS.find(d => d.id === t.id)).forEach(t => {
+      if (!maintTasks.find(m => m.id === t.id)) maintTasks.push(t);
+    });
+  }
+  if (s.maintLog && Array.isArray(s.maintLog)) {
+    maintLog = s.maintLog;
+  }
+  renderMaintenance();
+  if (s.savedSeals && Array.isArray(s.savedSeals)) {
+    savedSeals = s.savedSeals;
+    renderSavedSeals();
   }
   } catch(e) { console.error('applyState error:', e); }
 }
@@ -5224,6 +6352,9 @@ initInventoryUI();
 renderInventory();
 window.deleteInvItem = deleteInvItem;
 
+// ── Maintenance init ──
+renderMaintenance();
+
 // Expose functions needed by remaining inline handlers
 window.exportData = exportData;
 window.signOut = signOut;
@@ -5267,6 +6398,8 @@ window.updateExpenseField = updateExpenseField;
 </div>
 <style>
   @keyframes bounce { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+  @keyframes fadeSlideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  @keyframes spin { to{transform:rotate(360deg)} }
 </style>
 <script>
 (function() {
