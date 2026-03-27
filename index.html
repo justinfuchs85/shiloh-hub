@@ -447,12 +447,21 @@
     background: #0f2e28;
     border-right: 1px solid rgba(255,255,255,0.08);
     z-index: 600;
-    display: none;
+    display: flex;
     flex-direction: column;
     box-shadow: 4px 0 20px rgba(0,0,0,0.3);
     overflow-y: auto;
+    /* Slide animation */
+    transform: translateX(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.18s ease;
   }
-  #nav-flyout.visible { display: flex; }
+  #nav-flyout.visible {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
   .flyout-group-label {
     padding: 16px 18px 8px;
     font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
@@ -1773,35 +1782,44 @@ let currentTab = 'overview';
 let openGroupId = 'property'; // default open group (contains overview)
 
 // ── Desktop sidebar nav ───────────────────────────────────────────
+let _flyoutLeaveTimer = null;
+
 function buildNav() {
   const navItems = document.getElementById('nav-items');
   navItems.innerHTML = '';
 
   TAB_GROUPS.forEach(group => {
-    // Group header row
     const hdr = document.createElement('div');
     hdr.className = 'nav-group-header' + (group.id === openGroupId ? ' open' : '');
     hdr.id = 'navgrp-' + group.id;
     hdr.innerHTML = `<span class="grp-icon">${group.icon}</span><span>${group.label}</span><span class="grp-chevron">▶</span>`;
-    hdr.onclick = () => toggleGroup(group.id);
+    // Hover to open
+    hdr.addEventListener('mouseenter', () => {
+      clearTimeout(_flyoutLeaveTimer);
+      openGroup(group.id);
+    });
+    hdr.addEventListener('mouseleave', () => scheduleFlyoutClose());
     navItems.appendChild(hdr);
   });
 
-  // Build mobile bottom bar
+  // Keep flyout open when mouse is over it
+  const flyout = document.getElementById('nav-flyout');
+  flyout.addEventListener('mouseenter', () => clearTimeout(_flyoutLeaveTimer));
+  flyout.addEventListener('mouseleave', () => scheduleFlyoutClose());
+
   buildMobBar();
 }
 
-function toggleGroup(groupId) {
-  if (openGroupId === groupId) {
-    closeFlyout();
-    return;
-  }
+function scheduleFlyoutClose() {
+  _flyoutLeaveTimer = setTimeout(() => closeFlyout(), 180);
+}
+
+function openGroup(groupId) {
+  if (openGroupId === groupId) return;
   openGroupId = groupId;
-  // Update header styles
   document.querySelectorAll('.nav-group-header').forEach(h => h.classList.remove('open'));
   const hdr = document.getElementById('navgrp-' + groupId);
   if (hdr) hdr.classList.add('open');
-  // Show flyout
   showFlyout(groupId);
 }
 
@@ -1815,16 +1833,20 @@ function showFlyout(groupId) {
     ${group.tabs.map(t => {
       const isActive = t.id === currentTab;
       const extraId = t.id === 'timeline' ? ` <span id="nav-progress" style="font-size:10px;color:rgba(255,255,255,0.35);margin-left:auto;"></span>` : '';
-      return `<div class="flyout-item${isActive ? ' active' : ''}" id="nav-${t.id}" onclick="${t.id === 'drive' ? 'openDriveFolder()' : `switchTab('${t.id}')`}">
+      return `<div class="flyout-item${isActive ? ' active' : ''}" id="nav-${t.id}" onclick="${t.id === 'drive' ? 'openDriveFolder();closeFlyout()' : `switchTab('${t.id}')`}">
         <span class="flyout-icon">${t.icon}</span><span>${t.label}</span>${extraId}
       </div>`;
     }).join('')}
   `;
   flyout.classList.add('visible');
   backdrop.classList.add('visible');
+  // Re-attach mouseleave on re-rendered flyout
+  flyout.onmouseleave = () => scheduleFlyoutClose();
+  flyout.onmouseenter = () => clearTimeout(_flyoutLeaveTimer);
 }
 
 function closeFlyout() {
+  clearTimeout(_flyoutLeaveTimer);
   document.getElementById('nav-flyout').classList.remove('visible');
   document.getElementById('nav-flyout-backdrop').classList.remove('visible');
   document.querySelectorAll('.nav-group-header').forEach(h => h.classList.remove('open'));
@@ -1886,24 +1908,11 @@ function switchTab(id) {
   currentTab = id;
   window.scrollTo(0, 0);
 
-  // Update flyout active state
-  document.querySelectorAll('.flyout-item').forEach(n => n.classList.remove('active'));
-  const fi = document.getElementById('nav-' + id);
-  if (fi) fi.classList.add('active');
+  // Close flyout after navigation
+  closeFlyout();
 
   // Update mobile bar active group
   buildMobBar();
-
-  // Keep flyout open on the right group
-  const grp = groupForTab(id);
-  if (grp) {
-    openGroupId = grp.id;
-    document.querySelectorAll('.nav-group-header').forEach(h => h.classList.remove('open'));
-    const hdr = document.getElementById('navgrp-' + grp.id);
-    if (hdr) hdr.classList.add('open');
-    // Re-render flyout to update active item
-    showFlyout(grp.id);
-  }
 
   // Virtual pageview for GA
   if (typeof gtag === 'function') {
