@@ -518,18 +518,18 @@
   /* Mobile sheet */
   #mob-sheet-backdrop {
     display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5); z-index: 700;
+    background: rgba(0,0,0,0.5); z-index: 800;
   }
   #mob-sheet-backdrop.visible { display: block; }
   #mob-sheet {
-    position: fixed; bottom: 58px; left: 0; right: 0;
+    position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--teal-dark);
     border-top: 1px solid rgba(255,255,255,0.12);
     border-radius: 16px 16px 0 0;
-    z-index: 701;
-    transform: translateY(100%);
+    z-index: 801;
+    transform: translateY(110%);
     transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
   }
   #mob-sheet.visible { transform: translateY(0); }
   .mob-sheet-header {
@@ -1880,7 +1880,7 @@ function openMobSheet(groupId) {
   sheet.innerHTML = `
     <div class="mob-sheet-header" style="display:flex;align-items:center;justify-content:space-between;">
       <span>${group.icon} ${group.label}</span>
-      <button onclick="closeMobSheet()" style="background:none;border:none;color:rgba(255,255,255,0.45);font-size:20px;cursor:pointer;padding:0 2px;line-height:1;">✕</button>
+      <button id="mob-sheet-close-btn" style="background:none;border:none;color:rgba(255,255,255,0.45);font-size:20px;cursor:pointer;padding:4px 8px;line-height:1;-webkit-tap-highlight-color:transparent;">✕</button>
     </div>
     ${group.tabs.map(t => `
       <div class="mob-sheet-item${t.id === currentTab ? ' active' : ''}" onclick="${t.id === 'drive' ? 'openDriveFolder();closeMobSheet()' : `switchTab('${t.id}');closeMobSheet()`}">
@@ -1891,6 +1891,9 @@ function openMobSheet(groupId) {
   `;
   sheet.classList.add('visible');
   backdrop.classList.add('visible');
+  // Wire close button after innerHTML render
+  const closeBtn = document.getElementById('mob-sheet-close-btn');
+  if (closeBtn) closeBtn.addEventListener('click', closeMobSheet);
 }
 window.openMobSheet = openMobSheet;
 
