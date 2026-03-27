@@ -683,6 +683,21 @@
 <!-- Auth user bar (injected into sidebar) -->
 
 <!-- App shell -->
+<!-- Closing day modal -->
+<div id="closing-day-modal" style="display:none;position:fixed;inset:0;background:rgba(14,61,53,0.85);z-index:9500;align-items:center;justify-content:center;">
+  <div style="background:var(--cream);border-radius:16px;padding:2rem 2.25rem;max-width:400px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.3);">
+    <div style="font-size:36px;margin-bottom:12px;">🎉</div>
+    <div style="font-family:var(--font-serif);font-size:26px;font-weight:300;color:var(--warm-dark);margin-bottom:8px;">Congratulations!</div>
+    <div style="font-size:14px;color:var(--warm-muted);margin-bottom:20px;line-height:1.6;">It's closing day on <strong style="color:var(--warm-dark);">4496 Shiloh Way</strong>.<br>Welcome home. Ready to switch to Home Mode?</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button onclick="dismissClosingPrompt(false)"
+        style="padding:10px 20px;background:transparent;color:var(--warm-muted);border:1px solid var(--cream-deeper);border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--font-sans);">Not yet</button>
+      <button onclick="dismissClosingPrompt(true)"
+        style="padding:10px 24px;background:var(--teal-dark);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--font-sans);font-weight:500;">Switch to Home Mode 🏠</button>
+    </div>
+  </div>
+</div>
+
 <div class="shell" id="app-shell" style="display:none;">
   <!-- Mobile top nav (hidden on desktop) -->
   <div id="mobile-nav"></div>
@@ -707,14 +722,49 @@
   <nav class="sidebar">
     <div class="sidebar-header">
       <div class="address">4496 Shiloh Way Dr SE<br>Kentwood, MI 49546</div>
-      <div class="badge">Offer Accepted</div>
+      <div class="badge" id="sidebar-badge">Offer Accepted</div>
     </div>
     <div class="nav-items" id="nav-items"></div>
-    <div style="padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:flex-end;">
-        <span id="sync-status" style="font-size:10px;color:rgba(255,255,255,0.35);"></span>
+    <!-- Settings panel (slides up) -->
+    <div id="settings-panel" style="display:none;padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);animation:slideUp .2s ease;">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,0.35);margin-bottom:12px;">Settings</div>
+
+      <!-- Mode toggle -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:8px;">App mode</div>
+        <div style="display:flex;background:rgba(255,255,255,0.06);border-radius:8px;padding:3px;gap:3px;">
+          <button id="mode-btn-buying" onclick="setAppMode('buying')"
+            style="flex:1;padding:6px 4px;font-size:10px;font-family:var(--font-sans);border:none;border-radius:6px;cursor:pointer;letter-spacing:.04em;transition:all .18s;background:var(--teal);color:#fff;">
+            🏷️ Buying
+          </button>
+          <button id="mode-btn-home" onclick="setAppMode('home')"
+            style="flex:1;padding:6px 4px;font-size:10px;font-family:var(--font-sans);border:none;border-radius:6px;cursor:pointer;letter-spacing:.04em;transition:all .18s;background:transparent;color:rgba(255,255,255,0.45);">
+            🏠 Home
+          </button>
+        </div>
+        <div id="mode-desc" style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;line-height:1.4;"></div>
+      </div>
+
+      <!-- Closing date -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:6px;">Closing date</div>
+        <input id="settings-closing-date" type="date"
+          style="width:100%;font-size:12px;padding:6px 8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:rgba(255,255,255,0.8);font-family:var(--font-sans);outline:none;cursor:pointer;"
+          onchange="saveClosingDate(this.value)" />
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
+        <button onclick="signOut()" style="background:none;border:none;font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;padding:0;letter-spacing:.05em;text-transform:uppercase;">🔒 Lock</button>
+        <span id="sync-status" style="font-size:10px;color:rgba(255,255,255,0.3);"></span>
+      </div>
     </div>
-    <div style="padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:flex-end;">
-      <button onclick="signOut()" style="background:none;border:none;font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;padding:0;letter-spacing:0.05em;text-transform:uppercase;">🔒 Lock</button>
+
+    <!-- Footer bar -->
+    <div style="padding:8px 14px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">
+      <div id="mode-pill" style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.35);"></div>
+      <button onclick="toggleSettings()" id="settings-btn"
+        style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px 4px;opacity:0.4;transition:opacity .15s;line-height:1;"
+        title="Settings">⚙️</button>
     </div>
   </nav>
   <!-- Content -->
@@ -722,62 +772,185 @@
 
     <!-- ══ OVERVIEW ══ -->
     <div class="tab-page active" id="page-overview">
-      <div class="hero">
-        <div class="hero-main">
-          <img src="https://cdn.photos.sparkplatform.com/ric/20260309160847067792000000-o.jpg" alt="Front of home" />
+
+      <!-- ── BUYING MODE OVERVIEW ── -->
+      <div id="ov-buying-section">
+
+        <!-- Hero: countdown + address -->
+        <div style="background:var(--teal-dark);border-radius:var(--border-radius-lg);padding:1.5rem 1.75rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.5);margin-bottom:6px;">4496 Shiloh Way Dr SE, Kentwood</div>
+            <div id="ov-countdown-val" style="font-family:var(--font-serif);font-size:48px;font-weight:300;color:#fff;line-height:1;">—</div>
+            <div id="ov-countdown-label" style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">days to closing</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Closing date</div>
+            <div id="ov-closing-date-display" style="font-size:16px;color:var(--gold-light);font-family:var(--font-serif);">April 25, 2026</div>
+            <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.08em;">Offer price</div>
+            <div style="font-size:18px;color:#fff;font-family:var(--font-serif);">$500,000</div>
+          </div>
         </div>
-        <div class="hero-grid">
-          <img src="https://cdn.photos.sparkplatform.com/ric/20260309160847194875000000-o.jpg" alt="Exterior" onclick="switchTab('photos');openGallery(0,1)" />
-          <img src="https://cdn.photos.sparkplatform.com/ric/20260311024526231845000000-o.jpg" alt="Neighborhood" onclick="switchTab('photos');openGallery(0,3)" />
-          <img src="https://cdn.photos.sparkplatform.com/ric/20260309160847304240000000-o.jpg" alt="Summer" onclick="switchTab('photos');openGallery(0,7)" />
-          <img src="https://cdn.photos.sparkplatform.com/ric/20260309160848849022000000-o.jpg" alt="Pool" onclick="switchTab('photos');openGallery(7,0)" />
+
+        <!-- Purchase progress -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.25rem;">
+          <!-- Circular ring -->
+          <div style="flex-shrink:0;position:relative;width:80px;height:80px;">
+            <svg width="80" height="80" viewBox="0 0 80 80" style="display:block;transform:rotate(-90deg);">
+              <!-- Track -->
+              <circle cx="40" cy="40" r="32" fill="none" stroke="var(--color-border-tertiary)" stroke-width="7"/>
+              <!-- Progress arc -->
+              <circle id="ov-ring-arc" cx="40" cy="40" r="32" fill="none"
+                stroke="var(--teal)" stroke-width="7"
+                stroke-linecap="round"
+                stroke-dasharray="201.06" stroke-dashoffset="201.06"
+                style="transition:stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1);"/>
+            </svg>
+            <!-- Centre label -->
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <span id="ov-progress-pct" style="font-family:var(--font-serif);font-size:18px;font-weight:400;color:var(--color-text-primary);line-height:1;">0%</span>
+            </div>
+          </div>
+          <!-- Text side -->
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px;">Purchase progress</div>
+            <span id="ov-progress-label" style="font-size:12px;color:var(--color-text-secondary);">0 of 23 tasks complete</span>
+            <div class="progress-bar-wrap" style="margin-top:10px;"><div class="progress-bar" id="ov-pbar" style="width:0%"></div></div>
+            <div style="margin-top:10px;">
+              <a href="#" onclick="switchTab('timeline');return false;" style="font-size:12px;color:var(--color-text-info);text-decoration:none;">View full timeline →</a>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="address-bar">
-        <h1>4496 Shiloh Way Dr SE, Kentwood, MI 49546 <span class="badge-inline">Offer Accepted</span></h1>
-        <div class="sub">MLS #26009064 &nbsp;·&nbsp; Forest Hills School District &nbsp;·&nbsp; Listed by Ingrid C Anastasiu, Keller Williams GR East</div>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat"><div class="stat-label">Offer price</div><div class="stat-value">$500,000</div><div class="stat-sub">List: $500,000</div></div>
-        <div class="stat"><div class="stat-label">Size</div><div class="stat-value">2,042 sqft</div><div class="stat-sub">$238/sqft</div></div>
-        <div class="stat"><div class="stat-label">Beds / baths</div><div class="stat-value">4 bd / 4 ba</div><div class="stat-sub">3 full, 1 half</div></div>
-        <div class="stat"><div class="stat-label">Annual taxes</div><div class="stat-value">$6,720</div><div class="stat-sub">$560/mo est.</div></div>
-      </div>
-
-      <div class="section-title">Highlights</div>
-      <div class="highlight-features">
-        <span class="feature-tag">Sparkling pool (above ground)</span>
-        <span class="feature-tag">New roof</span>
-        <span class="feature-tag">New carpet throughout</span>
-        <span class="feature-tag">No HOA</span>
-        <span class="feature-tag">$120k in improvements</span>
-        <span class="feature-tag">Forest Hills Northern HS</span>
-        <span class="feature-tag">2-car attached garage</span>
-        <span class="feature-tag">Fireplace</span>
-        <span class="feature-tag">Corner lot — 0.33 acres</span>
-        <span class="feature-tag">Finished basement</span>
-        <span class="feature-tag">Washer/dryer included</span>
-        <span class="feature-tag">Built 2001</span>
-      </div>
-
-      <div class="section-title">Listing description</div>
-      <div class="description-card">
-        With spring around the corner, this beautifully updated 4-bedroom, 4-bath home in the highly desirable Forest Hills School District is ready to enjoy. Located just minutes from the school and close to shopping, dining, the airport and scenic trails, the setting offers both convenience and space. Perched on an elevated 1/3-acre lot, the property features a sparkling pool and large deck — perfect for summer gatherings and outdoor fun. The yard extends well beyond the fenced area, leaving plenty of room to expand, add trees, a play space, or design your own private terraced backyard retreat. Inside, the bright main floor offers great flow and easy access to the outdoors, making entertaining effortless. Upstairs you'll find three bedrooms and two full baths, while the finished lower level includes a fourth bedroom, full bath and flexible space ideal for guests, a home office, or workout area. Fully updated, NO HOA. $120k in improvements. New carpeting throughout. New roof. Shed can be relocated to back.
-      </div>
-
-      <div class="section-title" style="margin-top:1.5rem;">Purchase progress</div>
-      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;">
-          <span id="ov-progress-label">0 of 23 tasks complete</span>
-          <span id="ov-progress-pct" style="color:var(--color-text-info);font-weight:500;">0%</span>
+        <!-- Urgent tasks -->
+        <div style="margin-bottom:1.25rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);">Next up</div>
+            <a href="#" onclick="switchTab('timeline');return false;" style="font-size:11px;color:var(--color-text-info);text-decoration:none;">All tasks →</a>
+          </div>
+          <div id="ov-urgent-tasks" style="display:flex;flex-direction:column;gap:6px;"></div>
         </div>
-        <div class="progress-bar-wrap"><div class="progress-bar" id="ov-pbar" style="width:0%"></div></div>
-        <div style="margin-top:10px;font-size:12px;color:var(--color-text-tertiary);">
-          <a href="#" onclick="switchTab('timeline');return false;" style="color:var(--color-text-info);text-decoration:none;">View full timeline →</a>
+
+        <!-- Key contacts quick-dial -->
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:10px;">Key contacts</div>
+          <div id="ov-key-contacts" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
         </div>
-      </div>
+
+        <!-- Property at a glance (collapsed by default) -->
+        <details style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;">
+          <summary style="padding:.85rem 1.25rem;font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none;">
+            <span>Property details &amp; listing</span>
+            <span style="font-size:10px;opacity:.5;">▼</span>
+          </summary>
+          <div style="padding:0 1.25rem 1.25rem;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem;">
+              <div class="stat"><div class="stat-label">Size</div><div class="stat-value" style="font-size:18px;">2,042</div><div class="stat-sub">sqft</div></div>
+              <div class="stat"><div class="stat-label">Beds/baths</div><div class="stat-value" style="font-size:18px;">4/4</div><div class="stat-sub">3 full, 1 half</div></div>
+              <div class="stat"><div class="stat-label">Taxes</div><div class="stat-value" style="font-size:18px;">$6,720</div><div class="stat-sub">per year</div></div>
+              <div class="stat"><div class="stat-label">Built</div><div class="stat-value" style="font-size:18px;">2001</div><div class="stat-sub">23 years old</div></div>
+            </div>
+            <div class="highlight-features" style="margin-bottom:1rem;">
+              <span class="feature-tag">Sparkling pool</span>
+              <span class="feature-tag">New roof</span>
+              <span class="feature-tag">No HOA</span>
+              <span class="feature-tag">$120k improvements</span>
+              <span class="feature-tag">Forest Hills Northern HS</span>
+              <span class="feature-tag">2-car garage</span>
+              <span class="feature-tag">Fireplace</span>
+              <span class="feature-tag">Corner lot 0.33ac</span>
+              <span class="feature-tag">Finished basement</span>
+            </div>
+            <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.7;">
+              MLS #26009064 &nbsp;·&nbsp; Forest Hills School District &nbsp;·&nbsp; Listed by Ingrid C Anastasiu, Keller Williams GR East
+            </div>
+            <div style="margin-top:10px;">
+              <a href="#" onclick="switchTab('photos');return false;" style="font-size:12px;color:var(--color-text-info);text-decoration:none;">View all photos →</a>
+            </div>
+          </div>
+        </details>
+
+      </div><!-- /ov-buying-section -->
+
+      <!-- ── HOME MODE OVERVIEW ── -->
+      <div id="ov-home-section" style="display:none;">
+
+        <!-- Welcome hero -->
+        <div style="background:var(--teal-dark);border-radius:var(--border-radius-lg);padding:1.5rem 1.75rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.5);margin-bottom:6px;">Welcome home</div>
+            <div style="font-family:var(--font-serif);font-size:26px;font-weight:300;color:#fff;line-height:1.2;">4496 Shiloh Way</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;">Kentwood, MI · Forest Hills Schools</div>
+          </div>
+          <div style="text-align:right;">
+            <div id="ov-days-home-val" style="font-family:var(--font-serif);font-size:42px;font-weight:300;color:#fff;line-height:1;">—</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">days at home</div>
+          </div>
+        </div>
+
+        <!-- Quick action buttons -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem;">
+          <button onclick="switchTab('shopping')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
+            <span style="font-size:22px;">🛒</span>
+            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Shopping</span>
+          </button>
+          <button onclick="switchTab('notes')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
+            <span style="font-size:22px;">📝</span>
+            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Notes</span>
+          </button>
+          <button onclick="switchTab('projects')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
+            <span style="font-size:22px;">🏗️</span>
+            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Projects</span>
+          </button>
+          <button onclick="switchTab('maintenance')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
+            <span style="font-size:22px;">🔧</span>
+            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Maintenance</span>
+          </button>
+        </div>
+
+        <!-- Stats row -->
+        <div id="ov-home-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem;"></div>
+
+        <!-- Maintenance spotlight -->
+        <div style="margin-bottom:1.25rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);">Maintenance due</div>
+            <a href="#" onclick="switchTab('maintenance');return false;" style="font-size:11px;color:var(--color-text-info);text-decoration:none;">Full schedule →</a>
+          </div>
+          <div id="ov-upcoming-maint" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;"></div>
+        </div>
+
+        <!-- Active projects -->
+        <div style="margin-bottom:1.25rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);">Active projects</div>
+            <a href="#" onclick="switchTab('projects');return false;" style="font-size:11px;color:var(--color-text-info);text-decoration:none;">All projects →</a>
+          </div>
+          <div id="ov-active-projects" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        <!-- Property at a glance -->
+        <details style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;">
+          <summary style="padding:.85rem 1.25rem;font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none;">
+            <span>Property &amp; purchase details</span>
+            <span style="font-size:10px;opacity:.5;">▼</span>
+          </summary>
+          <div style="padding:0 1.25rem 1.25rem;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem;">
+              <div class="stat"><div class="stat-label">Price paid</div><div class="stat-value" style="font-size:18px;">$500k</div><div class="stat-sub">Apr 2026</div></div>
+              <div class="stat"><div class="stat-label">Size</div><div class="stat-value" style="font-size:18px;">2,042</div><div class="stat-sub">sqft</div></div>
+              <div class="stat"><div class="stat-label">Taxes</div><div class="stat-value" style="font-size:18px;">$6,720</div><div class="stat-sub">est. / yr</div></div>
+              <div class="stat"><div class="stat-label">Built</div><div class="stat-value" style="font-size:18px;">2001</div><div class="stat-sub">23 years</div></div>
+            </div>
+            <div style="margin-top:4px;">
+              <a href="#" onclick="switchTab('details');return false;" style="font-size:12px;color:var(--color-text-info);text-decoration:none;">Full property details →</a>
+              &nbsp;&nbsp;
+              <a href="#" onclick="switchTab('photos');return false;" style="font-size:12px;color:var(--color-text-info);text-decoration:none;">View photos →</a>
+            </div>
+          </div>
+        </details>
+
+      </div><!-- /ov-home-section -->
+
     </div>
 
     <!-- ══ MAINTENANCE ══ -->
@@ -1761,6 +1934,14 @@
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Website</div>
               <input id="cm-website" type="url" placeholder="https://…" style="width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
             </div>
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Category</div>
+                <input id="cm-category" type="text" placeholder="e.g. HVAC, Neighbor, Insurance…" list="cm-category-list"
+                  style="width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+                <datalist id="cm-category-list"></datalist>
+              </div>
+            </div>
             <div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary);margin-bottom:4px;">Notes</div>
               <input id="cm-notes" type="text" placeholder="Optional notes" style="width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
@@ -1787,6 +1968,10 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 // ── Navigation ──────────────────────────────────────────────────
+// ── App mode state (declared early so all functions can reference it) ──────
+let appMode = 'buying';
+let closingDate = '2026-04-25';
+
 // ── Tab groups ───────────────────────────────────────────────────
 const TAB_GROUPS = [
   { id: 'property',   label: 'Property',    icon: '🏠',
@@ -1994,6 +2179,7 @@ function openDriveFolder() {
 window.openDriveFolder = openDriveFolder;
 
 buildNav();
+updateSettingsUI();
 
 
 // ── Timeline ────────────────────────────────────────────────────
@@ -2281,9 +2467,13 @@ function updateProgress() {
   document.getElementById('progress-label').textContent = label;
   document.getElementById('progress-pct').textContent = pct + '%';
   document.getElementById('pbar').style.width = pct + '%';
-  document.getElementById('ov-progress-label').textContent = label;
-  document.getElementById('ov-progress-pct').textContent = pct + '%';
-  document.getElementById('ov-pbar').style.width = pct + '%';
+  const pl = document.getElementById('ov-progress-label');
+  const pp = document.getElementById('ov-progress-pct');
+  const pb = document.getElementById('ov-pbar');
+  if (pl) pl.textContent = label;
+  if (pp) pp.textContent = pct + '%';
+  if (pb) pb.style.width = pct + '%';
+  if (typeof taskPhases !== 'undefined' && appMode === 'buying') renderBuyingOverview();
   const navProg = document.getElementById('nav-progress');
   if (navProg) navProg.textContent = pct + '%';
 }
@@ -3645,26 +3835,50 @@ function contactInitials(name) {
 
 function renderCustomContacts() {
   const section = document.getElementById('custom-contacts-section');
-  const grid = document.getElementById('custom-contacts-grid');
-  if (!section || !grid) return;
+  const container = document.getElementById('custom-contacts-grid');
+  if (!section || !container) return;
   if (!customContacts.length) { section.style.display = 'none'; return; }
   section.style.display = '';
-  grid.innerHTML = customContacts.map((c, i) => {
-    const col = AVATAR_COLORS[i % AVATAR_COLORS.length];
-    const initials = contactInitials(c.name);
+
+  // Group by category (uncategorised last)
+  const groups = {};
+  customContacts.forEach((c, i) => {
+    const cat = (c.category || '').trim() || 'Uncategorised';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push({ ...c, _idx: i });
+  });
+
+  // Sort groups: uncategorised last, rest alphabetical
+  const sortedKeys = Object.keys(groups).sort((a, b) => {
+    if (a === 'Uncategorised') return 1;
+    if (b === 'Uncategorised') return -1;
+    return a.localeCompare(b);
+  });
+
+  container.innerHTML = sortedKeys.map(cat => {
+    const cards = groups[cat].map(c => {
+      const col = AVATAR_COLORS[c._idx % AVATAR_COLORS.length];
+      const initials = contactInitials(c.name);
+      return `
+        <div class="contact-card" style="position:relative;">
+          <button onclick="openContactModal('${c.id}')" title="Edit"
+            style="position:absolute;top:10px;right:10px;background:none;border:none;font-size:13px;color:var(--color-text-tertiary);cursor:pointer;opacity:0.5;padding:2px 4px;">✏️</button>
+          <div class="contact-avatar" style="background:${col.bg};color:${col.text};">${initials}</div>
+          <div class="contact-name">${c.name}</div>
+          <div class="contact-field-group">
+            ${c.title    ? `<div class="contact-field-label">Title</div><div style="font-size:12px;color:var(--color-text-secondary);padding:4px 0;">${c.title}</div>` : ''}
+            ${c.phone    ? `<div class="contact-field-label">Phone</div><a href="tel:${c.phone}" style="font-size:12px;color:var(--teal);text-decoration:none;padding:4px 0;display:block;">${c.phone}</a>` : ''}
+            ${c.email    ? `<div class="contact-field-label">Email</div><a href="mailto:${c.email}" style="font-size:12px;color:var(--teal);text-decoration:none;padding:4px 0;display:block;word-break:break-all;">${c.email}</a>` : ''}
+            ${c.website  ? `<div class="contact-field-label">Website</div><a href="${c.website}" target="_blank" rel="noopener" style="font-size:12px;color:var(--teal);text-decoration:none;padding:4px 0;display:block;word-break:break-all;">${c.website.replace(/^https?:\/\//,'')}</a>` : ''}
+            ${c.notes    ? `<div class="contact-field-label">Notes</div><div style="font-size:12px;color:var(--color-text-secondary);padding:4px 0;font-style:italic;">${c.notes}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
     return `
-      <div class="contact-card" style="position:relative;">
-        <button onclick="openContactModal('${c.id}')" title="Edit"
-          style="position:absolute;top:10px;right:10px;background:none;border:none;font-size:13px;color:var(--color-text-tertiary);cursor:pointer;opacity:0.5;padding:2px 4px;">✏️</button>
-        <div class="contact-avatar" style="background:${col.bg};color:${col.text};">${initials}</div>
-        <div class="contact-name">${c.name}</div>
-        <div class="contact-field-group">
-          ${c.title ? `<div class="contact-field-label">Title</div><div style="font-size:12px;color:var(--color-text-secondary);padding:4px 0;">${c.title}</div>` : ''}
-          ${c.phone ? `<div class="contact-field-label">Phone</div><a href="tel:${c.phone}" style="font-size:12px;color:var(--teal);text-decoration:none;padding:4px 0;display:block;">${c.phone}</a>` : ''}
-          ${c.email ? `<div class="contact-field-label">Email</div><a href="mailto:${c.email}" style="font-size:12px;color:var(--teal);text-decoration:none;padding:4px 0;display:block;word-break:break-all;">${c.email}</a>` : ''}
-          ${c.website ? `<div class="contact-field-label">Website</div><a href="${c.website}" target="_blank" rel="noopener" style="font-size:12px;color:var(--teal);text-decoration:none;padding:4px 0;display:block;word-break:break-all;">${c.website.replace(/^https?:\/\//,'')}</a>` : ''}
-          ${c.notes ? `<div class="contact-field-label">Notes</div><div style="font-size:12px;color:var(--color-text-secondary);padding:4px 0;font-style:italic;">${c.notes}</div>` : ''}
-        </div>
+      <div style="grid-column:1/-1;margin-top:1rem;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:8px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary);">${cat}</div>
+        <div class="contacts-grid">${cards}</div>
       </div>`;
   }).join('');
 }
@@ -3677,18 +3891,25 @@ function openContactModal(id) {
     const c = customContacts.find(c => c.id === id);
     if (!c) return;
     title.textContent = 'Edit Contact';
-    document.getElementById('cm-name').value    = c.name    || '';
-    document.getElementById('cm-title').value   = c.title   || '';
-    document.getElementById('cm-phone').value   = c.phone   || '';
-    document.getElementById('cm-email').value   = c.email   || '';
-    document.getElementById('cm-website').value = c.website || '';
-    document.getElementById('cm-notes').value   = c.notes   || '';
+    document.getElementById('cm-name').value     = c.name     || '';
+    document.getElementById('cm-title').value    = c.title    || '';
+    document.getElementById('cm-phone').value    = c.phone    || '';
+    document.getElementById('cm-email').value    = c.email    || '';
+    document.getElementById('cm-website').value  = c.website  || '';
+    document.getElementById('cm-category').value = c.category || '';
+    document.getElementById('cm-notes').value    = c.notes    || '';
     delBtn.style.display = '';
   } else {
     title.textContent = 'Add Contact';
-    ['cm-name','cm-title','cm-phone','cm-email','cm-website','cm-notes']
+    ['cm-name','cm-title','cm-phone','cm-email','cm-website','cm-category','cm-notes']
       .forEach(id => document.getElementById(id).value = '');
     delBtn.style.display = 'none';
+  }
+  // Populate category datalist with existing categories
+  const dl = document.getElementById('cm-category-list');
+  if (dl) {
+    const cats = [...new Set(customContacts.map(c => c.category).filter(Boolean))].sort();
+    dl.innerHTML = cats.map(c => `<option value="${c}">`).join('');
   }
   const backdrop = document.getElementById('contact-modal-backdrop');
   backdrop.style.display = 'flex';
@@ -3712,11 +3933,12 @@ function saveCustomContact() {
   if (!name) { document.getElementById('cm-name').focus(); return; }
   const data = {
     name,
-    title:   document.getElementById('cm-title').value.trim(),
-    phone:   document.getElementById('cm-phone').value.trim(),
-    email:   document.getElementById('cm-email').value.trim(),
-    website: document.getElementById('cm-website').value.trim(),
-    notes:   document.getElementById('cm-notes').value.trim(),
+    title:    document.getElementById('cm-title').value.trim(),
+    phone:    document.getElementById('cm-phone').value.trim(),
+    email:    document.getElementById('cm-email').value.trim(),
+    website:  document.getElementById('cm-website').value.trim(),
+    category: document.getElementById('cm-category').value.trim(),
+    notes:    document.getElementById('cm-notes').value.trim(),
   };
   if (_contactEditId) {
     const idx = customContacts.findIndex(c => c.id === _contactEditId);
@@ -3740,6 +3962,356 @@ function deleteCustomContact() {
 }
 window.deleteCustomContact = deleteCustomContact;
 
+
+// ── App Mode System ──────────────────────────────────────────────
+// mode: 'buying' | 'home'
+// Stored in Firebase via getFullState/applyState.
+// Closing date prompt stored in localStorage (per-browser, fires once).
+
+const CLOSING_PROMPT_KEY = 'shiloh-closing-prompted';
+
+// Tab groups by mode
+const NAV_GROUPS_BUYING = [
+  { id: 'property', label: 'Property', icon: '🏠',
+    tabs: [
+      { id: 'overview',   label: 'Overview',   icon: '🏠' },
+      { id: 'photos',     label: 'Photos',     icon: '📷' },
+      { id: 'details',    label: 'Details',    icon: '📋' },
+      { id: 'timeline',   label: 'Timeline',   icon: '✅' },
+    ]
+  },
+  { id: 'money', label: 'Money', icon: '💰',
+    tabs: [
+      { id: 'expenses',   label: 'Expenses',   icon: '💰' },
+      { id: 'calculator', label: 'Calculator', icon: '🧮' },
+    ]
+  },
+  { id: 'home', label: 'Home', icon: '🔧',
+    tabs: [
+      { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
+      { id: 'projects',   label: 'Projects',   icon: '🏗️' },
+      { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
+      { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
+    ]
+  },
+  { id: 'stuff', label: 'Stuff', icon: '🛒',
+    tabs: [
+      { id: 'shopping',   label: 'Shopping',   icon: '🛒' },
+      { id: 'inventory',  label: 'Inventory',  icon: '📦' },
+      { id: 'notes',      label: 'Notes',      icon: '📝' },
+    ]
+  },
+  { id: 'people', label: 'People', icon: '👥',
+    tabs: [
+      { id: 'contacts',   label: 'Contacts',   icon: '👥' },
+      { id: 'drive',      label: 'Drive',      icon: '📁' },
+    ]
+  },
+];
+
+const NAV_GROUPS_HOME = [
+  { id: 'home', label: 'Home', icon: '🏠',
+    tabs: [
+      { id: 'overview',   label: 'Overview',   icon: '🏠' },
+      { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
+      { id: 'projects',   label: 'Projects',   icon: '🏗️' },
+      { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
+    ]
+  },
+  { id: 'stuff', label: 'Stuff', icon: '🛒',
+    tabs: [
+      { id: 'shopping',   label: 'Shopping',   icon: '🛒' },
+      { id: 'inventory',  label: 'Inventory',  icon: '📦' },
+      { id: 'notes',      label: 'Notes',      icon: '📝' },
+    ]
+  },
+  { id: 'services', label: 'Services', icon: '🔌',
+    tabs: [
+      { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
+      { id: 'contacts',   label: 'Contacts',   icon: '👥' },
+      { id: 'drive',      label: 'Drive',      icon: '📁' },
+    ]
+  },
+  { id: 'money', label: 'Money', icon: '💰',
+    tabs: [
+      { id: 'expenses',   label: 'Expenses',   icon: '💰' },
+    ]
+  },
+  { id: 'purchase', label: 'Purchase', icon: '📋',
+    tabs: [
+      { id: 'details',    label: 'Details',    icon: '📋' },
+      { id: 'photos',     label: 'Photos',     icon: '📷' },
+      { id: 'timeline',   label: 'Timeline',   icon: '✅' },
+      { id: 'calculator', label: 'Calculator', icon: '🧮' },
+    ]
+  },
+];
+
+function setAppMode(mode, persist = true) {
+  appMode = mode;
+
+  // Swap nav groups
+  TAB_GROUPS.length = 0;
+  const groups = mode === 'home' ? NAV_GROUPS_HOME : NAV_GROUPS_BUYING;
+  groups.forEach(g => TAB_GROUPS.push(g));
+
+  // Rebuild nav
+  openGroupId = null;
+  closeFlyout();
+  buildNav();
+
+  // Update sidebar badge
+  const badge = document.getElementById('sidebar-badge');
+  if (badge) badge.textContent = mode === 'home' ? 'Shiloh Way — Home' : 'Offer Accepted';
+
+  // Update overview sections
+  const buyingSection = document.getElementById('ov-buying-section');
+  const homeSection   = document.getElementById('ov-home-section');
+  if (buyingSection) buyingSection.style.display = mode === 'buying' ? '' : 'none';
+  if (homeSection)   homeSection.style.display   = mode === 'home'   ? '' : 'none';
+  renderOverview();
+
+  // Update settings UI
+  updateSettingsUI();
+
+  // Persist
+  if (persist) { persistAll(); }
+}
+window.setAppMode = setAppMode;
+
+function updateSettingsUI() {
+  const buyingBtn = document.getElementById('mode-btn-buying');
+  const homeBtn   = document.getElementById('mode-btn-home');
+  const desc      = document.getElementById('mode-desc');
+  const pill      = document.getElementById('mode-pill');
+  if (!buyingBtn || !homeBtn) return;
+  const isBuying = appMode === 'buying';
+  buyingBtn.style.background = isBuying ? 'var(--teal)' : 'transparent';
+  buyingBtn.style.color      = isBuying ? '#fff' : 'rgba(255,255,255,0.45)';
+  homeBtn.style.background   = !isBuying ? 'var(--teal)' : 'transparent';
+  homeBtn.style.color        = !isBuying ? '#fff' : 'rgba(255,255,255,0.45)';
+  if (desc) desc.textContent = isBuying
+    ? 'Purchase features front and center.'
+    : 'Optimized for daily home management.';
+  if (pill) pill.textContent = isBuying ? '🏷️ Buying' : '🏠 Home';
+}
+
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const btn   = document.getElementById('settings-btn');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  btn.style.opacity   = isOpen ? '0.4' : '1';
+  if (!isOpen) {
+    // Populate closing date input
+    const input = document.getElementById('settings-closing-date');
+    if (input) input.value = closingDate || '2026-04-25';
+    updateSettingsUI();
+  }
+}
+window.toggleSettings = toggleSettings;
+
+function saveClosingDate(val) {
+  closingDate = val;
+  persistAll();
+}
+window.saveClosingDate = saveClosingDate;
+
+// ── Home Mode Overview ────────────────────────────────────────────
+function renderHomeOverview() {
+  if (typeof maintTasks === 'undefined' || typeof projects === 'undefined') return;
+  const today = new Date();
+  const closed = closingDate ? new Date(closingDate + 'T12:00:00') : null;
+  const daysSince = closed ? Math.max(0, Math.floor((today - closed) / 86400000)) : null;
+  const daysUntil = closed ? Math.floor((closed - today) / 86400000) : null;
+
+  // Days-at-home hero
+  const daysEl = document.getElementById('ov-days-home-val');
+  if (daysEl) {
+    if (daysSince !== null && daysSince >= 0) daysEl.textContent = daysSince;
+    else if (daysUntil !== null) daysEl.textContent = daysUntil + ' to go';
+    else daysEl.textContent = '—';
+  }
+
+  // Stat cards
+  const statsEl = document.getElementById('ov-home-stats');
+  const activeProjects = (typeof projects !== 'undefined' ? projects : []).filter(p => p.status !== 'done').length;
+  const maintDue = (typeof maintTasks !== 'undefined' ? maintTasks : []).filter(t => !maintIsDoneThisPeriod(t)).length;
+  const shoppingCount = (typeof shoppingRooms !== 'undefined' ? shoppingRooms : []).reduce((n, r) => n + (r.items || []).length, 0);
+  if (statsEl) {
+    statsEl.innerHTML = [
+      { label: 'Maintenance due', value: maintDue, sub: 'tasks this period', onclick: "switchTab('maintenance')" },
+      { label: 'Shopping items', value: shoppingCount, sub: 'on the list', onclick: "switchTab('shopping')" },
+      { label: 'Open projects', value: activeProjects, sub: 'in progress', onclick: "switchTab('projects')" },
+    ].map(s => `
+      <div class="stat" onclick="${s.onclick}" style="cursor:pointer;" title="Go to ${s.label}">
+        <div class="stat-label">${s.label}</div>
+        <div class="stat-value">${s.value}</div>
+        <div class="stat-sub">${s.sub}</div>
+      </div>`).join('');
+  }
+
+  // Maintenance due — sorted by season proximity
+  const maintEl = document.getElementById('ov-upcoming-maint');
+  if (maintEl) {
+    const seasonOrder = ['Spring','Summer','Fall','Winter','Monthly','Annual'];
+    const due = (typeof maintTasks !== 'undefined' ? maintTasks : [])
+      .filter(t => !maintIsDoneThisPeriod(t))
+      .sort((a, b) => seasonOrder.indexOf(a.season) - seasonOrder.indexOf(b.season))
+      .slice(0, 5);
+    maintEl.innerHTML = due.length ? due.map(t => {
+      const m = SEASON_META[t.season];
+      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+        <input type="checkbox" onchange="toggleMaintDone('${t.id}',this.checked);setTimeout(renderHomeOverview,100)"
+          style="flex-shrink:0;accent-color:var(--teal);width:15px;height:15px;cursor:pointer;" />
+        <span style="font-size:15px;">${m.icon}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:var(--color-text-primary);">${t.title}</div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);">${t.season}${t.month ? ' · ' + MONTH_NAMES[parseInt(t.month)] : ''}</div>
+        </div>
+      </div>`;
+    }).join('')
+    : `<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:4px 0;">All caught up for this period — great work! 🎉</div>`;
+  }
+
+  // Active projects
+  const projEl = document.getElementById('ov-active-projects');
+  if (projEl) {
+    const active = (typeof projects !== 'undefined' ? projects : [])
+      .filter(p => p.status !== 'done').slice(0, 4);
+    projEl.innerHTML = active.length ? active.map(p => `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;" onclick="switchTab('projects')">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:var(--color-text-primary);">${p.name}</div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);">${p.category || ''}${p.costEst ? ' · Est. $' + p.costEst : ''}</div>
+        </div>
+        <div style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--color-background-info);color:var(--color-text-info);white-space:nowrap;">${PROJ_PRIORITY_LABELS[p.priority] || p.priority || ''}</div>
+      </div>`).join('')
+    : `<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:4px 0;">No active projects. <a href="#" onclick="switchTab('projects');return false;" style="color:var(--color-text-info);">Add one →</a></div>`;
+  }
+}
+
+// ── Closing day prompt ────────────────────────────────────────────
+function checkClosingDayPrompt() {
+  if (appMode === 'home') return; // already switched
+  if (localStorage.getItem(CLOSING_PROMPT_KEY)) return; // already shown
+  if (!closingDate) return;
+  const today = new Date();
+  const closing = new Date(closingDate + 'T00:00:00');
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  if (todayMidnight >= closing) {
+    document.getElementById('closing-day-modal').style.display = 'flex';
+  }
+}
+
+function dismissClosingPrompt(switchToHome) {
+  localStorage.setItem(CLOSING_PROMPT_KEY, '1');
+  document.getElementById('closing-day-modal').style.display = 'none';
+  if (switchToHome) setAppMode('home');
+}
+window.dismissClosingPrompt = dismissClosingPrompt;
+
+
+// ── Overview rendering ────────────────────────────────────────────
+
+function renderOverview() {
+  if (appMode === 'buying') renderBuyingOverview();
+  else renderHomeOverview();
+}
+
+function renderBuyingOverview() {
+  if (typeof taskPhases === 'undefined') return;
+
+  // Update ring
+  const all = taskPhases.flatMap(ph => ph.tasks);
+  const done = all.filter(t => t.done).length;
+  const total = all.length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const arc = document.getElementById('ov-ring-arc');
+  if (arc) {
+    const circumference = 2 * Math.PI * 32; // r=32 → 201.06
+    const offset = circumference * (1 - pct / 100);
+    arc.style.strokeDashoffset = offset;
+    // Colour shifts gold as you near 100%
+    arc.style.stroke = pct >= 100 ? 'var(--gold)' : pct >= 75 ? 'var(--teal-light)' : 'var(--teal)';
+  }
+
+  // Countdown
+  const today = new Date();
+  const closing = closingDate ? new Date(closingDate + 'T12:00:00') : null;
+  const countVal = document.getElementById('ov-countdown-val');
+  const countLabel = document.getElementById('ov-countdown-label');
+  const closingDisplay = document.getElementById('ov-closing-date-display');
+  if (closing && countVal) {
+    const diff = Math.ceil((closing - today) / 86400000);
+    if (diff > 0) {
+      countVal.textContent = diff;
+      countLabel.textContent = diff === 1 ? 'day to closing' : 'days to closing';
+    } else if (diff === 0) {
+      countVal.textContent = '🎉';
+      countLabel.textContent = 'Today is closing day!';
+    } else {
+      countVal.textContent = Math.abs(diff);
+      countLabel.textContent = 'days since closing';
+    }
+    if (closingDisplay) {
+      closingDisplay.textContent = closing.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+  }
+
+  // Urgent tasks — next 5 incomplete across all phases
+  const urgentEl = document.getElementById('ov-urgent-tasks');
+  if (urgentEl) {
+    const incomplete = [];
+    (taskPhases || []).forEach(ph => {
+      (ph.tasks || []).forEach(t => { if (!t.done) incomplete.push({ ...t, phase: ph.name }); });
+    });
+    const slice = incomplete.slice(0, 5);
+    urgentEl.innerHTML = slice.length ? slice.map(t => `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);">
+        <input type="checkbox" onchange="ovToggleTask('${t.id}',this.checked)"
+          style="margin-top:2px;flex-shrink:0;accent-color:var(--teal);width:15px;height:15px;cursor:pointer;" />
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:var(--color-text-primary);">${t.title}</div>
+          ${t.detail ? `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;">${t.detail}</div>` : ''}
+          <div style="font-size:10px;color:var(--teal);margin-top:3px;text-transform:uppercase;letter-spacing:.06em;">${t.phase}${t.due ? ' · ' + t.due : ''}</div>
+        </div>
+      </div>`).join('')
+    : `<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:10px 0;">All tasks complete — you're in great shape! 🎉</div>`;
+  }
+
+  // Key contacts quick-dial
+  const contactsEl = document.getElementById('ov-key-contacts');
+  if (contactsEl) {
+    const fields = {};
+    document.querySelectorAll('[data-key]').forEach(el => { fields[el.dataset.key] = el.value; });
+    const contacts = [
+      { initials:'BA', label: "Buyer's Agent", name: fields['contact-ba-name'] || "Jeff Heglund", phone: fields['contact-ba-phone'] || '(616) 916-1915', color:'var(--color-background-success)', textColor:'var(--color-text-success)' },
+      { initials:'LO', label: 'Loan Officer',  name: fields['contact-lo-name'] || "Jonathan Arnold", phone: fields['contact-lo-phone'] || '(616) 581-2374', color:'var(--color-background-warning)', textColor:'var(--color-text-warning)' },
+      { initials:'IN', label: 'Inspector',     name: fields['contact-in-name'] || "Kyle Miller",    phone: fields['contact-in-phone'] || '',               color:'var(--color-background-danger)',  textColor:'var(--color-text-danger)' },
+    ];
+    contactsEl.innerHTML = contacts.map(c => `
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px;text-align:center;">
+        <div style="width:32px;height:32px;border-radius:50%;background:${c.color};color:${c.textColor};font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">${c.initials}</div>
+        <div style="font-size:11px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px;">${c.name.split(' ')[0]}</div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:8px;">${c.label}</div>
+        ${c.phone ? `<a href="tel:${c.phone}" style="display:block;font-size:11px;color:var(--teal);text-decoration:none;background:var(--teal-muted);border-radius:20px;padding:4px 8px;">📞 Call</a>` : `<span style="font-size:10px;color:var(--color-text-tertiary);">No phone saved</span>`}
+      </div>`).join('');
+  }
+}
+
+// Allow checking tasks directly from overview
+function ovToggleTask(taskId, checked) {
+  taskPhases.forEach(ph => {
+    const t = ph.tasks.find(t => t.id === taskId);
+    if (t) t.done = checked;
+  });
+  persistAll();
+  updateProgress();
+  renderBuyingOverview();
+}
+window.ovToggleTask = ovToggleTask;
+
 function getFullState() {
   const fields = {};
   document.querySelectorAll('[data-key]').forEach(el => { fields[el.dataset.key] = el.value; });
@@ -3760,6 +4332,8 @@ function getFullState() {
     maintTasks,
     maintLog,
     customContacts,
+    appMode,
+    closingDate,
   };
 }
 
@@ -3854,6 +4428,14 @@ function applyState(s) {
     customContacts = s.customContacts;
     renderCustomContacts();
   }
+  if (s.closingDate) {
+    closingDate = s.closingDate;
+    const input = document.getElementById('settings-closing-date');
+    if (input) input.value = closingDate;
+  }
+  if (s.appMode && s.appMode !== appMode) {
+    setAppMode(s.appMode, false);
+  }
   if (s.maintTasks && Array.isArray(s.maintTasks)) {
     const savedMap = {};
     s.maintTasks.forEach(t => { savedMap[t.id] = t; });
@@ -3909,6 +4491,7 @@ function showApp() {
   const local = (() => { try { return JSON.parse(localStorage.getItem('shiloh-hub') || 'null'); } catch { return null; } })();
   if (local) applyState(local);
   else updateProgress();
+  setTimeout(checkClosingDayPrompt, 800);
 }
 
 function showLock() {
@@ -6401,6 +6984,7 @@ window.updateExpenseField = updateExpenseField;
 <style>
   @keyframes bounce { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
   @keyframes spin { to{transform:rotate(360deg)} }
+  @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 </style>
 <script>
 (function() {
