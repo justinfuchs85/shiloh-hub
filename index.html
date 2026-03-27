@@ -417,43 +417,133 @@
   #lightbox { display:none; position:fixed; inset:0; background:rgba(10,20,18,0.96); z-index:1000; align-items:center; justify-content:center; flex-direction:column; }
 
   /* ── Mobile nav ── */
-  .mobile-nav {
-    display: none;
-    overflow-x: auto;
-    background: var(--teal-dark);
-    padding: 0 8px;
-    white-space: nowrap;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    width: 100%;
-    flex-shrink: 0;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .mobile-nav::-webkit-scrollbar { display: none; }
-  .mobile-nav-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 14px 11px;
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.5);
+  /* ── Mobile bottom bar ── */
+  .mobile-nav { display: none; }
+
+  /* ── Group nav (desktop flyout) ── */
+  .nav-group-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px;
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.38);
     cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    white-space: nowrap;
+    border-left: 2px solid transparent;
+    transition: all 0.18s;
+    user-select: none;
+    position: relative;
   }
-  .mobile-nav-item.active { color: #fff; border-bottom-color: var(--gold); }
+  .nav-group-header:hover { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.04); }
+  .nav-group-header.open { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.06); border-left-color: rgba(196,151,58,0.5); }
+  .nav-group-header .grp-icon { font-size: 15px; flex-shrink: 0; }
+  .nav-group-header .grp-chevron { margin-left: auto; font-size: 9px; transition: transform 0.2s; opacity: 0.5; }
+  .nav-group-header.open .grp-chevron { transform: rotate(90deg); opacity: 0.8; }
+  .nav-group-badge { font-size: 9px; background: rgba(196,151,58,0.25); color: var(--gold-light); border-radius: 8px; padding: 1px 5px; margin-left: 4px; }
+
+  /* Flyout panel */
+  #nav-flyout {
+    position: fixed; left: var(--nav-width); top: 0;
+    width: 188px; height: 100vh;
+    background: #0f2e28;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    z-index: 600;
+    display: none;
+    flex-direction: column;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    overflow-y: auto;
+  }
+  #nav-flyout.visible { display: flex; }
+  .flyout-group-label {
+    padding: 16px 18px 8px;
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(255,255,255,0.35); font-weight: 500;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 4px;
+  }
+  .flyout-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px;
+    font-size: 12px; font-weight: 400;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .flyout-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+  .flyout-item.active { color: #fff; background: rgba(255,255,255,0.1); border-left-color: var(--gold); }
+  .flyout-item .flyout-icon { font-size: 14px; flex-shrink: 0; opacity: 0.85; }
+  #nav-flyout-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 599;
+  }
+  #nav-flyout-backdrop.visible { display: block; }
+
+  /* ── Mobile bottom bar ── */
+  .mob-bar {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 58px;
+    background: var(--teal-dark);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 400;
+    align-items: stretch;
+    justify-content: space-around;
+  }
+  .mob-bar-btn {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; cursor: pointer;
+    color: rgba(255,255,255,0.45);
+    font-size: 10px; letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: none; background: none;
+    transition: color 0.15s;
+    padding: 0;
+  }
+  .mob-bar-btn .mb-icon { font-size: 20px; line-height: 1; }
+  .mob-bar-btn.active { color: #fff; }
+  .mob-bar-btn.active .mb-icon { filter: drop-shadow(0 0 4px rgba(196,151,58,0.6)); }
+
+  /* Mobile sheet */
+  #mob-sheet-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 700;
+  }
+  #mob-sheet-backdrop.visible { display: block; }
+  #mob-sheet {
+    position: fixed; bottom: 58px; left: 0; right: 0;
+    background: var(--teal-dark);
+    border-top: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px 16px 0 0;
+    z-index: 701;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  #mob-sheet.visible { transform: translateY(0); }
+  .mob-sheet-header {
+    padding: 14px 20px 10px;
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .mob-sheet-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 20px;
+    font-size: 13px; color: rgba(255,255,255,0.7);
+    cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.12s;
+  }
+  .mob-sheet-item:last-child { border-bottom: none; }
+  .mob-sheet-item:active { background: rgba(255,255,255,0.07); }
+  .mob-sheet-item.active { color: #fff; background: rgba(255,255,255,0.08); }
+  .mob-sheet-item.active::after { content: '✓'; margin-left: auto; color: var(--gold); font-size: 14px; }
+  .mob-sheet-icon { font-size: 18px; flex-shrink: 0; }
 
   @media (max-width: 680px) {
     .shell { flex-direction: column; }
     .sidebar { display: none; }
-    .mobile-nav { display: block; }
+    .mob-bar { display: flex; }
     #mobile-fab { display: flex !important; }
     .main {
       padding: 1.25rem 1rem 5rem;
@@ -584,7 +674,18 @@
 <!-- App shell -->
 <div class="shell" id="app-shell" style="display:none;">
   <!-- Mobile top nav (hidden on desktop) -->
-  <div class="mobile-nav" id="mobile-nav"></div>
+  <div id="mobile-nav"></div>
+
+  <!-- Desktop flyout backdrop + panel -->
+  <div id="nav-flyout-backdrop" onclick="closeFlyout()"></div>
+  <div id="nav-flyout"></div>
+
+  <!-- Mobile sheet backdrop + panel -->
+  <div id="mob-sheet-backdrop" onclick="closeMobSheet()"></div>
+  <div id="mob-sheet"></div>
+
+  <!-- Mobile bottom bar -->
+  <div class="mob-bar" id="mob-bar"></div>
   <!-- Mobile floating action buttons (hidden on desktop) -->
   <div id="mobile-fab" style="display:none;position:fixed;bottom:20px;right:16px;z-index:500;display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
     <input id="fab-camera-input" type="file" accept="image/*" capture="environment" style="display:none;" />
@@ -598,13 +699,8 @@
       <div class="badge">Offer Accepted</div>
     </div>
     <div class="nav-items" id="nav-items"></div>
-    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,0.08);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;">Data</div>
+    <div style="padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:flex-end;">
         <span id="sync-status" style="font-size:10px;color:rgba(255,255,255,0.35);"></span>
-      </div>
-      <button onclick="exportData()" style="width:100%;padding:7px 10px;margin-bottom:5px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:var(--border-radius-md);font-size:11px;font-family:var(--font-sans);cursor:pointer;text-align:left;">⬇ Export JSON</button>
-      <label style="width:100%;display:block;padding:7px 10px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:var(--border-radius-md);font-size:11px;cursor:pointer;text-align:left;">⬆ Import JSON<input id="import-input" type="file" accept=".json" style="display:none;" /></label>
     </div>
     <div style="padding:10px 14px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:flex-end;">
       <button onclick="signOut()" style="background:none;border:none;font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;padding:0;letter-spacing:0.05em;text-transform:uppercase;">🔒 Lock</button>
@@ -1626,56 +1722,157 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 // ── Navigation ──────────────────────────────────────────────────
-const tabs = [
-  { id: 'overview',    label: 'Overview',    icon: '🏠' },
-  { id: 'maintenance', label: 'Maintenance', icon: '🔧' },
-  { id: 'photos',    label: 'Photos',    icon: '📷' },
-  { id: 'timeline',  label: 'Timeline',  icon: '✅' },
-  { id: 'details',   label: 'Details',   icon: '📋' },
-  { id: 'expenses',   label: 'Expenses',   icon: '💰' },
-  { id: 'calculator', label: 'Calculator', icon: '🧮' },
-  { id: 'notes',      label: 'Notes',      icon: '📝' },
-  { id: 'shopping',   label: 'Shopping',   icon: '🛒' },
-  { id: 'spaces',    label: 'Spaces',    icon: '🏘️' },
-  { id: 'inventory', label: 'Inventory',  icon: '📦' },
-  { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
-  { id: 'projects',   label: 'Projects',   icon: '🏗️' },
-  { id: 'contacts',   label: 'Contacts',   icon: '👥' },
-  { id: 'drive',      label: 'Drive',      icon: '📁' },
+// ── Tab groups ───────────────────────────────────────────────────
+const TAB_GROUPS = [
+  { id: 'property',   label: 'Property',    icon: '🏠',
+    tabs: [
+      { id: 'overview',   label: 'Overview',   icon: '🏠' },
+      { id: 'photos',     label: 'Photos',     icon: '📷' },
+      { id: 'details',    label: 'Details',    icon: '📋' },
+      { id: 'timeline',   label: 'Timeline',   icon: '✅' },
+    ]
+  },
+  { id: 'money',      label: 'Money',       icon: '💰',
+    tabs: [
+      { id: 'expenses',   label: 'Expenses',   icon: '💰' },
+      { id: 'calculator', label: 'Calculator', icon: '🧮' },
+    ]
+  },
+  { id: 'home',       label: 'Home',        icon: '🔧',
+    tabs: [
+      { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
+      { id: 'projects',   label: 'Projects',   icon: '🏗️' },
+      { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
+      { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
+    ]
+  },
+  { id: 'stuff',      label: 'Stuff',       icon: '🛒',
+    tabs: [
+      { id: 'shopping',   label: 'Shopping',   icon: '🛒' },
+      { id: 'inventory',  label: 'Inventory',  icon: '📦' },
+      { id: 'notes',      label: 'Notes',      icon: '📝' },
+    ]
+  },
+  { id: 'people',     label: 'People',      icon: '👥',
+    tabs: [
+      { id: 'contacts',   label: 'Contacts',   icon: '👥' },
+      { id: 'drive',      label: 'Drive',      icon: '📁' },
+    ]
+  },
 ];
 
-let currentTab = 'overview';
+// Flat tab list (for lookups)
+const tabs = TAB_GROUPS.flatMap(g => g.tabs);
 
+// Find which group a tab belongs to
+function groupForTab(tabId) {
+  return TAB_GROUPS.find(g => g.tabs.some(t => t.id === tabId));
+}
+
+let currentTab = 'overview';
+let openGroupId = 'property'; // default open group (contains overview)
+
+// ── Desktop sidebar nav ───────────────────────────────────────────
 function buildNav() {
   const navItems = document.getElementById('nav-items');
-  const mobileNav = document.getElementById('mobile-nav');
-  tabs.forEach(t => {
-    // Sidebar item
-    const el = document.createElement('div');
-    el.className = 'nav-item' + (t.id === currentTab ? ' active' : '');
-    el.id = 'nav-' + t.id;
-    el.innerHTML = `<span class="nav-icon">${t.icon}</span><span>${t.label}</span>`;
-    if (t.id === 'timeline') el.innerHTML += `<span class="nav-progress" id="nav-progress"></span>`;
-    if (t.id === 'drive') {
-      el.onclick = () => openDriveFolder();
-      el.title = 'Open Drive folder';
-    } else {
-      el.onclick = () => switchTab(t.id);
-    }
-    navItems.appendChild(el);
-    // Mobile item
-    const mel = document.createElement('div');
-    mel.className = 'mobile-nav-item' + (t.id === currentTab ? ' active' : '');
-    mel.id = 'mnav-' + t.id;
-    mel.innerHTML = `${t.icon} ${t.label}`;
-    if (t.id === 'drive') {
-      mel.onclick = () => openDriveFolder();
-    } else {
-      mel.onclick = () => switchTab(t.id);
-    }
-    mobileNav.appendChild(mel);
+  navItems.innerHTML = '';
+
+  TAB_GROUPS.forEach(group => {
+    // Group header row
+    const hdr = document.createElement('div');
+    hdr.className = 'nav-group-header' + (group.id === openGroupId ? ' open' : '');
+    hdr.id = 'navgrp-' + group.id;
+    hdr.innerHTML = `<span class="grp-icon">${group.icon}</span><span>${group.label}</span><span class="grp-chevron">▶</span>`;
+    hdr.onclick = () => toggleGroup(group.id);
+    navItems.appendChild(hdr);
   });
+
+  // Build mobile bottom bar
+  buildMobBar();
 }
+
+function toggleGroup(groupId) {
+  if (openGroupId === groupId) {
+    closeFlyout();
+    return;
+  }
+  openGroupId = groupId;
+  // Update header styles
+  document.querySelectorAll('.nav-group-header').forEach(h => h.classList.remove('open'));
+  const hdr = document.getElementById('navgrp-' + groupId);
+  if (hdr) hdr.classList.add('open');
+  // Show flyout
+  showFlyout(groupId);
+}
+
+function showFlyout(groupId) {
+  const group = TAB_GROUPS.find(g => g.id === groupId);
+  if (!group) return;
+  const flyout = document.getElementById('nav-flyout');
+  const backdrop = document.getElementById('nav-flyout-backdrop');
+  flyout.innerHTML = `
+    <div class="flyout-group-label">${group.icon} ${group.label}</div>
+    ${group.tabs.map(t => {
+      const isActive = t.id === currentTab;
+      const extraId = t.id === 'timeline' ? ` <span id="nav-progress" style="font-size:10px;color:rgba(255,255,255,0.35);margin-left:auto;"></span>` : '';
+      return `<div class="flyout-item${isActive ? ' active' : ''}" id="nav-${t.id}" onclick="${t.id === 'drive' ? 'openDriveFolder()' : `switchTab('${t.id}')`}">
+        <span class="flyout-icon">${t.icon}</span><span>${t.label}</span>${extraId}
+      </div>`;
+    }).join('')}
+  `;
+  flyout.classList.add('visible');
+  backdrop.classList.add('visible');
+}
+
+function closeFlyout() {
+  document.getElementById('nav-flyout').classList.remove('visible');
+  document.getElementById('nav-flyout-backdrop').classList.remove('visible');
+  document.querySelectorAll('.nav-group-header').forEach(h => h.classList.remove('open'));
+  openGroupId = null;
+}
+window.closeFlyout = closeFlyout;
+
+// ── Mobile bottom bar + sheet ─────────────────────────────────────
+let activeMobGroupId = null;
+
+function buildMobBar() {
+  const bar = document.getElementById('mob-bar');
+  if (!bar) return;
+  bar.innerHTML = TAB_GROUPS.map(g => {
+    const hasActive = g.tabs.some(t => t.id === currentTab);
+    return `<button class="mob-bar-btn${hasActive ? ' active' : ''}" id="mobbar-${g.id}" onclick="openMobSheet('${g.id}')">
+      <span class="mb-icon">${g.icon}</span>
+      <span>${g.label}</span>
+    </button>`;
+  }).join('');
+}
+
+function openMobSheet(groupId) {
+  const group = TAB_GROUPS.find(g => g.id === groupId);
+  if (!group) return;
+  activeMobGroupId = groupId;
+  const sheet = document.getElementById('mob-sheet');
+  const backdrop = document.getElementById('mob-sheet-backdrop');
+  sheet.innerHTML = `
+    <div class="mob-sheet-header">${group.icon} ${group.label}</div>
+    ${group.tabs.map(t => `
+      <div class="mob-sheet-item${t.id === currentTab ? ' active' : ''}" onclick="${t.id === 'drive' ? 'openDriveFolder();closeMobSheet()' : `switchTab('${t.id}');closeMobSheet()`}">
+        <span class="mob-sheet-icon">${t.icon}</span>
+        <span style="font-size:14px;letter-spacing:0.02em;">${t.label}</span>
+      </div>
+    `).join('')}
+  `;
+  sheet.classList.add('visible');
+  backdrop.classList.add('visible');
+}
+window.openMobSheet = openMobSheet;
+
+function closeMobSheet() {
+  document.getElementById('mob-sheet').classList.remove('visible');
+  document.getElementById('mob-sheet-backdrop').classList.remove('visible');
+  activeMobGroupId = null;
+}
+window.closeMobSheet = closeMobSheet;
 
 // ── Analytics helper ─────────────────────────────────────────────
 function gaEvent(action, params = {}) {
@@ -1685,13 +1882,29 @@ function gaEvent(action, params = {}) {
 function switchTab(id) {
   if (id === 'drive') { openDriveFolder(); return; }
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  document.getElementById('nav-' + id).classList.add('active');
-  document.getElementById('mnav-' + id).classList.add('active');
   currentTab = id;
   window.scrollTo(0, 0);
+
+  // Update flyout active state
+  document.querySelectorAll('.flyout-item').forEach(n => n.classList.remove('active'));
+  const fi = document.getElementById('nav-' + id);
+  if (fi) fi.classList.add('active');
+
+  // Update mobile bar active group
+  buildMobBar();
+
+  // Keep flyout open on the right group
+  const grp = groupForTab(id);
+  if (grp) {
+    openGroupId = grp.id;
+    document.querySelectorAll('.nav-group-header').forEach(h => h.classList.remove('open'));
+    const hdr = document.getElementById('navgrp-' + grp.id);
+    if (hdr) hdr.classList.add('open');
+    // Re-render flyout to update active item
+    showFlyout(grp.id);
+  }
+
   // Virtual pageview for GA
   if (typeof gtag === 'function') {
     gtag('event', 'page_view', {
@@ -3649,7 +3862,6 @@ document.getElementById('upload-toggle-btn').addEventListener('click', () => {
 });
 
 // Wire import file input
-document.getElementById('import-input').addEventListener('change', importData);
 // ── Expenses ──
 function parseMoney(s) {
   const n = parseFloat((s || '').replace(/[^0-9.]/g, ''));
