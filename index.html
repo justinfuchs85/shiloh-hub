@@ -7508,6 +7508,7 @@ function applyState(s) {
   }
   if (s.spaces && Array.isArray(s.spaces)) {
     spaces = s.spaces;
+    renderSpacesGrid();
   }
   if (s.inventory && Array.isArray(s.inventory)) {
     inventory = s.inventory;
@@ -9560,124 +9561,262 @@ function renderSpacesGrid() {
 
 function openSpaceSummary(spaceName) {
   const overlay = document.getElementById('space-overlay');
-  const title = document.getElementById('space-overlay-title');
-  const body = document.getElementById('space-overlay-body');
-  title.textContent = spaceName;
-  body.innerHTML = '';
+  const hero    = document.getElementById('space-overlay-hero');
+  const body    = document.getElementById('space-overlay-body');
   overlay.style.display = 'flex';
+  body.innerHTML = '';
 
-  // ── Photos ──────────────────────────────────────────────────────
+  // Gather all data for this space
+  const dp = getProfile ? getProfile(spaceName) : null;
   const cat = photoCategories.find(c => c.name === spaceName);
   const mlsPhotos = cat?.photos || [];
   const uploadedPhotos = userPhotos.filter(p => p.category === spaceName);
   const allPhotos = [...mlsPhotos, ...uploadedPhotos];
-
-  if (allPhotos.length) {
-    const section = document.createElement('div');
-    section.innerHTML = `<div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">📷 Photos (${allPhotos.length})</div>`;
-    const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;';
-    mlsPhotos.forEach(p => {
-      const img = document.createElement('img');
-      img.src = p.url; img.alt = p.alt;
-      img.style.cssText = 'width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer;';
-      img.onclick = () => { overlay.style.display = 'none'; switchTab('photos'); };
-      grid.appendChild(img);
-    });
-    uploadedPhotos.forEach(p => {
-      const img = document.createElement('img');
-      img.src = p.url; img.alt = p.caption; img.title = p.caption;
-      img.style.cssText = 'width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer;';
-      img.onclick = () => { overlay.style.display = 'none'; switchTab('photos'); };
-      grid.appendChild(img);
-    });
-    section.appendChild(grid);
-    body.appendChild(section);
-  }
-
-  // ── Shopping items ──────────────────────────────────────────────
   const room = shoppingRooms.find(r => r.name === spaceName);
-  const items = (room?.items || []).filter(i => !i.done);
-  if (items.length) {
-    const section = document.createElement('div');
-    section.innerHTML = `<div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🛒 Shopping (${items.length} needed)</div>`;
-    items.forEach(it => {
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:5px;';
-      row.innerHTML = `
-        <div style="flex:1;">
-          <div style="font-size:13px;color:var(--warm-dark);">${it.name}</div>
-          ${it.priceEst ? `<div style="font-size:11px;color:var(--warm-muted);">${it.priceEst}</div>` : ''}
-        </div>
-        <span style="font-size:10px;padding:2px 8px;background:var(--teal-subtle);color:var(--teal-dark);border-radius:20px;">${it.priority}</span>
-        ${it.link ? `<a href="${it.link}" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;">View →</a>` : ''}
-      `;
-      section.appendChild(row);
-    });
-    body.appendChild(section);
-  }
-
-  // ── Projects ────────────────────────────────────────────────────
+  const shopItems = (room?.items || []).filter(i => !i.done);
   const spaceProjects = projects.filter(p => p.category === spaceName);
-  if (spaceProjects.length) {
-    const section = document.createElement('div');
-    section.innerHTML = `<div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">🏗️ Projects (${spaceProjects.length})</div>`;
-    spaceProjects.forEach(p => {
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:5px;';
-      const doneSt = (p.subtasks||[]).filter(s=>s.done).length;
-      const totalSt = (p.subtasks||[]).length;
-      const statusColors = {'planning':'var(--warm-faint)','in-progress':'var(--teal)','complete':'#2d6b3f'};
-      row.innerHTML = `
-        <div style="flex:1;">
-          <div style="font-size:13px;color:var(--warm-dark);">${p.name}</div>
-          ${totalSt > 0 ? `<div style="font-size:11px;color:var(--warm-muted);">${doneSt}/${totalSt} tasks done</div>` : ''}
-        </div>
-        <span style="font-size:10px;padding:2px 8px;background:var(--teal-subtle);color:${statusColors[p.status]||'var(--warm-muted)'};border-radius:20px;">${p.status}</span>
-        ${p.costEst ? `<span style="font-size:11px;color:var(--warm-muted);">$${p.costEst}</span>` : ''}
-      `;
-      section.appendChild(row);
-    });
-    body.appendChild(section);
-  }
-
-  // ── Notes ───────────────────────────────────────────────────────
   const spaceNotes = sharedNotes.filter(n => n.space === spaceName);
-  if (spaceNotes.length) {
-    const section = document.createElement('div');
-    section.innerHTML = `<div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">📝 Notes (${spaceNotes.length})</div>`;
-    [...spaceNotes].reverse().forEach(n => {
-      const row = document.createElement('div');
-      row.style.cssText = 'padding:10px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:6px;';
-      row.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-          ${n.title ? `<div style="font-size:13px;font-weight:500;color:var(--warm-dark);">${n.title}</div>` : ''}
-          <div style="font-size:10px;color:var(--warm-faint);margin-left:auto;">${n.author} · ${new Date(n.ts).toLocaleDateString()}</div>
+  const moodboard = dp?.moodboard || [];
+  const palette   = dp?.palette   || [];
+  const decisions = dp?.decisions || [];
+  const furniture = dp?.furniture || [];
+  const vision    = dp?.vision    || '';
+  const designNotes = dp?.notes   || [];
+
+  const icon = SPACE_ICONS?.[spaceName] || '🏠';
+
+  // ── Hero ──────────────────────────────────────────────────────────
+  // Use first mood board image or first property photo as hero background
+  const heroBg = moodboard[0]?.url || allPhotos[0]?.url || '';
+  const decDone  = decisions.filter(d => d.done).length;
+  const decTotal = decisions.length;
+  const circumference = 2 * Math.PI * 20;
+  const pct = decTotal ? Math.round(decDone / decTotal * 100) : 0;
+  const offset = circumference * (1 - pct / 100);
+
+  hero.innerHTML = `
+    <div style="position:relative;min-height:200px;background:${heroBg ? 'transparent' : 'var(--teal-dark)'};overflow:hidden;">
+      ${heroBg ? `<img src="${heroBg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />` : ''}
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(14,40,35,.3) 0%,rgba(14,40,35,.85) 100%);"></div>
+      <!-- Close btn -->
+      <button onclick="closeSpaceOverlay()" style="position:absolute;top:16px;right:16px;background:rgba(0,0,0,.35);border:none;color:rgba(255,255,255,.8);font-size:18px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:10;">✕</button>
+      <!-- Content -->
+      <div style="position:relative;padding:28px 28px 24px;">
+        <div style="font-size:28px;margin-bottom:6px;">${icon}</div>
+        <div style="font-family:var(--font-serif);font-size:28px;font-weight:300;color:#fff;line-height:1.2;">${spaceName}</div>
+        ${vision ? `<div style="font-size:13px;color:rgba(255,255,255,.65);margin-top:8px;line-height:1.6;max-width:480px;font-style:italic;">"${vision.slice(0,160)}${vision.length>160?'…':''}"</div>` : ''}
+        <!-- Stat pills -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;">
+          ${allPhotos.length    ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">📷 ${allPhotos.length} photo${allPhotos.length!==1?'s':''}</div>` : ''}
+          ${moodboard.length    ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">📌 ${moodboard.length} mood image${moodboard.length!==1?'s':''}</div>` : ''}
+          ${palette.length      ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">🎨 ${palette.length} color${palette.length!==1?'s':''}</div>` : ''}
+          ${shopItems.length    ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">🛒 ${shopItems.length} to buy</div>` : ''}
+          ${spaceProjects.length? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">🏗️ ${spaceProjects.length} project${spaceProjects.length!==1?'s':''}</div>` : ''}
+          ${decTotal            ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">✅ ${decDone}/${decTotal} decisions</div>` : ''}
         </div>
-        <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5;">${n.body}</div>
-      `;
-      section.appendChild(row);
-    });
-    body.appendChild(section);
+        <!-- Decisions ring -->
+        ${decTotal ? `
+        <div style="position:absolute;top:24px;right:60px;width:48px;height:48px;">
+          <svg width="48" height="48" viewBox="0 0 48 48" style="transform:rotate(-90deg);">
+            <circle cx="24" cy="24" r="20" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
+            <circle cx="24" cy="24" r="20" fill="none" stroke="${pct>=100?'#C4973A':'rgba(255,255,255,.85)'}" stroke-width="4"
+              stroke-dasharray="${circumference.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;">${pct}%</div>
+        </div>` : ''}
+      </div>
+      <!-- Palette bar -->
+      ${palette.length ? `<div style="display:flex;height:6px;">${palette.map(c=>`<div style="flex:1;background:${c.hex};"></div>`).join('')}</div>` : ''}
+    </div>`;
+
+  // ── Body sections ─────────────────────────────────────────────────
+  const sections = [];
+
+  // Helper to add a section
+  function addSection(html) {
+    const div = document.createElement('div');
+    div.style.cssText = 'border-bottom:0.5px solid var(--color-border-tertiary);';
+    div.innerHTML = html;
+    body.appendChild(div);
   }
 
-  // Empty state
-  if (!allPhotos.length && !items.length && !spaceProjects.length && !spaceNotes.length) {
-    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--warm-faint);font-size:14px;">Nothing here yet — add photos, shopping items, projects or notes tagged to this space.</div>';
+  function sectionHeader(label, action = '') {
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 12px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--color-text-tertiary);font-weight:500;">${label}</div>
+      ${action}
+    </div>`;
+  }
+
+  function actionLink(label, tab, section='') {
+    return `<button onclick="closeSpaceOverlay();switchTab('${tab}')${section?`;setTimeout(()=>switchDesignSection('${section}'),100)`:''}" style="font-size:11px;color:var(--teal);background:none;border:none;cursor:pointer;padding:0;font-family:var(--font-sans);">${label} →</button>`;
+  }
+
+  // ── Mood board ────────────────────────────────────────────────────
+  if (moodboard.length) {
+    let html = sectionHeader('📌 Mood Board', actionLink('Edit', 'design', 'moodboard'));
+    html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 24px 18px;">
+      ${moodboard.slice(0,8).map(img => `<div style="aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--color-background-secondary);">
+        <img src="${img.url}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'" />
+      </div>`).join('')}
+      ${moodboard.length > 8 ? `<div style="aspect-ratio:1;border-radius:6px;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--color-text-tertiary);">+${moodboard.length-8} more</div>` : ''}
+    </div>`;
+    addSection(html);
+  }
+
+  // ── Palette ───────────────────────────────────────────────────────
+  if (palette.length) {
+    let html = sectionHeader('🎨 Palette', actionLink('Edit', 'design', 'palette'));
+    html += `<div style="display:flex;gap:12px;padding:0 24px 20px;flex-wrap:wrap;">
+      ${palette.map(c => `
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:36px;height:36px;border-radius:6px;background:${c.hex};border:0.5px solid rgba(0,0,0,.08);box-shadow:0 1px 4px rgba(0,0,0,.1);flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:12px;color:var(--color-text-primary);font-weight:500;">${c.name}</div>
+            ${c.paint ? `<div style="font-size:10px;color:var(--color-text-tertiary);">${c.paint}</div>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>`;
+    addSection(html);
+  }
+
+  // ── Vision ────────────────────────────────────────────────────────
+  if (vision) {
+    let html = sectionHeader('✨ Vision', actionLink('Edit', 'design', 'vision'));
+    html += `<div style="padding:0 24px 20px;font-size:14px;color:var(--color-text-secondary);line-height:1.8;font-style:italic;">"${vision}"</div>`;
+    addSection(html);
+  }
+
+  // ── Photos ────────────────────────────────────────────────────────
+  if (allPhotos.length) {
+    let html = sectionHeader(`📷 Photos (${allPhotos.length})`, actionLink('View all', 'photos'));
+    html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 24px 18px;">
+      ${allPhotos.slice(0,8).map(p => `<div style="aspect-ratio:4/3;border-radius:6px;overflow:hidden;background:var(--color-background-secondary);">
+        <img src="${p.url||p}" style="width:100%;height:100%;object-fit:cover;display:block;" />
+      </div>`).join('')}
+    </div>`;
+    addSection(html);
+  }
+
+  // ── Decisions ─────────────────────────────────────────────────────
+  if (decisions.length) {
+    let html = sectionHeader(`✅ Design decisions (${decDone}/${decTotal})`, actionLink('Edit', 'design', 'decisions'));
+    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:6px;">
+      ${decisions.slice(0,6).map(d => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);${d.done?'opacity:.55;':''}">
+          <div style="width:16px;height:16px;border-radius:50%;background:${d.done?'var(--teal-dark)':'var(--color-border-secondary)'};flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+            ${d.done?'<span style="color:#fff;font-size:10px;">✓</span>':''}
+          </div>
+          <div style="flex:1;font-size:13px;color:var(--color-text-primary);${d.done?'text-decoration:line-through;':''}">${d.text}</div>
+          ${d.category?`<div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;">${d.category}</div>`:''}
+        </div>`).join('')}
+      ${decisions.length>6?`<div style="font-size:12px;color:var(--color-text-tertiary);padding:4px 0;">+${decisions.length-6} more</div>`:''}
+    </div>`;
+    addSection(html);
+  }
+
+  // ── Furniture ─────────────────────────────────────────────────────
+  if (furniture.length) {
+    const FSTYLES = { Keep:{bg:'var(--color-background-success)',color:'var(--color-text-success)'}, Buy:{bg:'var(--color-background-info)',color:'var(--color-text-info)'}, Measure:{bg:'var(--color-background-warning)',color:'var(--color-text-warning)'}, Skip:{bg:'var(--color-background-secondary)',color:'var(--color-text-tertiary)'} };
+    let html = sectionHeader(`🛋️ Furniture (${furniture.length})`, actionLink('Edit', 'design', 'furniture'));
+    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:5px;">
+      ${furniture.map(f => {
+        const st = FSTYLES[f.status] || FSTYLES.Skip;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+          <div style="flex:1;font-size:13px;color:var(--color-text-primary);">${f.name}</div>
+          ${f.notes?`<div style="font-size:11px;color:var(--color-text-tertiary);font-style:italic;">${f.notes}</div>`:''}
+          <div style="font-size:10px;padding:2px 8px;border-radius:12px;background:${st.bg};color:${st.color};white-space:nowrap;">${f.status}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+    addSection(html);
+  }
+
+  // ── Shopping ──────────────────────────────────────────────────────
+  if (shopItems.length) {
+    let html = sectionHeader(`🛒 Shopping (${shopItems.length} needed)`, actionLink('View list', 'shopping'));
+    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:5px;">
+      ${shopItems.slice(0,5).map(it => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+          <div style="flex:1;">
+            <div style="font-size:13px;color:var(--color-text-primary);">${it.name}</div>
+            ${it.priceEst?`<div style="font-size:11px;color:var(--color-text-tertiary);">${it.priceEst}</div>`:''}
+          </div>
+          <span style="font-size:10px;padding:2px 8px;background:var(--teal-muted);color:var(--teal);border-radius:12px;">${it.priority}</span>
+          ${it.link?`<a href="${it.link}" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;">View →</a>`:''}
+        </div>`).join('')}
+      ${shopItems.length>5?`<div style="font-size:12px;color:var(--color-text-tertiary);padding:4px 0;">+${shopItems.length-5} more</div>`:''}
+    </div>`;
+    addSection(html);
+  }
+
+  // ── Projects ──────────────────────────────────────────────────────
+  if (spaceProjects.length) {
+    const statusColors = {'planning':'var(--color-text-tertiary)','in-progress':'var(--teal)','complete':'var(--color-text-success)'};
+    let html = sectionHeader(`🏗️ Projects (${spaceProjects.length})`, actionLink('View all', 'projects'));
+    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:5px;">
+      ${spaceProjects.map(p => {
+        const doneSt = (p.subtasks||[]).filter(s=>s.done).length;
+        const totalSt = (p.subtasks||[]).length;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+          <div style="flex:1;">
+            <div style="font-size:13px;color:var(--color-text-primary);">${p.name}</div>
+            ${totalSt>0?`<div style="font-size:11px;color:var(--color-text-tertiary);">${doneSt}/${totalSt} tasks</div>`:''}
+          </div>
+          <span style="font-size:10px;padding:2px 8px;background:var(--color-background-secondary);color:${statusColors[p.status]||'var(--color-text-tertiary)'};border-radius:12px;border:0.5px solid var(--color-border-secondary);">${p.status}</span>
+          ${p.costEst?`<span style="font-size:11px;color:var(--color-text-tertiary);">$${p.costEst}</span>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+    addSection(html);
+  }
+
+  // ── Notes ─────────────────────────────────────────────────────────
+  if (spaceNotes.length || designNotes.length) {
+    const allNotes = [...spaceNotes.map(n=>({text:n.body||n.text,date:n.ts||n.date,label:'Hub note'})), ...designNotes.map(n=>({text:n.text,date:n.date,label:'Design note'}))];
+    let html = sectionHeader(`📝 Notes (${allNotes.length})`, actionLink('All notes', 'notes'));
+    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:6px;">
+      ${allNotes.slice(0,4).map(n => `
+        <div style="padding:10px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+          <div style="font-size:13px;color:var(--color-text-primary);line-height:1.5;">${n.text}</div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:4px;">${n.label} · ${new Date(n.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+        </div>`).join('')}
+    </div>`;
+    addSection(html);
+  }
+
+  // ── Design link / empty state ─────────────────────────────────────
+  const hasAnything = allPhotos.length || moodboard.length || palette.length || vision || decisions.length || furniture.length || shopItems.length || spaceProjects.length || spaceNotes.length || designNotes.length;
+  if (!hasAnything) {
+    body.innerHTML = `<div style="text-align:center;padding:48px 24px;">
+      <div style="font-size:40px;margin-bottom:16px;">${icon}</div>
+      <div style="font-family:var(--font-serif);font-size:20px;color:var(--color-text-primary);margin-bottom:8px;">Nothing here yet</div>
+      <div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:24px;">Start by adding a design vision, mood board images, or photos.</div>
+      <button onclick="closeSpaceOverlay();switchTab('design');setTimeout(()=>openDesignRoom('${spaceName}'),100)"
+        style="padding:10px 24px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);">
+        Open in Design →
+      </button>
+    </div>`;
+  } else {
+    // Footer: link to open in Design
+    const footer = document.createElement('div');
+    footer.style.cssText = 'padding:20px 24px;text-align:center;';
+    footer.innerHTML = `<button onclick="closeSpaceOverlay();switchTab('design');setTimeout(()=>openDesignRoom('${spaceName}'),100)"
+      style="padding:10px 24px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);">
+      Open full design profile →
+    </button>`;
+    body.appendChild(footer);
   }
 }
 
-// Wire space overlay close
-document.getElementById('space-overlay-close').addEventListener('click', () => {
+function closeSpaceOverlay() {
   document.getElementById('space-overlay').style.display = 'none';
-});
-document.getElementById('space-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('space-overlay')) {
-    document.getElementById('space-overlay').style.display = 'none';
-  }
-});
+}
+window.closeSpaceOverlay = closeSpaceOverlay;
+
+
+// Wire space overlay close (backdrop click handled inline, close btn handled by closeSpaceOverlay)
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.getElementById('space-overlay').style.display = 'none';
+  if (e.key === 'Escape') closeSpaceOverlay();
 });
 
 // Wire spaces add button
@@ -10087,13 +10226,12 @@ window.updateExpenseField = updateExpenseField;
 
 </script>
 <!-- Room Summary Overlay -->
-<div id="space-overlay" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(10,20,18,0.7);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;">
-  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);width:100%;max-width:860px;box-shadow:0 24px 64px rgba(0,0,0,0.3);overflow:hidden;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--color-border-tertiary);background:var(--teal-dark);">
-      <div id="space-overlay-title" style="font-family:var(--font-serif);font-size:22px;font-weight:300;color:#fff;"></div>
-      <button id="space-overlay-close" style="background:none;border:none;font-size:22px;color:rgba(255,255,255,0.7);cursor:pointer;padding:4px;">✕</button>
-    </div>
-    <div id="space-overlay-body" style="padding:22px;display:flex;flex-direction:column;gap:24px;"></div>
+<div id="space-overlay" onclick="if(event.target===this)closeSpaceOverlay()" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(10,20,18,0.55);backdrop-filter:blur(6px);align-items:flex-start;justify-content:flex-end;">
+  <div id="space-overlay-panel" style="background:var(--color-background-primary);width:min(720px,100vw);height:100vh;overflow-y:auto;box-shadow:-12px 0 48px rgba(0,0,0,0.25);display:flex;flex-direction:column;animation:slideInRight .25s ease;">
+    <!-- Hero header — filled by JS -->
+    <div id="space-overlay-hero" style="flex-shrink:0;"></div>
+    <!-- Body -->
+    <div id="space-overlay-body" style="flex:1;padding:0;"></div>
   </div>
 </div>
 
@@ -10109,6 +10247,7 @@ window.updateExpenseField = updateExpenseField;
   @keyframes bounce { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
   @keyframes spin { to{transform:rotate(360deg)} }
   @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  @keyframes slideInRight { from{transform:translateX(40px);opacity:0} to{transform:none;opacity:1} }
 </style>
 <script>
 (function() {
