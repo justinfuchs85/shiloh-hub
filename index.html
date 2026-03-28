@@ -1591,13 +1591,27 @@
     <!-- ══ UTILITIES ══ -->
     <!-- ══ SPACES ══ -->
     <div class="tab-page" id="page-spaces">
-      <div style="margin-bottom:1rem;">
-        <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem;">Click any space to see a summary of its photos, shopping items, projects and notes. Drag to reorder. Spaces are shared across all sections of the hub.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-family:var(--font-serif);font-size:26px;font-weight:300;color:var(--warm-dark);">Spaces</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:3px;">Click any room to view &amp; edit everything about it</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="display:flex;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden;">
+            <button id="spaces-view-rooms" onclick="setSpacesView('rooms')" style="padding:6px 14px;font-size:11px;font-family:var(--font-sans);border:none;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;background:var(--teal-dark);color:#fff;transition:all .15s;">🏠 Rooms</button>
+            <button id="spaces-view-design" onclick="setSpacesView('design')" style="padding:6px 14px;font-size:11px;font-family:var(--font-sans);border:none;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;background:transparent;color:var(--color-text-secondary);transition:all .15s;">🎨 Design</button>
+          </div>
+          <button id="spaces-add-btn" style="padding:6px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">+ Add Space</button>
+        </div>
+      </div>
+      <div id="spaces-view-rooms-panel">
         <div id="spaces-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;"></div>
         <div style="margin-top:1rem;display:flex;gap:8px;align-items:center;">
           <input id="spaces-new-input" type="text" placeholder="Add a new space…" style="flex:1;font-size:13px;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--teal-subtle);color:var(--warm-dark);font-family:var(--font-sans);outline:none;" />
-          <button id="spaces-add-btn" style="padding:8px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">+ Add Space</button>
         </div>
+      </div>
+      <div id="spaces-view-design-panel" style="display:none;">
+        <div id="spaces-design-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;"></div>
       </div>
     </div>
 
@@ -2031,7 +2045,6 @@ const TAB_GROUPS = [
     tabs: [
       { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
       { id: 'projects',   label: 'Projects',   icon: '🏗️' },
-      { id: 'design',     label: 'Design',     icon: '🎨' },
       { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
       { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
     ]
@@ -2207,7 +2220,6 @@ function switchTab(id) {
   currentTab = id;
   window.scrollTo(0, 0);
   try { localStorage.setItem('shiloh-hub-tab', id); } catch {}
-  if (id === 'design') renderDesignGrid();
 
   // Close flyout after navigation
   closeFlyout();
@@ -4044,7 +4056,6 @@ const NAV_GROUPS_BUYING = [
     tabs: [
       { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
       { id: 'projects',   label: 'Projects',   icon: '🏗️' },
-      { id: 'design',     label: 'Design',     icon: '🎨' },
       { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
       { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
     ]
@@ -4070,7 +4081,6 @@ const NAV_GROUPS_HOME = [
       { id: 'overview',   label: 'Overview',   icon: '🏠' },
       { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
       { id: 'projects',   label: 'Projects',   icon: '🏗️' },
-      { id: 'design',     label: 'Design',     icon: '🎨' },
       { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
     ]
   },
@@ -4535,24 +4545,11 @@ function renderDesignGrid() {
 
 // ── Room modal ────────────────────────────────────────────────────
 
-function openDesignRoom(roomName) {
-  _designCurrentRoom = roomName;
-  _designCurrentSection = 'vision';
-  const backdrop = document.getElementById('design-modal-backdrop');
-  backdrop.style.display = 'flex';
-  document.getElementById('design-modal-room-name').textContent = (SPACE_ICONS[roomName] || '🏠') + ' ' + roomName;
-  renderDesignModalStats();
-  renderDesignSectionTabs();
-  renderDesignSection();
-}
+// openDesignRoom and closeDesignModal are defined later after openSpaceSummary
+// These stubs keep any early references working
+function openDesignRoom(roomName) { openSpaceSummary(roomName, 'design'); }
 window.openDesignRoom = openDesignRoom;
-
-function closeDesignModal(e) {
-  if (!e || e.target === document.getElementById('design-modal-backdrop')) {
-    document.getElementById('design-modal-backdrop').style.display = 'none';
-    renderDesignGrid();
-  }
-}
+function closeDesignModal(e) { closeSpaceOverlay(); }
 window.closeDesignModal = closeDesignModal;
 
 function renderDesignModalStats() {
@@ -4595,24 +4592,6 @@ function renderDesignSection() {
     case 'decisions': el.innerHTML = renderDecisionsSection(p); break;
     case 'furniture': el.innerHTML = renderFurnitureSection(p); break;
     case 'notes':     el.innerHTML = renderDesignNotesSection(p); break;
-  }
-}
-
-function designSave() {
-  // Save to localStorage immediately (synchronous) so refresh never loses data
-  try {
-    const state = getFullState();
-    localStorage.setItem('shiloh-hub', JSON.stringify(state));
-  } catch(e) {
-    console.warn('localStorage write failed:', e);
-  }
-  persistAll();
-  renderDesignModalStats();
-  // Refresh palette bar on the mood board if it's visible
-  if (_designCurrentSection === 'moodboard') renderMoodPaletteBar();
-  if (_designCurrentSection === 'palette') {
-    // Also refresh when switching back to moodboard
-    // Store flag so moodboard init picks it up
   }
 }
 
@@ -9559,259 +9538,328 @@ function renderSpacesGrid() {
   });
 }
 
-function openSpaceSummary(spaceName) {
-  const overlay = document.getElementById('space-overlay');
-  const hero    = document.getElementById('space-overlay-hero');
-  const body    = document.getElementById('space-overlay-body');
-  overlay.style.display = 'flex';
-  body.innerHTML = '';
+// ── Spaces view toggle ───────────────────────────────────────────
+let _spacesView = 'rooms';
 
-  // Gather all data for this space
-  const dp = getProfile ? getProfile(spaceName) : null;
-  const cat = photoCategories.find(c => c.name === spaceName);
-  const mlsPhotos = cat?.photos || [];
-  const uploadedPhotos = userPhotos.filter(p => p.category === spaceName);
-  const allPhotos = [...mlsPhotos, ...uploadedPhotos];
-  const room = shoppingRooms.find(r => r.name === spaceName);
-  const shopItems = (room?.items || []).filter(i => !i.done);
-  const spaceProjects = projects.filter(p => p.category === spaceName);
-  const spaceNotes = sharedNotes.filter(n => n.space === spaceName);
-  const moodboard = dp?.moodboard || [];
-  const palette   = dp?.palette   || [];
-  const decisions = dp?.decisions || [];
-  const furniture = dp?.furniture || [];
-  const vision    = dp?.vision    || '';
-  const designNotes = dp?.notes   || [];
-
-  const icon = SPACE_ICONS?.[spaceName] || '🏠';
-
-  // ── Hero ──────────────────────────────────────────────────────────
-  // Use first mood board image or first property photo as hero background
-  const heroBg = moodboard[0]?.url || allPhotos[0]?.url || '';
-  const decDone  = decisions.filter(d => d.done).length;
-  const decTotal = decisions.length;
-  const circumference = 2 * Math.PI * 20;
-  const pct = decTotal ? Math.round(decDone / decTotal * 100) : 0;
-  const offset = circumference * (1 - pct / 100);
-
-  hero.innerHTML = `
-    <div style="position:relative;min-height:200px;background:${heroBg ? 'transparent' : 'var(--teal-dark)'};overflow:hidden;">
-      ${heroBg ? `<img src="${heroBg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />` : ''}
-      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(14,40,35,.3) 0%,rgba(14,40,35,.85) 100%);"></div>
-      <!-- Close btn -->
-      <button onclick="closeSpaceOverlay()" style="position:absolute;top:16px;right:16px;background:rgba(0,0,0,.35);border:none;color:rgba(255,255,255,.8);font-size:18px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:10;">✕</button>
-      <!-- Content -->
-      <div style="position:relative;padding:28px 28px 24px;">
-        <div style="font-size:28px;margin-bottom:6px;">${icon}</div>
-        <div style="font-family:var(--font-serif);font-size:28px;font-weight:300;color:#fff;line-height:1.2;">${spaceName}</div>
-        ${vision ? `<div style="font-size:13px;color:rgba(255,255,255,.65);margin-top:8px;line-height:1.6;max-width:480px;font-style:italic;">"${vision.slice(0,160)}${vision.length>160?'…':''}"</div>` : ''}
-        <!-- Stat pills -->
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;">
-          ${allPhotos.length    ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">📷 ${allPhotos.length} photo${allPhotos.length!==1?'s':''}</div>` : ''}
-          ${moodboard.length    ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">📌 ${moodboard.length} mood image${moodboard.length!==1?'s':''}</div>` : ''}
-          ${palette.length      ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">🎨 ${palette.length} color${palette.length!==1?'s':''}</div>` : ''}
-          ${shopItems.length    ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">🛒 ${shopItems.length} to buy</div>` : ''}
-          ${spaceProjects.length? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">🏗️ ${spaceProjects.length} project${spaceProjects.length!==1?'s':''}</div>` : ''}
-          ${decTotal            ? `<div style="font-size:11px;padding:3px 10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border-radius:20px;backdrop-filter:blur(4px);">✅ ${decDone}/${decTotal} decisions</div>` : ''}
-        </div>
-        <!-- Decisions ring -->
-        ${decTotal ? `
-        <div style="position:absolute;top:24px;right:60px;width:48px;height:48px;">
-          <svg width="48" height="48" viewBox="0 0 48 48" style="transform:rotate(-90deg);">
-            <circle cx="24" cy="24" r="20" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
-            <circle cx="24" cy="24" r="20" fill="none" stroke="${pct>=100?'#C4973A':'rgba(255,255,255,.85)'}" stroke-width="4"
-              stroke-dasharray="${circumference.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" stroke-linecap="round"/>
-          </svg>
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;">${pct}%</div>
-        </div>` : ''}
-      </div>
-      <!-- Palette bar -->
-      ${palette.length ? `<div style="display:flex;height:6px;">${palette.map(c=>`<div style="flex:1;background:${c.hex};"></div>`).join('')}</div>` : ''}
-    </div>`;
-
-  // ── Body sections ─────────────────────────────────────────────────
-  const sections = [];
-
-  // Helper to add a section
-  function addSection(html) {
-    const div = document.createElement('div');
-    div.style.cssText = 'border-bottom:0.5px solid var(--color-border-tertiary);';
-    div.innerHTML = html;
-    body.appendChild(div);
-  }
-
-  function sectionHeader(label, action = '') {
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 12px;">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--color-text-tertiary);font-weight:500;">${label}</div>
-      ${action}
-    </div>`;
-  }
-
-  function actionLink(label, tab, section='') {
-    return `<button onclick="closeSpaceOverlay();switchTab('${tab}')${section?`;setTimeout(()=>switchDesignSection('${section}'),100)`:''}" style="font-size:11px;color:var(--teal);background:none;border:none;cursor:pointer;padding:0;font-family:var(--font-sans);">${label} →</button>`;
-  }
-
-  // ── Mood board ────────────────────────────────────────────────────
-  if (moodboard.length) {
-    let html = sectionHeader('📌 Mood Board', actionLink('Edit', 'design', 'moodboard'));
-    html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 24px 18px;">
-      ${moodboard.slice(0,8).map(img => `<div style="aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--color-background-secondary);">
-        <img src="${img.url}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'" />
-      </div>`).join('')}
-      ${moodboard.length > 8 ? `<div style="aspect-ratio:1;border-radius:6px;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--color-text-tertiary);">+${moodboard.length-8} more</div>` : ''}
-    </div>`;
-    addSection(html);
-  }
-
-  // ── Palette ───────────────────────────────────────────────────────
-  if (palette.length) {
-    let html = sectionHeader('🎨 Palette', actionLink('Edit', 'design', 'palette'));
-    html += `<div style="display:flex;gap:12px;padding:0 24px 20px;flex-wrap:wrap;">
-      ${palette.map(c => `
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div style="width:36px;height:36px;border-radius:6px;background:${c.hex};border:0.5px solid rgba(0,0,0,.08);box-shadow:0 1px 4px rgba(0,0,0,.1);flex-shrink:0;"></div>
-          <div>
-            <div style="font-size:12px;color:var(--color-text-primary);font-weight:500;">${c.name}</div>
-            ${c.paint ? `<div style="font-size:10px;color:var(--color-text-tertiary);">${c.paint}</div>` : ''}
-          </div>
-        </div>`).join('')}
-    </div>`;
-    addSection(html);
-  }
-
-  // ── Vision ────────────────────────────────────────────────────────
-  if (vision) {
-    let html = sectionHeader('✨ Vision', actionLink('Edit', 'design', 'vision'));
-    html += `<div style="padding:0 24px 20px;font-size:14px;color:var(--color-text-secondary);line-height:1.8;font-style:italic;">"${vision}"</div>`;
-    addSection(html);
-  }
-
-  // ── Photos ────────────────────────────────────────────────────────
-  if (allPhotos.length) {
-    let html = sectionHeader(`📷 Photos (${allPhotos.length})`, actionLink('View all', 'photos'));
-    html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 24px 18px;">
-      ${allPhotos.slice(0,8).map(p => `<div style="aspect-ratio:4/3;border-radius:6px;overflow:hidden;background:var(--color-background-secondary);">
-        <img src="${p.url||p}" style="width:100%;height:100%;object-fit:cover;display:block;" />
-      </div>`).join('')}
-    </div>`;
-    addSection(html);
-  }
-
-  // ── Decisions ─────────────────────────────────────────────────────
-  if (decisions.length) {
-    let html = sectionHeader(`✅ Design decisions (${decDone}/${decTotal})`, actionLink('Edit', 'design', 'decisions'));
-    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:6px;">
-      ${decisions.slice(0,6).map(d => `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);${d.done?'opacity:.55;':''}">
-          <div style="width:16px;height:16px;border-radius:50%;background:${d.done?'var(--teal-dark)':'var(--color-border-secondary)'};flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-            ${d.done?'<span style="color:#fff;font-size:10px;">✓</span>':''}
-          </div>
-          <div style="flex:1;font-size:13px;color:var(--color-text-primary);${d.done?'text-decoration:line-through;':''}">${d.text}</div>
-          ${d.category?`<div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;">${d.category}</div>`:''}
-        </div>`).join('')}
-      ${decisions.length>6?`<div style="font-size:12px;color:var(--color-text-tertiary);padding:4px 0;">+${decisions.length-6} more</div>`:''}
-    </div>`;
-    addSection(html);
-  }
-
-  // ── Furniture ─────────────────────────────────────────────────────
-  if (furniture.length) {
-    const FSTYLES = { Keep:{bg:'var(--color-background-success)',color:'var(--color-text-success)'}, Buy:{bg:'var(--color-background-info)',color:'var(--color-text-info)'}, Measure:{bg:'var(--color-background-warning)',color:'var(--color-text-warning)'}, Skip:{bg:'var(--color-background-secondary)',color:'var(--color-text-tertiary)'} };
-    let html = sectionHeader(`🛋️ Furniture (${furniture.length})`, actionLink('Edit', 'design', 'furniture'));
-    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:5px;">
-      ${furniture.map(f => {
-        const st = FSTYLES[f.status] || FSTYLES.Skip;
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
-          <div style="flex:1;font-size:13px;color:var(--color-text-primary);">${f.name}</div>
-          ${f.notes?`<div style="font-size:11px;color:var(--color-text-tertiary);font-style:italic;">${f.notes}</div>`:''}
-          <div style="font-size:10px;padding:2px 8px;border-radius:12px;background:${st.bg};color:${st.color};white-space:nowrap;">${f.status}</div>
-        </div>`;
-      }).join('')}
-    </div>`;
-    addSection(html);
-  }
-
-  // ── Shopping ──────────────────────────────────────────────────────
-  if (shopItems.length) {
-    let html = sectionHeader(`🛒 Shopping (${shopItems.length} needed)`, actionLink('View list', 'shopping'));
-    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:5px;">
-      ${shopItems.slice(0,5).map(it => `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
-          <div style="flex:1;">
-            <div style="font-size:13px;color:var(--color-text-primary);">${it.name}</div>
-            ${it.priceEst?`<div style="font-size:11px;color:var(--color-text-tertiary);">${it.priceEst}</div>`:''}
-          </div>
-          <span style="font-size:10px;padding:2px 8px;background:var(--teal-muted);color:var(--teal);border-radius:12px;">${it.priority}</span>
-          ${it.link?`<a href="${it.link}" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;">View →</a>`:''}
-        </div>`).join('')}
-      ${shopItems.length>5?`<div style="font-size:12px;color:var(--color-text-tertiary);padding:4px 0;">+${shopItems.length-5} more</div>`:''}
-    </div>`;
-    addSection(html);
-  }
-
-  // ── Projects ──────────────────────────────────────────────────────
-  if (spaceProjects.length) {
-    const statusColors = {'planning':'var(--color-text-tertiary)','in-progress':'var(--teal)','complete':'var(--color-text-success)'};
-    let html = sectionHeader(`🏗️ Projects (${spaceProjects.length})`, actionLink('View all', 'projects'));
-    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:5px;">
-      ${spaceProjects.map(p => {
-        const doneSt = (p.subtasks||[]).filter(s=>s.done).length;
-        const totalSt = (p.subtasks||[]).length;
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
-          <div style="flex:1;">
-            <div style="font-size:13px;color:var(--color-text-primary);">${p.name}</div>
-            ${totalSt>0?`<div style="font-size:11px;color:var(--color-text-tertiary);">${doneSt}/${totalSt} tasks</div>`:''}
-          </div>
-          <span style="font-size:10px;padding:2px 8px;background:var(--color-background-secondary);color:${statusColors[p.status]||'var(--color-text-tertiary)'};border-radius:12px;border:0.5px solid var(--color-border-secondary);">${p.status}</span>
-          ${p.costEst?`<span style="font-size:11px;color:var(--color-text-tertiary);">$${p.costEst}</span>`:''}
-        </div>`;
-      }).join('')}
-    </div>`;
-    addSection(html);
-  }
-
-  // ── Notes ─────────────────────────────────────────────────────────
-  if (spaceNotes.length || designNotes.length) {
-    const allNotes = [...spaceNotes.map(n=>({text:n.body||n.text,date:n.ts||n.date,label:'Hub note'})), ...designNotes.map(n=>({text:n.text,date:n.date,label:'Design note'}))];
-    let html = sectionHeader(`📝 Notes (${allNotes.length})`, actionLink('All notes', 'notes'));
-    html += `<div style="padding:0 24px 18px;display:flex;flex-direction:column;gap:6px;">
-      ${allNotes.slice(0,4).map(n => `
-        <div style="padding:10px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
-          <div style="font-size:13px;color:var(--color-text-primary);line-height:1.5;">${n.text}</div>
-          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:4px;">${n.label} · ${new Date(n.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-        </div>`).join('')}
-    </div>`;
-    addSection(html);
-  }
-
-  // ── Design link / empty state ─────────────────────────────────────
-  const hasAnything = allPhotos.length || moodboard.length || palette.length || vision || decisions.length || furniture.length || shopItems.length || spaceProjects.length || spaceNotes.length || designNotes.length;
-  if (!hasAnything) {
-    body.innerHTML = `<div style="text-align:center;padding:48px 24px;">
-      <div style="font-size:40px;margin-bottom:16px;">${icon}</div>
-      <div style="font-family:var(--font-serif);font-size:20px;color:var(--color-text-primary);margin-bottom:8px;">Nothing here yet</div>
-      <div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:24px;">Start by adding a design vision, mood board images, or photos.</div>
-      <button onclick="closeSpaceOverlay();switchTab('design');setTimeout(()=>openDesignRoom('${spaceName}'),100)"
-        style="padding:10px 24px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);">
-        Open in Design →
-      </button>
-    </div>`;
-  } else {
-    // Footer: link to open in Design
-    const footer = document.createElement('div');
-    footer.style.cssText = 'padding:20px 24px;text-align:center;';
-    footer.innerHTML = `<button onclick="closeSpaceOverlay();switchTab('design');setTimeout(()=>openDesignRoom('${spaceName}'),100)"
-      style="padding:10px 24px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);">
-      Open full design profile →
-    </button>`;
-    body.appendChild(footer);
-  }
+function setSpacesView(view) {
+  _spacesView = view;
+  const roomsPanel  = document.getElementById('spaces-view-rooms-panel');
+  const designPanel = document.getElementById('spaces-view-design-panel');
+  if (roomsPanel)  roomsPanel.style.display  = view === 'rooms'  ? '' : 'none';
+  if (designPanel) designPanel.style.display = view === 'design' ? '' : 'none';
+  const rb = document.getElementById('spaces-view-rooms');
+  const db = document.getElementById('spaces-view-design');
+  if (rb) { rb.style.background = view==='rooms'  ? 'var(--teal-dark)' : 'transparent'; rb.style.color = view==='rooms'  ? '#fff' : 'var(--color-text-secondary)'; }
+  if (db) { db.style.background = view==='design' ? 'var(--teal-dark)' : 'transparent'; db.style.color = view==='design' ? '#fff' : 'var(--color-text-secondary)'; }
+  if (view === 'design') renderSpacesDesignGrid();
 }
+window.setSpacesView = setSpacesView;
+
+function renderSpacesDesignGrid() {
+  const grid = document.getElementById('spaces-design-grid');
+  if (!grid) return;
+  initSpaces();
+  grid.innerHTML = spaces.map(sp => {
+    const p = getProfile(sp.name);
+    const icon = SPACE_ICONS[sp.name] || '🏠';
+    const paletteDots = p.palette.slice(0,5).map(c =>
+      `<div style="width:12px;height:12px;border-radius:50%;background:${c.hex};border:1px solid rgba(0,0,0,.1);flex-shrink:0;"></div>`
+    ).join('');
+    const decDone = p.decisions.filter(d => d.done).length;
+    const decTotal = p.decisions.length;
+    const pct = decTotal ? Math.round(decDone/decTotal*100) : 0;
+    const C = 2*Math.PI*14, offset = C*(1-pct/100);
+    const thumb = p.moodboard[0]?.url || '';
+    const hasVision = p.vision.trim().length > 0;
+    return `
+      <div class="spaces-design-card" data-room="${sp.name}"
+        style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;transition:box-shadow .15s;"
+        onmouseover="this.style.boxShadow='0 4px 16px rgba(29,92,82,.1)'" onmouseout="this.style.boxShadow=''">
+        <div style="height:80px;background:${thumb?'transparent':'var(--color-background-secondary)'};position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          ${thumb?`<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'" />`:''}
+          ${!thumb?`<span style="font-size:28px;opacity:.25;">${icon}</span>`:''}
+          ${decTotal?`<div style="position:absolute;top:6px;right:6px;width:32px;height:32px;">
+            <svg width="32" height="32" viewBox="0 0 32 32" style="transform:rotate(-90deg);">
+              <circle cx="16" cy="16" r="14" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.2)" stroke-width="3"/>
+              <circle cx="16" cy="16" r="14" fill="none" stroke="${pct>=100?'#C4973A':'#2a7a6d'}" stroke-width="3"
+                stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" stroke-linecap="round"/>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500;color:#fff;">${pct}%</div>
+          </div>`:''}
+        </div>
+        <div style="padding:10px 12px;">
+          <div style="font-size:13px;color:var(--color-text-primary);margin-bottom:4px;">${icon} ${sp.name}</div>
+          ${hasVision?`<div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.4;margin-bottom:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${p.vision}</div>`:`<div style="font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:6px;">No vision yet</div>`}
+          ${p.palette.length?`<div style="display:flex;gap:4px;">${paletteDots}</div>`:''}
+        </div>
+      </div>`;
+  }).join('');
+  grid.querySelectorAll('.spaces-design-card').forEach(card => {
+    card.addEventListener('click', () => openSpaceSummary(card.dataset.room, 'design'));
+  });
+}
+
+// ── Space overlay — tabbed ─────────────────────────────────────────
+let _spaceOverlayTab  = 'overview';
+let _spaceOverlayRoom = null;
+
+const SPACE_OVERLAY_TABS = [
+  { id:'overview',  label:'🏠 Overview' },
+  { id:'design',    label:'🎨 Design' },
+  { id:'decisions', label:'✅ Decisions' },
+  { id:'stuff',     label:'🛒 Stuff' },
+];
+
+function openSpaceSummary(spaceName, tab) {
+  _spaceOverlayRoom = spaceName;
+  _spaceOverlayTab  = tab || 'overview';
+  document.getElementById('space-overlay').style.display = 'flex';
+  renderSpaceOverlay();
+}
+window.openSpaceSummary = openSpaceSummary;
 
 function closeSpaceOverlay() {
   document.getElementById('space-overlay').style.display = 'none';
+  _spaceOverlayRoom = null;
+  renderSpacesGrid();
+  if (_spacesView === 'design') renderSpacesDesignGrid();
 }
 window.closeSpaceOverlay = closeSpaceOverlay;
+
+function switchSpaceTab(tab) {
+  _spaceOverlayTab = tab;
+  renderSpaceOverlayTabs();
+  renderSpaceOverlayBody();
+}
+window.switchSpaceTab = switchSpaceTab;
+
+function renderSpaceOverlay() {
+  renderSpaceOverlayHero();
+  renderSpaceOverlayTabs();
+  renderSpaceOverlayBody();
+}
+
+function renderSpaceOverlayHero() {
+  const sn = _spaceOverlayRoom;
+  const hero = document.getElementById('space-overlay-hero');
+  if (!hero) return;
+  const dp = getProfile(sn);
+  const icon = SPACE_ICONS?.[sn] || '🏠';
+  const mlsPhotos = (photoCategories.find(c=>c.name===sn)?.photos) || [];
+  const uploaded  = userPhotos.filter(p=>p.category===sn);
+  const allPhotos = [...mlsPhotos, ...uploaded];
+  const mood    = dp.moodboard || [];
+  const palette = dp.palette   || [];
+  const decs    = dp.decisions || [];
+  const heroBg  = mood[0]?.url || allPhotos[0]?.url || '';
+  const decDone = decs.filter(d=>d.done).length;
+  const decTotal = decs.length;
+  const pct = decTotal ? Math.round(decDone/decTotal*100) : 0;
+  const C = 2*Math.PI*20, offset = C*(1-pct/100);
+  const vision = dp.vision || '';
+  const shopItems = ((shoppingRooms.find(r=>r.name===sn)?.items)||[]).filter(i=>!i.done);
+  const projs = projects.filter(p=>p.category===sn);
+
+  hero.innerHTML = `
+    <div style="position:relative;min-height:180px;background:${heroBg?'transparent':'var(--teal-dark)'};overflow:hidden;">
+      ${heroBg?`<img src="${heroBg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />`:''}
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(14,40,35,.25) 0%,rgba(14,40,35,.88) 100%);"></div>
+      <button onclick="closeSpaceOverlay()" style="position:absolute;top:14px;right:14px;background:rgba(0,0,0,.3);border:none;color:rgba(255,255,255,.8);font-size:16px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:10;">✕</button>
+      <div style="position:relative;padding:24px 24px 18px;">
+        <div style="font-size:24px;margin-bottom:4px;">${icon}</div>
+        <div style="font-family:var(--font-serif);font-size:26px;font-weight:300;color:#fff;line-height:1.2;">${sn}</div>
+        ${vision?`<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:6px;line-height:1.5;max-width:440px;font-style:italic;">"${vision.slice(0,140)}${vision.length>140?'…':''}"</div>`:''}
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;">
+          ${allPhotos.length?`<div style="font-size:10px;padding:2px 9px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:20px;">📷 ${allPhotos.length}</div>`:''}
+          ${mood.length?`<div style="font-size:10px;padding:2px 9px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:20px;">📌 ${mood.length}</div>`:''}
+          ${palette.length?`<div style="font-size:10px;padding:2px 9px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:20px;">🎨 ${palette.length}</div>`:''}
+          ${shopItems.length?`<div style="font-size:10px;padding:2px 9px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:20px;">🛒 ${shopItems.length}</div>`:''}
+          ${projs.length?`<div style="font-size:10px;padding:2px 9px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:20px;">🏗️ ${projs.length}</div>`:''}
+          ${decTotal?`<div style="font-size:10px;padding:2px 9px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:20px;">✅ ${decDone}/${decTotal}</div>`:''}
+        </div>
+        ${decTotal?`<div style="position:absolute;top:20px;right:52px;width:44px;height:44px;">
+          <svg width="44" height="44" viewBox="0 0 44 44" style="transform:rotate(-90deg);">
+            <circle cx="22" cy="22" r="18" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.2)" stroke-width="3.5"/>
+            <circle cx="22" cy="22" r="18" fill="none" stroke="${pct>=100?'#C4973A':'rgba(255,255,255,.85)'}" stroke-width="3.5"
+              stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;">${pct}%</div>
+        </div>`:''}
+      </div>
+      ${palette.length?`<div style="display:flex;height:5px;">${palette.map(c=>`<div style="flex:1;background:${c.hex};"></div>`).join('')}</div>`:''}
+    </div>`;
+}
+
+function renderSpaceOverlayTabs() {
+  const tabBar = document.getElementById('space-overlay-tabs');
+  if (!tabBar) return;
+  tabBar.innerHTML = SPACE_OVERLAY_TABS.map(t => `
+    <button onclick="switchSpaceTab('${t.id}')"
+      style="padding:11px 18px;font-size:12px;font-family:var(--font-sans);border:none;cursor:pointer;white-space:nowrap;
+        background:${t.id===_spaceOverlayTab?'var(--color-background-primary)':'transparent'};
+        color:${t.id===_spaceOverlayTab?'var(--teal)':'var(--color-text-tertiary)'};
+        border-bottom:2px solid ${t.id===_spaceOverlayTab?'var(--teal)':'transparent'};
+        transition:all .15s;">
+      ${t.label}
+    </button>`).join('');
+}
+
+function renderSpaceOverlayBody() {
+  const body = document.getElementById('space-overlay-body');
+  if (!body) return;
+  body.innerHTML = '';
+  const sn = _spaceOverlayRoom;
+  const dp = getProfile(sn);
+  switch(_spaceOverlayTab) {
+    case 'overview':  renderSpaceTabOverview(body, sn, dp);   break;
+    case 'design':    renderSpaceTabDesign(body, sn, dp);     break;
+    case 'decisions': renderSpaceTabDecisions(body, sn, dp);  break;
+    case 'stuff':     renderSpaceTabStuff(body, sn, dp);      break;
+  }
+}
+
+// ── Tab: Overview ─────────────────────────────────────────────────
+function renderSpaceTabOverview(body, sn, dp) {
+  const mlsPhotos = (photoCategories.find(c=>c.name===sn)?.photos)||[];
+  const allPhotos = [...mlsPhotos, ...userPhotos.filter(p=>p.category===sn)];
+  const mood    = dp.moodboard||[];
+  const palette = dp.palette  ||[];
+
+  function sec(label, html, editTab) {
+    const d = document.createElement('div');
+    d.style.cssText = 'border-bottom:0.5px solid var(--color-border-tertiary);';
+    const btn = editTab ? `<button onclick="switchSpaceTab('${editTab}')" style="font-size:11px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font-sans);">Edit →</button>` : '';
+    d.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px 10px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);font-weight:500;">${label}</div>${btn}</div>${html}`;
+    body.appendChild(d);
+  }
+
+  if (mood.length) sec('📌 Mood Board', `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 22px 16px;">
+      ${mood.slice(0,8).map(img=>`<div style="aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--color-background-secondary);">
+        <img src="${img.url}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'" /></div>`).join('')}
+      ${mood.length>8?`<div style="aspect-ratio:1;border-radius:6px;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--color-text-tertiary);">+${mood.length-8}</div>`:''}
+    </div>`, 'design');
+
+  if (palette.length) sec('🎨 Palette', `
+    <div style="display:flex;gap:14px;padding:0 22px 18px;flex-wrap:wrap;">
+      ${palette.map(c=>`<div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:34px;height:34px;border-radius:6px;background:${c.hex};border:0.5px solid rgba(0,0,0,.08);box-shadow:0 1px 4px rgba(0,0,0,.1);"></div>
+        <div><div style="font-size:12px;font-weight:500;color:var(--color-text-primary);">${c.name}</div>
+        ${c.paint?`<div style="font-size:10px;color:var(--color-text-tertiary);">${c.paint}</div>`:''}</div>
+      </div>`).join('')}
+    </div>`, 'design');
+
+  if (allPhotos.length) sec(`📷 Photos (${allPhotos.length})`, `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 22px 16px;">
+      ${allPhotos.slice(0,8).map(p=>`<div style="aspect-ratio:4/3;border-radius:6px;overflow:hidden;background:var(--color-background-secondary);">
+        <img src="${p.url||p}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>`).join('')}
+    </div>`);
+
+  if (!mood.length && !palette.length && !allPhotos.length) {
+    const e = document.createElement('div');
+    e.style.cssText = 'text-align:center;padding:48px 24px;';
+    e.innerHTML = `<div style="font-size:40px;margin-bottom:14px;">${SPACE_ICONS?.[sn]||'🏠'}</div>
+      <div style="font-family:var(--font-serif);font-size:20px;color:var(--color-text-primary);margin-bottom:8px;">Nothing added yet</div>
+      <div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:22px;">Start with a design vision or mood board images.</div>
+      <button onclick="switchSpaceTab('design')" style="padding:10px 24px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;font-family:var(--font-sans);">Start designing →</button>`;
+    body.appendChild(e);
+  }
+}
+
+// ── Tab: Design ───────────────────────────────────────────────────
+function renderSpaceTabDesign(body, sn, dp) {
+  _designCurrentRoom = sn;
+  [['vision','✨ Vision'],['palette','🎨 Palette'],['moodboard','📌 Mood Board']].forEach(([sid,label]) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'border-bottom:0.5px solid var(--color-border-tertiary);padding:16px 22px 18px;';
+    wrap.innerHTML = `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);font-weight:500;margin-bottom:12px;">${label}</div><div id="sp-design-${sid}"></div>`;
+    body.appendChild(wrap);
+    _designCurrentSection = sid;
+    const el = wrap.querySelector(`#sp-design-${sid}`);
+    el.innerHTML = sid==='vision' ? renderVisionSection(dp) : sid==='palette' ? renderPaletteSection(dp) : renderMoodboardSection(dp);
+    if (sid==='moodboard') setTimeout(initMoodDrag, 50);
+  });
+}
+
+// ── Tab: Decisions & Furniture ────────────────────────────────────
+function renderSpaceTabDecisions(body, sn, dp) {
+  _designCurrentRoom = sn;
+  const dw = document.createElement('div');
+  dw.style.cssText = 'border-bottom:0.5px solid var(--color-border-tertiary);padding:16px 22px 18px;';
+  dw.innerHTML = '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);font-weight:500;margin-bottom:12px;">✅ Design Decisions</div><div id="sp-decisions"></div>';
+  body.appendChild(dw);
+  _designCurrentSection = 'decisions';
+  dw.querySelector('#sp-decisions').innerHTML = renderDecisionsSection(dp);
+
+  const fw = document.createElement('div');
+  fw.style.cssText = 'padding:16px 22px 18px;';
+  fw.innerHTML = '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);font-weight:500;margin-bottom:12px;">🛋️ Furniture</div><div id="sp-furniture"></div>';
+  body.appendChild(fw);
+  _designCurrentSection = 'furniture';
+  fw.querySelector('#sp-furniture').innerHTML = renderFurnitureSection(dp);
+}
+
+// ── Tab: Stuff ────────────────────────────────────────────────────
+function renderSpaceTabStuff(body, sn, dp) {
+  const room = shoppingRooms.find(r=>r.name===sn);
+  const shopItems   = (room?.items||[]).filter(i=>!i.done);
+  const spaceProjs  = projects.filter(p=>p.category===sn);
+  const hubNotes    = sharedNotes.filter(n=>n.space===sn);
+  const designNotes = dp.notes||[];
+
+  function stuffSec(label, html) {
+    if (!html) return;
+    const d = document.createElement('div');
+    d.style.cssText = 'border-bottom:0.5px solid var(--color-border-tertiary);padding:16px 22px 18px;';
+    d.innerHTML = `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);font-weight:500;margin-bottom:10px;">${label}</div>${html}`;
+    body.appendChild(d);
+  }
+
+  stuffSec(`🛒 Shopping (${shopItems.length})`, shopItems.length ? shopItems.map(it=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:5px;">
+      <div style="flex:1;"><div style="font-size:13px;color:var(--color-text-primary);">${it.name}</div>${it.priceEst?`<div style="font-size:11px;color:var(--color-text-tertiary);">${it.priceEst}</div>`:''}</div>
+      <span style="font-size:10px;padding:2px 8px;background:var(--teal-muted);color:var(--teal);border-radius:12px;">${it.priority}</span>
+      ${it.link?`<a href="${it.link}" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;">View →</a>`:''}
+    </div>`).join('') : null);
+
+  stuffSec(`🏗️ Projects (${spaceProjs.length})`, spaceProjs.length ? spaceProjs.map(p=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:5px;">
+      <div style="flex:1;font-size:13px;color:var(--color-text-primary);">${p.name}</div>
+      <span style="font-size:10px;padding:2px 8px;background:var(--color-background-secondary);color:var(--color-text-tertiary);border-radius:12px;border:0.5px solid var(--color-border-secondary);">${p.status}</span>
+    </div>`).join('') : null);
+
+  const allNotes = [...hubNotes.map(n=>({text:n.body||n.text,date:n.ts||n.date,label:'Hub'})), ...designNotes.map(n=>({text:n.text,date:n.date,label:'Design'}))];
+  stuffSec(`📝 Notes (${allNotes.length})`, allNotes.length ? allNotes.map(n=>`
+    <div style="padding:10px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:5px;">
+      <div style="font-size:13px;color:var(--color-text-primary);line-height:1.5;">${n.text}</div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:4px;">${n.label} · ${new Date(n.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+    </div>`).join('') : null);
+
+  // Add design note inline
+  _designCurrentRoom = sn;
+  _designCurrentSection = 'notes';
+  const nw = document.createElement('div');
+  nw.style.cssText = 'padding:16px 22px 18px;';
+  nw.innerHTML = `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);font-weight:500;margin-bottom:10px;">📝 Add note</div><div id="sp-notes-form"></div>`;
+  body.appendChild(nw);
+  nw.querySelector('#sp-notes-form').innerHTML = renderDesignNotesSection(dp);
+
+  if (!shopItems.length && !spaceProjs.length && !allNotes.length) {
+    const e = document.createElement('div');
+    e.style.cssText = 'text-align:center;padding:30px 24px;color:var(--color-text-tertiary);font-size:13px;font-style:italic;';
+    e.textContent = 'No shopping items, projects or notes yet.';
+    body.prepend(e);
+  }
+}
+
+// designSave: refresh overlay hero when open
+function designSave() {
+  try { localStorage.setItem('shiloh-hub', JSON.stringify(getFullState())); } catch(e) { console.warn(e); }
+  persistAll();
+  if (_designCurrentSection === 'moodboard') renderMoodPaletteBar();
+  if (_spaceOverlayRoom) renderSpaceOverlayHero();
+}
 
 
 // Wire space overlay close (backdrop click handled inline, close btn handled by closeSpaceOverlay)
@@ -10227,11 +10275,10 @@ window.updateExpenseField = updateExpenseField;
 </script>
 <!-- Room Summary Overlay -->
 <div id="space-overlay" onclick="if(event.target===this)closeSpaceOverlay()" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(10,20,18,0.55);backdrop-filter:blur(6px);align-items:flex-start;justify-content:flex-end;">
-  <div id="space-overlay-panel" style="background:var(--color-background-primary);width:min(720px,100vw);height:100vh;overflow-y:auto;box-shadow:-12px 0 48px rgba(0,0,0,0.25);display:flex;flex-direction:column;animation:slideInRight .25s ease;">
-    <!-- Hero header — filled by JS -->
+  <div id="space-overlay-panel" style="background:var(--color-background-primary);width:min(760px,100vw);height:100vh;display:flex;flex-direction:column;box-shadow:-12px 0 48px rgba(0,0,0,0.25);animation:slideInRight .25s ease;">
     <div id="space-overlay-hero" style="flex-shrink:0;"></div>
-    <!-- Body -->
-    <div id="space-overlay-body" style="flex:1;padding:0;"></div>
+    <div id="space-overlay-tabs" style="display:flex;border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0;background:var(--color-background-primary);overflow-x:auto;scrollbar-width:none;"></div>
+    <div id="space-overlay-body" style="flex:1;overflow-y:auto;padding:0;"></div>
   </div>
 </div>
 
