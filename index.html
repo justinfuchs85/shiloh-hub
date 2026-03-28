@@ -6773,7 +6773,6 @@ function getMoodboardHTML(p) {
 }
 
 function renderMoodboardSection(p) {
-  const apiKey = localStorage.getItem(UNSPLASH_KEY_STORAGE) || '';
   return `
     <!-- Board — outer wrapper handles external image drops -->
     <div id="mood-drop-zone"
@@ -6813,26 +6812,22 @@ function renderMoodboardSection(p) {
         </button>
       </div>
 
-      <!-- Search tab -->
+      <!-- Search tab — Google Custom Search (interior design sites) -->
       <div id="mtab-panel-search" style="padding:14px;">
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <input id="ds-unsplash-q" type="text" placeholder="Search Unsplash — 'warm living room', 'brass fixtures'…"
-            style="flex:1;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;"
-            onkeydown="if(event.key==='Enter')searchUnsplash()" />
-          <button onclick="searchUnsplash()" style="padding:8px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">Search</button>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary);margin-bottom:8px;">
+          Searches Houzz, AD, House Beautiful, Elle Decor &amp; more
         </div>
-        ${!apiKey ? `
-          <div style="font-size:12px;color:var(--color-text-tertiary);background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:10px;">
-            🔑 Unsplash search needs a free API key.
-            <a href="https://unsplash.com/developers" target="_blank" style="color:var(--teal);">Get one free →</a>
-            <div style="display:flex;gap:6px;margin-top:8px;">
-              <input id="ds-unsplash-key" type="text" placeholder="Paste your Access Key here"
-                style="flex:1;font-size:12px;padding:6px 8px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
-              <button onclick="saveUnsplashKey()" style="padding:6px 12px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:11px;cursor:pointer;font-family:var(--font-sans);">Save</button>
-            </div>
-          </div>` : ''}
-        <div id="ds-unsplash-results" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
-        <div id="ds-unsplash-status" style="font-size:12px;color:var(--color-text-tertiary);text-align:center;padding:8px 0;display:none;"></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input id="ds-img-q" type="text" placeholder="e.g. 'moody primary bathroom', 'warm kitchen brass fixtures'…"
+            style="flex:1;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;"
+            onkeydown="if(event.key==='Enter')searchDesignImages()" />
+          <button onclick="searchDesignImages()" style="padding:8px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">Search</button>
+        </div>
+        <div id="ds-img-results" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+        <div id="ds-img-status" style="font-size:12px;color:var(--color-text-tertiary);text-align:center;padding:8px 0;display:none;"></div>
+        <div id="ds-img-more" style="display:none;text-align:center;margin-top:10px;">
+          <button onclick="searchDesignImages(true)" style="padding:7px 20px;background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary);cursor:pointer;font-family:var(--font-sans);">Load more</button>
+        </div>
       </div>
 
       <!-- URL tab -->
@@ -6881,61 +6876,105 @@ function saveUnsplashKey() {
 }
 window.saveUnsplashKey = saveUnsplashKey;
 
-async function searchUnsplash() {
-  const q = document.getElementById('ds-unsplash-q').value.trim();
+// ── Google Custom Search — Interior Design Images ────────────────
+const GCSE_API_KEY = 'AIzaSyDVaWZ7468tOkn6LpQArJHey5JdaTMz7Qg';
+const GCSE_CX      = '34e85a2ed758c442e';
+let _gcseStartIndex = 1;
+let _gcseLastQuery  = '';
+
+async function searchDesignImages(loadMore = false) {
+  const q = document.getElementById('ds-img-q').value.trim();
   if (!q) return;
-  const key = localStorage.getItem(UNSPLASH_KEY_STORAGE);
-  if (!key) { alert('Please save your Unsplash API key first.'); return; }
-  const status = document.getElementById('ds-unsplash-status');
-  const results = document.getElementById('ds-unsplash-results');
-  status.textContent = 'Searching…'; status.style.display = 'block';
-  results.innerHTML = '';
+  const status  = document.getElementById('ds-img-status');
+  const results = document.getElementById('ds-img-results');
+  const moreBtn = document.getElementById('ds-img-more');
+
+  if (!loadMore) {
+    _gcseStartIndex = 1;
+    _gcseLastQuery = q;
+    results.innerHTML = '';
+  } else {
+    _gcseStartIndex += 10;
+  }
+
+  status.textContent = 'Searching interior design sites…';
+  status.style.display = 'block';
+  moreBtn.style.display = 'none';
+
   try {
-    const resp = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=12&orientation=landscape&client_id=${key}`);
-    if (!resp.ok) throw new Error('API error ' + resp.status);
+    const url = `https://www.googleapis.com/customsearch/v1?key=${GCSE_API_KEY}&cx=${GCSE_CX}&q=${encodeURIComponent(q + ' interior design')}&searchType=image&num=9&start=${_gcseStartIndex}&imgSize=large&imgType=photo&safe=active`;
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || 'API error ' + resp.status);
+    }
     const data = await resp.json();
     status.style.display = 'none';
-    if (!data.results.length) { status.textContent = 'No results found.'; status.style.display = 'block'; return; }
-    results.innerHTML = data.results.map((photo, i) => `
-      <div class="unsplash-result" data-idx="${i}"
-        style="position:relative;border-radius:var(--border-radius-md);overflow:hidden;aspect-ratio:4/3;cursor:pointer;background:var(--color-background-secondary);"
-        title="Add to mood board">
-        <img src="${photo.urls.small}" style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;" />
-        <div class="unsplash-hover"
-          style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(29,92,82,.45);opacity:0;transition:opacity .15s;pointer-events:none;">
-          <span style="font-size:22px;color:#fff;">＋</span>
-        </div>
-      </div>`).join('');
 
-    // Store photo data separately to avoid quote escaping issues
-    results._unsplashPhotos = data.results;
+    const items = data.items || [];
+    if (!items.length) {
+      status.textContent = 'No results found — try different keywords.';
+      status.style.display = 'block';
+      return;
+    }
 
-    // Wire hover and click via event delegation
-    results.querySelectorAll('.unsplash-result').forEach((el, i) => {
-      el.addEventListener('mouseenter', () => el.querySelector('.unsplash-hover').style.opacity = '1');
-      el.addEventListener('mouseleave', () => el.querySelector('.unsplash-hover').style.opacity = '0');
-      el.addEventListener('click', () => {
-        const photo = data.results[i];
-        addUnsplashImage(photo.urls.regular, `Photo by ${photo.user.name} on Unsplash`);
+    // Build result tiles
+    const tiles = document.createElement('div');
+    tiles.style.cssText = 'display:contents;';
+    items.forEach(item => {
+      const div = document.createElement('div');
+      div.style.cssText = 'position:relative;border-radius:var(--border-radius-md);overflow:hidden;aspect-ratio:4/3;cursor:pointer;background:var(--color-background-secondary);';
+      div.title = 'Add to mood board';
+
+      const img = document.createElement('img');
+      img.src = item.link;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;';
+      img.onerror = () => { div.style.display = 'none'; };
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(29,92,82,.45);opacity:0;transition:opacity .15s;pointer-events:none;gap:4px;';
+      overlay.innerHTML = '<span style="font-size:22px;color:#fff;">＋</span>';
+
+      const source = document.createElement('div');
+      source.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:rgba(0,0,0,.5);font-size:9px;color:rgba(255,255,255,.7);font-family:var(--font-sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+      source.textContent = item.displayLink || '';
+
+      div.appendChild(img);
+      div.appendChild(overlay);
+      div.appendChild(source);
+
+      div.addEventListener('mouseenter', () => overlay.style.opacity = '1');
+      div.addEventListener('mouseleave', () => overlay.style.opacity = '0');
+      div.addEventListener('click', () => {
+        addMoodImageDirect(item.link, item.title || item.displayLink || '');
       });
+
+      results.appendChild(div);
     });
+
+    // Show "Load more" if there are more results
+    if (data.queries?.nextPage) moreBtn.style.display = 'block';
+
   } catch(e) {
     status.textContent = 'Search failed: ' + e.message;
     status.style.display = 'block';
   }
 }
-window.searchUnsplash = searchUnsplash;
+window.searchDesignImages = searchDesignImages;
 
-function addUnsplashImage(url, caption) {
+function addMoodImageDirect(url, caption) {
   getProfile(_designCurrentRoom).moodboard.push({ url, caption });
   designSave();
-  // Refresh just the grid, not the whole section
   const grid = document.getElementById('mood-board-grid');
   if (grid) {
     grid.innerHTML = getMoodboardHTML(getProfile(_designCurrentRoom));
     initMoodDrag();
   }
 }
+window.addMoodImageDirect = addMoodImageDirect;
+
+// Keep addUnsplashImage as alias for drop handler compatibility
+function addUnsplashImage(url, caption) { addMoodImageDirect(url, caption); }
 window.addUnsplashImage = addUnsplashImage;
 
 function addMoodImage() {
