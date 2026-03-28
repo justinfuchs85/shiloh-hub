@@ -2064,6 +2064,7 @@ let openGroupId = 'property'; // default open group (contains overview)
 
 // ── Desktop sidebar nav ───────────────────────────────────────────
 let _flyoutLeaveTimer = null;
+let _flyoutOpenTimer  = null;
 
 function buildNav() {
   const navItems = document.getElementById('nav-items');
@@ -2074,25 +2075,33 @@ function buildNav() {
     hdr.className = 'nav-group-header' + (group.id === openGroupId ? ' open' : '');
     hdr.id = 'navgrp-' + group.id;
     hdr.innerHTML = `<span class="grp-icon">${group.icon}</span><span>${group.label}</span><span class="grp-chevron">▶</span>`;
-    // Hover to open
     hdr.addEventListener('mouseenter', () => {
       clearTimeout(_flyoutLeaveTimer);
-      openGroup(group.id);
+      // Small open delay so brushing past a group doesn't flash it open
+      clearTimeout(_flyoutOpenTimer);
+      _flyoutOpenTimer = setTimeout(() => openGroup(group.id), 120);
     });
-    hdr.addEventListener('mouseleave', () => scheduleFlyoutClose());
+    hdr.addEventListener('mouseleave', () => {
+      clearTimeout(_flyoutOpenTimer);
+      scheduleFlyoutClose();
+    });
     navItems.appendChild(hdr);
   });
 
   // Keep flyout open when mouse is over it
   const flyout = document.getElementById('nav-flyout');
-  flyout.addEventListener('mouseenter', () => clearTimeout(_flyoutLeaveTimer));
+  flyout.addEventListener('mouseenter', () => {
+    clearTimeout(_flyoutLeaveTimer);
+    clearTimeout(_flyoutOpenTimer);
+  });
   flyout.addEventListener('mouseleave', () => scheduleFlyoutClose());
 
   buildMobBar();
 }
 
 function scheduleFlyoutClose() {
-  _flyoutLeaveTimer = setTimeout(() => closeFlyout(), 180);
+  clearTimeout(_flyoutLeaveTimer);
+  _flyoutLeaveTimer = setTimeout(() => closeFlyout(), 400);
 }
 
 function openGroup(groupId) {
@@ -2197,6 +2206,7 @@ function switchTab(id) {
   document.getElementById('page-' + id).classList.add('active');
   currentTab = id;
   window.scrollTo(0, 0);
+  try { localStorage.setItem('shiloh-hub-tab', id); } catch {}
   if (id === 'design') renderDesignGrid();
 
   // Close flyout after navigation
@@ -5451,6 +5461,9 @@ function showApp() {
   const local = (() => { try { return JSON.parse(localStorage.getItem('shiloh-hub') || 'null'); } catch { return null; } })();
   if (local) applyState(local);
   else updateProgress();
+  // Restore last-visited tab
+  const savedTab = localStorage.getItem('shiloh-hub-tab');
+  if (savedTab && savedTab !== 'overview') switchTab(savedTab);
   setTimeout(checkClosingDayPrompt, 800);
 }
 
