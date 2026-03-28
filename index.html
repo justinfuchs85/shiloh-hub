@@ -6815,10 +6815,10 @@ function renderMoodboardSection(p) {
       <!-- Search tab — Google Custom Search (interior design sites) -->
       <div id="mtab-panel-search" style="padding:14px;">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary);margin-bottom:8px;">
-          Searches Houzz, AD, House Beautiful, Elle Decor &amp; more
+          High-quality interior photography via Pexels
         </div>
         <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <input id="ds-img-q" type="text" placeholder="e.g. 'moody primary bathroom', 'warm kitchen brass fixtures'…"
+          <input id="ds-img-q" type="text" placeholder="e.g. 'bathroom', 'kitchen', 'living room', 'bedroom'…"
             style="flex:1;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;"
             onkeydown="if(event.key==='Enter')searchDesignImages()" />
           <button onclick="searchDesignImages()" style="padding:8px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">Search</button>
@@ -6876,11 +6876,10 @@ function saveUnsplashKey() {
 }
 window.saveUnsplashKey = saveUnsplashKey;
 
-// ── Google Custom Search — Interior Design Images ────────────────
-const GCSE_API_KEY = 'AIzaSyDVaWZ7468tOkn6LpQArJHey5JdaTMz7Qg';
-const GCSE_CX      = '34e85a2ed758c442e';
-let _gcseStartIndex = 1;
-let _gcseLastQuery  = '';
+// ── Pexels Image Search — Interior Design ────────────────────────
+const PEXELS_API_KEY = 'O20sXIgfl97bq7w0TPkrstEQWHhgCJ8SCmwyppzapbWBjRWkR0QiEziv';
+let _pexelsPage = 1;
+let _pexelsLastQuery = '';
 
 async function searchDesignImages(loadMore = false) {
   const q = document.getElementById('ds-img-q').value.trim();
@@ -6890,70 +6889,67 @@ async function searchDesignImages(loadMore = false) {
   const moreBtn = document.getElementById('ds-img-more');
 
   if (!loadMore) {
-    _gcseStartIndex = 1;
-    _gcseLastQuery = q;
+    _pexelsPage = 1;
+    _pexelsLastQuery = q;
     results.innerHTML = '';
   } else {
-    _gcseStartIndex += 10;
+    _pexelsPage++;
   }
 
-  status.textContent = 'Searching interior design sites…';
+  status.textContent = 'Searching…';
   status.style.display = 'block';
   moreBtn.style.display = 'none';
 
   try {
-    const url = `https://www.googleapis.com/customsearch/v1?key=${GCSE_API_KEY}&cx=${GCSE_CX}&q=${encodeURIComponent(q + ' interior design')}&searchType=image&num=9&start=${_gcseStartIndex}&imgSize=large&imgType=photo&safe=active`;
-    const resp = await fetch(url);
-    if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.error?.message || 'API error ' + resp.status);
-    }
+    const query = encodeURIComponent(q + ' interior');
+    const url = `https://api.pexels.com/v1/search?query=${query}&per_page=12&page=${_pexelsPage}&orientation=landscape`;
+    const resp = await fetch(url, {
+      headers: { Authorization: PEXELS_API_KEY }
+    });
+    if (!resp.ok) throw new Error('API error ' + resp.status);
     const data = await resp.json();
     status.style.display = 'none';
 
-    const items = data.items || [];
-    if (!items.length) {
+    const photos = data.photos || [];
+    if (!photos.length) {
       status.textContent = 'No results found — try different keywords.';
       status.style.display = 'block';
       return;
     }
 
-    // Build result tiles
-    const tiles = document.createElement('div');
-    tiles.style.cssText = 'display:contents;';
-    items.forEach(item => {
+    photos.forEach(photo => {
       const div = document.createElement('div');
       div.style.cssText = 'position:relative;border-radius:var(--border-radius-md);overflow:hidden;aspect-ratio:4/3;cursor:pointer;background:var(--color-background-secondary);';
       div.title = 'Add to mood board';
 
       const img = document.createElement('img');
-      img.src = item.link;
+      img.src = photo.src.medium;
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;';
       img.onerror = () => { div.style.display = 'none'; };
 
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(29,92,82,.45);opacity:0;transition:opacity .15s;pointer-events:none;gap:4px;';
+      overlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(29,92,82,.45);opacity:0;transition:opacity .15s;pointer-events:none;';
       overlay.innerHTML = '<span style="font-size:22px;color:#fff;">＋</span>';
 
-      const source = document.createElement('div');
-      source.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:rgba(0,0,0,.5);font-size:9px;color:rgba(255,255,255,.7);font-family:var(--font-sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-      source.textContent = item.displayLink || '';
+      const credit = document.createElement('div');
+      credit.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:rgba(0,0,0,.5);font-size:9px;color:rgba(255,255,255,.7);font-family:var(--font-sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+      credit.textContent = 'Photo by ' + photo.photographer + ' · Pexels';
 
       div.appendChild(img);
       div.appendChild(overlay);
-      div.appendChild(source);
+      div.appendChild(credit);
 
       div.addEventListener('mouseenter', () => overlay.style.opacity = '1');
       div.addEventListener('mouseleave', () => overlay.style.opacity = '0');
       div.addEventListener('click', () => {
-        addMoodImageDirect(item.link, item.title || item.displayLink || '');
+        // Use large size for actual mood board image
+        addMoodImageDirect(photo.src.large, `Photo by ${photo.photographer} · Pexels`);
       });
 
       results.appendChild(div);
     });
 
-    // Show "Load more" if there are more results
-    if (data.queries?.nextPage) moreBtn.style.display = 'block';
+    if (data.next_page) moreBtn.style.display = 'block';
 
   } catch(e) {
     status.textContent = 'Search failed: ' + e.message;
