@@ -1961,6 +1961,44 @@
 
 
 
+
+    <!-- ══ DESIGN ══ -->
+    <div class="tab-page" id="page-design">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-family:var(--font-serif);font-size:26px;font-weight:300;color:var(--warm-dark);">Interior Design</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:3px;">Vision, palette &amp; decisions — room by room</div>
+        </div>
+      </div>
+
+      <!-- Space cards grid -->
+      <div id="design-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;"></div>
+
+      <!-- Room design modal -->
+      <div id="design-modal-backdrop" onclick="closeDesignModal(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;align-items:flex-start;justify-content:flex-end;">
+        <div id="design-modal" onclick="event.stopPropagation()" style="background:var(--color-background-primary);width:min(640px,100vw);height:100vh;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;">
+
+          <!-- Modal header -->
+          <div style="padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--color-background-primary);position:sticky;top:0;z-index:10;">
+            <button onclick="document.getElementById('design-modal-backdrop').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--color-text-tertiary);padding:2px 4px;line-height:1;">✕</button>
+            <div style="flex:1;">
+              <div id="design-modal-room-name" style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--warm-dark);"></div>
+              <div id="design-modal-room-stats" style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;"></div>
+            </div>
+          </div>
+
+          <!-- Section tabs -->
+          <div style="display:flex;overflow-x:auto;border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0;scrollbar-width:none;" id="design-section-tabs"></div>
+
+          <!-- Section content -->
+          <div id="design-section-content" style="flex:1;padding:1.25rem 1.5rem;"></div>
+
+        </div>
+      </div>
+
+    </div>
+
   </div><!-- /main -->
 </div><!-- /shell -->
 
@@ -1992,6 +2030,7 @@ const TAB_GROUPS = [
     tabs: [
       { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
       { id: 'projects',   label: 'Projects',   icon: '🏗️' },
+      { id: 'design',     label: 'Design',     icon: '🎨' },
       { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
       { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
     ]
@@ -2157,6 +2196,7 @@ function switchTab(id) {
   document.getElementById('page-' + id).classList.add('active');
   currentTab = id;
   window.scrollTo(0, 0);
+  if (id === 'design') renderDesignGrid();
 
   // Close flyout after navigation
   closeFlyout();
@@ -3993,6 +4033,7 @@ const NAV_GROUPS_BUYING = [
     tabs: [
       { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
       { id: 'projects',   label: 'Projects',   icon: '🏗️' },
+      { id: 'design',     label: 'Design',     icon: '🎨' },
       { id: 'utilities',  label: 'Utilities',  icon: '🔌' },
       { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
     ]
@@ -4018,6 +4059,7 @@ const NAV_GROUPS_HOME = [
       { id: 'overview',   label: 'Overview',   icon: '🏠' },
       { id: 'maintenance',label: 'Maintenance',icon: '🔧' },
       { id: 'projects',   label: 'Projects',   icon: '🏗️' },
+      { id: 'design',     label: 'Design',     icon: '🎨' },
       { id: 'spaces',     label: 'Spaces',     icon: '🏘️' },
     ]
   },
@@ -4358,6 +4400,454 @@ function openMobSettings() {
   if (closeBtn) closeBtn.addEventListener('click', closeMobSheet);
 }
 window.openMobSettings = openMobSettings;
+
+// ── Design Profiles ──────────────────────────────────────────────
+// designProfiles: { [spaceName]: { vision, palette, moodboard, decisions, furniture, notes } }
+
+let designProfiles = {};
+let _designCurrentRoom = null;
+let _designCurrentSection = 'vision';
+
+const DESIGN_SECTIONS = [
+  { id: 'vision',    label: 'Vision',     icon: '✨' },
+  { id: 'palette',   label: 'Palette',    icon: '🎨' },
+  { id: 'moodboard', label: 'Mood Board', icon: '📌' },
+  { id: 'decisions', label: 'Decisions',  icon: '✅' },
+  { id: 'furniture', label: 'Furniture',  icon: '🛋️' },
+  { id: 'notes',     label: 'Notes',      icon: '📝' },
+];
+
+const FURNITURE_STATUSES = ['Keep','Buy','Measure','Skip'];
+const FURNITURE_STATUS_STYLES = {
+  Keep:    { bg:'var(--color-background-success)', color:'var(--color-text-success)' },
+  Buy:     { bg:'var(--color-background-info)',    color:'var(--color-text-info)' },
+  Measure: { bg:'var(--color-background-warning)', color:'var(--color-text-warning)' },
+  Skip:    { bg:'var(--color-background-secondary)',color:'var(--color-text-tertiary)' },
+};
+
+const SPACE_ICONS = {
+  'Whole Home':'🏠','Exterior & Curb Appeal':'🌿','Living Room':'🛋️',
+  'Kitchen & Dining':'🍳','Main Floor Half Bath':'🚿','Laundry Room':'🧺',
+  'Primary Bedroom':'🛏️','Primary Bathroom':'🛁',"Ethan's Room":'🧒',
+  "Elle's Room":'👧',"Riley's Room":'👶',"Riley's Bathroom":'🚿',
+  "Kids' Bathroom":'🛁','Basement / Lower Level':'⬇️','Garage':'🚗',
+  'Shed':'🏚️','Pool & Backyard':'🏊','Landscaping':'🌱','General':'📦',
+};
+
+function getProfile(room) {
+  if (!designProfiles[room]) {
+    designProfiles[room] = { vision:'', palette:[], moodboard:[], decisions:[], furniture:[], notes:[] };
+  }
+  return designProfiles[room];
+}
+
+// ── Design grid ───────────────────────────────────────────────────
+
+function renderDesignGrid() {
+  const grid = document.getElementById('design-grid');
+  if (!grid) return;
+  initSpaces();
+  grid.innerHTML = spaces.map(sp => {
+    const p = getProfile(sp.name);
+    const icon = SPACE_ICONS[sp.name] || '🏠';
+    const paletteDots = p.palette.slice(0,5).map(c =>
+      `<div style="width:14px;height:14px;border-radius:50%;background:${c.hex};border:1px solid rgba(0,0,0,.1);flex-shrink:0;"></div>`
+    ).join('');
+    const decTotal = p.decisions.length;
+    const decDone  = p.decisions.filter(d => d.done).length;
+    const hasMood  = p.moodboard.length > 0;
+    const hasVision = p.vision.trim().length > 0;
+    const thumb = hasMood ? p.moodboard[0].url : '';
+    const pct = decTotal ? Math.round(decDone/decTotal*100) : 0;
+    const circumference = 2 * Math.PI * 14;
+    const offset = circumference * (1 - pct/100);
+    return `
+            <div class="design-room-card" data-room="${sp.name}"
+        style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer;transition:box-shadow .15s;"
+        onmouseover="this.style.boxShadow='0 4px 16px rgba(29,92,82,.1)'" onmouseout="this.style.boxShadow=''">
+        <!-- Mood board thumbnail or placeholder -->
+        <div style="height:80px;background:${thumb ? 'transparent' : 'var(--color-background-secondary)'};position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'" />` : ''}
+          ${!thumb ? `<span style="font-size:28px;opacity:.25;">${icon}</span>` : ''}
+          ${decTotal ? `
+            <div style="position:absolute;top:6px;right:6px;width:32px;height:32px;">
+              <svg width="32" height="32" viewBox="0 0 32 32" style="transform:rotate(-90deg);">
+                <circle cx="16" cy="16" r="14" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.2)" stroke-width="3"/>
+                <circle cx="16" cy="16" r="14" fill="none" stroke="${pct>=100?'#C4973A':'#2a7a6d'}" stroke-width="3"
+                  stroke-dasharray="${circumference.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" stroke-linecap="round"/>
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500;color:#fff;">${pct}%</div>
+            </div>` : ''}
+        </div>
+        <!-- Card body -->
+        <div style="padding:10px 12px;">
+          <div style="font-size:13px;font-weight:400;color:var(--color-text-primary);margin-bottom:4px;">${icon} ${sp.name}</div>
+          ${hasVision ? `<div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.4;margin-bottom:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${p.vision}</div>` : `<div style="font-size:11px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:6px;">No vision added yet</div>`}
+          ${p.palette.length ? `<div style="display:flex;gap:4px;align-items:center;">${paletteDots}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+  // Event delegation — avoids quote-escaping issues with room names containing apostrophes
+  grid.querySelectorAll('.design-room-card').forEach(card => {
+    card.addEventListener('click', () => openDesignRoom(card.dataset.room));
+  });
+}
+
+// ── Room modal ────────────────────────────────────────────────────
+
+function openDesignRoom(roomName) {
+  _designCurrentRoom = roomName;
+  _designCurrentSection = 'vision';
+  const backdrop = document.getElementById('design-modal-backdrop');
+  backdrop.style.display = 'flex';
+  document.getElementById('design-modal-room-name').textContent = (SPACE_ICONS[roomName] || '🏠') + ' ' + roomName;
+  renderDesignModalStats();
+  renderDesignSectionTabs();
+  renderDesignSection();
+}
+window.openDesignRoom = openDesignRoom;
+
+function closeDesignModal(e) {
+  if (!e || e.target === document.getElementById('design-modal-backdrop')) {
+    document.getElementById('design-modal-backdrop').style.display = 'none';
+    renderDesignGrid();
+  }
+}
+window.closeDesignModal = closeDesignModal;
+
+function renderDesignModalStats() {
+  const p = getProfile(_designCurrentRoom);
+  const decDone = p.decisions.filter(d=>d.done).length;
+  const stats = document.getElementById('design-modal-room-stats');
+  if (stats) stats.textContent = [
+    p.palette.length ? `${p.palette.length} color${p.palette.length!==1?'s':''}` : null,
+    p.moodboard.length ? `${p.moodboard.length} mood image${p.moodboard.length!==1?'s':''}` : null,
+    p.decisions.length ? `${decDone}/${p.decisions.length} decisions resolved` : null,
+    p.furniture.length ? `${p.furniture.length} furniture item${p.furniture.length!==1?'s':''}` : null,
+  ].filter(Boolean).join(' · ') || 'No design info yet — start below';
+}
+
+function renderDesignSectionTabs() {
+  const tabs = document.getElementById('design-section-tabs');
+  if (!tabs) return;
+  tabs.innerHTML = DESIGN_SECTIONS.map(s => `
+    <button onclick="switchDesignSection('${s.id}')" id="dsec-${s.id}"
+      style="padding:10px 16px;font-size:12px;font-family:var(--font-sans);border:none;background:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid ${s.id===_designCurrentSection?'var(--teal)':'transparent'};color:${s.id===_designCurrentSection?'var(--teal)':'var(--color-text-tertiary)'};letter-spacing:.03em;transition:all .15s;">
+      ${s.icon} ${s.label}
+    </button>`).join('');
+}
+
+function switchDesignSection(id) {
+  _designCurrentSection = id;
+  renderDesignSectionTabs();
+  renderDesignSection();
+}
+window.switchDesignSection = switchDesignSection;
+
+function renderDesignSection() {
+  const el = document.getElementById('design-section-content');
+  if (!el) return;
+  const p = getProfile(_designCurrentRoom);
+  switch (_designCurrentSection) {
+    case 'vision':    el.innerHTML = renderVisionSection(p); break;
+    case 'palette':   el.innerHTML = renderPaletteSection(p); break;
+    case 'moodboard': el.innerHTML = renderMoodboardSection(p); break;
+    case 'decisions': el.innerHTML = renderDecisionsSection(p); break;
+    case 'furniture': el.innerHTML = renderFurnitureSection(p); break;
+    case 'notes':     el.innerHTML = renderDesignNotesSection(p); break;
+  }
+}
+
+function designSave() {
+  persistAll();
+  renderDesignModalStats();
+}
+
+// ── Vision ────────────────────────────────────────────────────────
+function renderVisionSection(p) {
+  return `
+    <div style="margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);">Design direction</div>
+    <textarea id="ds-vision-text" rows="6" placeholder="Describe the overall vibe, aesthetic, feeling you want for this room. Be as loose or specific as you like — 'warm and moody, dark walls, brass fixtures' or a full paragraph."
+      style="width:100%;font-size:14px;line-height:1.7;padding:12px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;resize:vertical;"
+      oninput="getProfile(_designCurrentRoom).vision=this.value;designSave()">${p.vision}</textarea>
+    <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px;">Tip: think mood, not just aesthetics — how do you want to feel in this room?</div>`;
+}
+
+// ── Palette ───────────────────────────────────────────────────────
+function renderPaletteSection(p) {
+  const swatches = p.palette.map((c, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+      <div style="width:40px;height:40px;border-radius:8px;background:${c.hex};border:1px solid rgba(0,0,0,.1);flex-shrink:0;cursor:pointer;" onclick="pickDesignColor(${i})" title="Click to change"></div>
+      <div style="flex:1;min-width:0;">
+        <input value="${c.name}" placeholder="Color name (e.g. Agreeable Gray)"
+          style="width:100%;font-size:13px;border:none;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);outline:none;margin-bottom:3px;"
+          onchange="updatePaletteField(${i},'name',this.value)" />
+        <input value="${c.paint||''}" placeholder="Paint brand + code (e.g. SW 7029)"
+          style="width:100%;font-size:11px;border:none;background:transparent;color:var(--color-text-tertiary);font-family:var(--font-sans);outline:none;"
+          onchange="updatePaletteField(${i},'paint',this.value)" />
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+        <input type="color" value="${c.hex}" title="Pick color"
+          style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:0;background:none;"
+          oninput="updatePaletteField(${i},'hex',this.value)" />
+        <button onclick="removePaletteColor(${i})" style="background:none;border:none;font-size:12px;color:var(--color-text-tertiary);cursor:pointer;padding:0;opacity:.5;">✕</button>
+      </div>
+    </div>`).join('');
+
+  return `
+    <div style="display:flex;flex-direction:column;">
+      ${swatches}
+      ${p.palette.length < 8 ? `
+        <button onclick="addPaletteColor()" style="margin-top:14px;padding:10px;border:1.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;color:var(--color-text-tertiary);font-size:13px;cursor:pointer;font-family:var(--font-sans);transition:all .15s;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--color-border-secondary)';this.style.color='var(--color-text-tertiary)'">
+          + Add color
+        </button>` : ''}
+    </div>`;
+}
+
+function addPaletteColor() {
+  const p = getProfile(_designCurrentRoom);
+  p.palette.push({ name:'New color', hex:'#C4973A', paint:'' });
+  designSave();
+  renderDesignSection();
+}
+window.addPaletteColor = addPaletteColor;
+
+function removePaletteColor(i) {
+  getProfile(_designCurrentRoom).palette.splice(i,1);
+  designSave();
+  renderDesignSection();
+}
+window.removePaletteColor = removePaletteColor;
+
+function updatePaletteField(i, field, val) {
+  getProfile(_designCurrentRoom).palette[i][field] = val;
+  designSave();
+}
+window.updatePaletteField = updatePaletteField;
+
+// ── Mood board ────────────────────────────────────────────────────
+function renderMoodboardSection(p) {
+  const grid = p.moodboard.map((img, i) => `
+    <div style="position:relative;border-radius:var(--border-radius-md);overflow:hidden;aspect-ratio:1;">
+      <img src="${img.url}" alt="${img.caption||''}" style="width:100%;height:100%;object-fit:cover;"
+        onerror="this.parentElement.style.background='var(--color-background-secondary)';this.style.display='none'" />
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,transparent 50%);opacity:0;transition:opacity .2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+        <button onclick="removeMoodImage(${i})" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+        ${img.caption ? `<div style="position:absolute;bottom:6px;left:8px;right:8px;font-size:11px;color:rgba(255,255,255,.85);">${img.caption}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  return `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">${grid}</div>
+    <!-- Add image -->
+    <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:8px;">Add image</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input id="ds-mood-url" type="text" placeholder="Paste image URL or Pinterest link…"
+          style="flex:1;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+        <button onclick="addMoodImage()" style="padding:8px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">Add</button>
+      </div>
+      <input id="ds-mood-caption" type="text" placeholder="Caption (optional)"
+        style="width:100%;font-size:12px;padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+      <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
+        <label style="font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <span>📁 Upload photo</span>
+          <input type="file" accept="image/*" style="display:none;" onchange="uploadMoodImage(this)" />
+        </label>
+      </div>
+    </div>`;
+}
+
+function addMoodImage() {
+  const url = document.getElementById('ds-mood-url').value.trim();
+  const caption = document.getElementById('ds-mood-caption').value.trim();
+  if (!url) return;
+  getProfile(_designCurrentRoom).moodboard.push({ url, caption });
+  designSave();
+  renderDesignSection();
+}
+window.addMoodImage = addMoodImage;
+
+function removeMoodImage(i) {
+  getProfile(_designCurrentRoom).moodboard.splice(i,1);
+  designSave();
+  renderDesignSection();
+}
+window.removeMoodImage = removeMoodImage;
+
+async function uploadMoodImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const raw = await readFileAsDataUrl(file);
+  const compressed = await compressImage(raw, 1200, 0.8);
+  const caption = document.getElementById('ds-mood-caption').value.trim();
+  getProfile(_designCurrentRoom).moodboard.push({ url: compressed, caption });
+  designSave();
+  renderDesignSection();
+}
+window.uploadMoodImage = uploadMoodImage;
+
+// ── Decisions ─────────────────────────────────────────────────────
+function renderDecisionsSection(p) {
+  const items = p.decisions.map((d, i) => `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);${d.done?'opacity:.55;':''}">
+      <input type="checkbox" ${d.done?'checked':''} onchange="toggleDecision(${i},this.checked)"
+        style="margin-top:2px;flex-shrink:0;accent-color:var(--teal);width:15px;height:15px;cursor:pointer;" />
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:var(--color-text-primary);${d.done?'text-decoration:line-through;':''}">${d.text}</div>
+        ${d.category ? `<div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">${d.category}</div>` : ''}
+      </div>
+      <button onclick="removeDecision(${i})" style="background:none;border:none;font-size:12px;color:var(--color-text-tertiary);cursor:pointer;opacity:.4;padding:0 2px;">✕</button>
+    </div>`).join('');
+
+  return `
+    <div style="margin-bottom:14px;">${items || '<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:10px 0;">No decisions yet. Add things to decide or track below.</div>'}</div>
+    <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:8px;">Add decision</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input id="ds-dec-text" type="text" placeholder="e.g. Paint color, Light fixture style…"
+          style="flex:1;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;"
+          onkeydown="if(event.key==='Enter')addDecision()" />
+        <input id="ds-dec-cat" type="text" placeholder="Category" list="ds-dec-cat-list"
+          style="width:130px;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+        <datalist id="ds-dec-cat-list">
+          <option>Paint</option><option>Flooring</option><option>Lighting</option>
+          <option>Furniture</option><option>Window treatments</option><option>Hardware</option>
+          <option>Plumbing</option><option>Tile</option><option>Wallpaper</option>
+        </datalist>
+        <button onclick="addDecision()" style="padding:8px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Add</button>
+      </div>
+    </div>`;
+}
+
+function addDecision() {
+  const text = document.getElementById('ds-dec-text').value.trim();
+  if (!text) return;
+  const cat = document.getElementById('ds-dec-cat').value.trim();
+  getProfile(_designCurrentRoom).decisions.push({ id:'dc-'+Date.now(), text, category:cat, done:false });
+  designSave();
+  renderDesignSection();
+}
+window.addDecision = addDecision;
+
+function toggleDecision(i, checked) {
+  getProfile(_designCurrentRoom).decisions[i].done = checked;
+  designSave();
+  renderDesignSection();
+}
+window.toggleDecision = toggleDecision;
+
+function removeDecision(i) {
+  getProfile(_designCurrentRoom).decisions.splice(i,1);
+  designSave();
+  renderDesignSection();
+}
+window.removeDecision = removeDecision;
+
+// ── Furniture ─────────────────────────────────────────────────────
+function renderFurnitureSection(p) {
+  const items = p.furniture.map((f, i) => {
+    const st = FURNITURE_STATUS_STYLES[f.status] || FURNITURE_STATUS_STYLES['Keep'];
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:var(--color-text-primary);">${f.name}</div>
+          ${f.notes ? `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;font-style:italic;">${f.notes}</div>` : ''}
+        </div>
+        <select onchange="updateFurnitureStatus(${i},this.value)"
+          style="font-size:11px;padding:4px 8px;border-radius:20px;border:none;cursor:pointer;background:${st.bg};color:${st.color};font-family:var(--font-sans);font-weight:500;outline:none;">
+          ${FURNITURE_STATUSES.map(s => `<option value="${s}" ${f.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button onclick="removeFurniture(${i})" style="background:none;border:none;font-size:12px;color:var(--color-text-tertiary);cursor:pointer;opacity:.4;padding:0 2px;">✕</button>
+      </div>`;
+  }).join('');
+
+  return `
+    <div style="margin-bottom:14px;">${items || '<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:10px 0;">No furniture tracked yet.</div>'}</div>
+    <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:8px;">Add item</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <input id="ds-furn-name" type="text" placeholder="Item name (e.g. Sectional sofa)"
+          style="flex:1;min-width:140px;font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;"
+          onkeydown="if(event.key==='Enter')addFurniture()" />
+        <select id="ds-furn-status" style="font-size:13px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;cursor:pointer;">
+          ${FURNITURE_STATUSES.map(s => `<option>${s}</option>`).join('')}
+        </select>
+        <button onclick="addFurniture()" style="padding:8px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Add</button>
+      </div>
+      <input id="ds-furn-notes" type="text" placeholder="Notes — dimensions, vendor, etc."
+        style="width:100%;font-size:12px;padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;" />
+    </div>`;
+}
+
+function addFurniture() {
+  const name = document.getElementById('ds-furn-name').value.trim();
+  if (!name) return;
+  getProfile(_designCurrentRoom).furniture.push({
+    id:'furn-'+Date.now(), name,
+    status: document.getElementById('ds-furn-status').value,
+    notes: document.getElementById('ds-furn-notes').value.trim(),
+  });
+  designSave();
+  renderDesignSection();
+}
+window.addFurniture = addFurniture;
+
+function updateFurnitureStatus(i, status) {
+  getProfile(_designCurrentRoom).furniture[i].status = status;
+  designSave();
+}
+window.updateFurnitureStatus = updateFurnitureStatus;
+
+function removeFurniture(i) {
+  getProfile(_designCurrentRoom).furniture.splice(i,1);
+  designSave();
+  renderDesignSection();
+}
+window.removeFurniture = removeFurniture;
+
+// ── Design Notes ──────────────────────────────────────────────────
+function renderDesignNotesSection(p) {
+  const items = p.notes.slice().reverse().map((n, ri) => {
+    const i = p.notes.length - 1 - ri;
+    return `
+      <div style="padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+          <div style="font-size:13px;color:var(--color-text-primary);line-height:1.6;flex:1;">${n.text}</div>
+          <button onclick="removeDesignNote(${i})" style="background:none;border:none;font-size:12px;color:var(--color-text-tertiary);cursor:pointer;opacity:.4;flex-shrink:0;padding:0 2px;">✕</button>
+        </div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:4px;">${new Date(n.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div style="margin-bottom:14px;">${items || '<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:10px 0;">No notes yet.</div>'}</div>
+    <div style="display:flex;gap:8px;">
+      <input id="ds-note-text" type="text" placeholder="Add a note…"
+        style="flex:1;font-size:13px;padding:9px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;"
+        onkeydown="if(event.key==='Enter')addDesignNote()" />
+      <button onclick="addDesignNote()" style="padding:9px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;font-family:var(--font-sans);">Add</button>
+    </div>`;
+}
+
+function addDesignNote() {
+  const text = document.getElementById('ds-note-text').value.trim();
+  if (!text) return;
+  getProfile(_designCurrentRoom).notes.push({ id:'dn-'+Date.now(), text, date: new Date().toISOString() });
+  designSave();
+  renderDesignSection();
+}
+window.addDesignNote = addDesignNote;
+
+function removeDesignNote(i) {
+  getProfile(_designCurrentRoom).notes.splice(i,1);
+  designSave();
+  renderDesignSection();
+}
+window.removeDesignNote = removeDesignNote;
+
+
+
 function getFullState() {
   const fields = {};
   document.querySelectorAll('[data-key]').forEach(el => { fields[el.dataset.key] = el.value; });
@@ -4380,6 +4870,7 @@ function getFullState() {
     customContacts,
     appMode,
     closingDate,
+    designProfiles,
   };
 }
 
@@ -4473,6 +4964,10 @@ function applyState(s) {
   if (s.customContacts && Array.isArray(s.customContacts)) {
     customContacts = s.customContacts;
     renderCustomContacts();
+  }
+  if (s.designProfiles && typeof s.designProfiles === 'object') {
+    designProfiles = s.designProfiles;
+    if (currentTab === 'design') renderDesignGrid();
   }
   if (s.closingDate) {
     closingDate = s.closingDate;
