@@ -4608,6 +4608,12 @@ function designSave() {
   }
   persistAll();
   renderDesignModalStats();
+  // Refresh palette bar on the mood board if it's visible
+  if (_designCurrentSection === 'moodboard') renderMoodPaletteBar();
+  if (_designCurrentSection === 'palette') {
+    // Also refresh when switching back to moodboard
+    // Store flag so moodboard init picks it up
+  }
 }
 
 // ── Vision ────────────────────────────────────────────────────────
@@ -6771,11 +6777,16 @@ function renderMoodboardSection(p) {
   return `
     <!-- Board — outer wrapper handles external image drops -->
     <div id="mood-drop-zone"
-      style="position:relative;border-radius:var(--border-radius-lg);margin-bottom:16px;transition:box-shadow .15s;">
+      style="position:relative;border-radius:var(--border-radius-lg);margin-bottom:16px;transition:box-shadow .15s;overflow:hidden;">
       <div id="mood-board-grid"
         style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;min-height:80px;">
         ${getMoodboardHTML(p)}
       </div>
+      <!-- Palette color bar — pinned to bottom of mood board -->
+      <div id="mood-palette-bar" style="display:${p.palette.length ? 'flex' : 'none'};height:32px;margin-top:10px;border-radius:var(--border-radius-md);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);">
+        ${p.palette.map(c => `<div title="${c.name}${c.paint ? ' · ' + c.paint : ''}" style="flex:1;background:${c.hex};transition:flex .3s ease;"></div>`).join('')}
+      </div>
+      ${p.palette.length === 0 ? '' : `<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">${p.palette.map(c => `<div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:2px;background:${c.hex};border:0.5px solid rgba(0,0,0,.1);flex-shrink:0;"></div><span style="font-size:10px;color:var(--color-text-tertiary);">${c.name}</span></div>`).join('')}</div>`}
       <!-- Drop overlay — shown while dragging an external image over the zone -->
       <div id="mood-drop-overlay"
         style="display:none;position:absolute;inset:0;background:rgba(29,92,82,.18);border:2.5px dashed var(--teal);border-radius:var(--border-radius-lg);z-index:10;align-items:center;justify-content:center;pointer-events:none;">
@@ -6992,6 +7003,7 @@ let _moodDragIdx = null;
 function initMoodDrag() {
   const grid = document.getElementById('mood-board-grid');
   if (!grid) return;
+  renderMoodPaletteBar();
 
   // Wire overlay hover and remove buttons (since innerHTML was just set)
   grid.querySelectorAll('.mood-tile-overlay').forEach(overlay => {
@@ -7328,6 +7340,22 @@ function designProfilesFromFirebase(fbProfiles) {
     out[room] = p;
   }
   return out;
+}
+
+
+function renderMoodPaletteBar() {
+  const p = getProfile(_designCurrentRoom);
+  const bar = document.getElementById('mood-palette-bar');
+  if (!bar) return;
+  if (!p.palette.length) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  bar.innerHTML = p.palette.map(c =>
+    `<div title="${c.name}${c.paint ? ' · ' + c.paint : ''}"
+      style="flex:1;background:${c.hex};transition:flex .3s ease;"></div>`
+  ).join('');
 }
 
 function getFullState() {
