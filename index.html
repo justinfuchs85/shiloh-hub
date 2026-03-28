@@ -4856,7 +4856,7 @@ async function uploadMoodImage(input) {
   const files = Array.from(input.files);
   for (const file of files) {
     const raw = await readFileAsDataUrl(file);
-    const compressed = await compressImage(raw, 1200, 0.8);
+    const compressed = await compressImage(raw, 800, 0.70);
     getProfile(_designCurrentRoom).moodboard.push({ url: compressed, caption: file.name.replace(/\.[^.]+$/, '') });
   }
   designSave();
@@ -4941,7 +4941,7 @@ function initMoodDrag() {
       const imageFile = Array.from(dt.files).find(f => f.type.startsWith('image/'));
       if (imageFile) {
         const raw = await readFileAsDataUrl(imageFile);
-        const compressed = await compressImage(raw, 1200, 0.8);
+        const compressed = await compressImage(raw, 800, 0.70);
         addOne(compressed);
         return;
       }
@@ -5194,8 +5194,24 @@ function getFullState() {
     customContacts,
     appMode,
     closingDate,
-    designProfiles,
+    designProfiles: stripDesignBase64(designProfiles),
   };
+}
+
+function stripDesignBase64(profiles) {
+  // For Firebase: replace base64 data URLs with a placeholder so we stay under size limit.
+  // The full data stays in localStorage only.
+  const stripped = {};
+  for (const [room, p] of Object.entries(profiles)) {
+    stripped[room] = {
+      ...p,
+      moodboard: p.moodboard.map(img => ({
+        ...img,
+        url: img.url.startsWith('data:') ? '__local__' : img.url,
+      }))
+    };
+  }
+  return stripped;
 }
 
 function applyState(s) {
@@ -5297,7 +5313,22 @@ function applyState(s) {
     renderCustomContacts();
   }
   if (s.designProfiles && typeof s.designProfiles === 'object') {
-    designProfiles = s.designProfiles;
+    // Restore base64 images from localStorage where Firebase has __local__ placeholders
+    const local = (() => { try { return JSON.parse(localStorage.getItem('shiloh-hub') || 'null'); } catch { return null; } })();
+    const localProfiles = local?.designProfiles || {};
+    designProfiles = {};
+    for (const [room, p] of Object.entries(s.designProfiles)) {
+      const localRoom = localProfiles[room] || {};
+      const localMood = localRoom.moodboard || [];
+      designProfiles[room] = {
+        ...p,
+        moodboard: p.moodboard.map((img, i) =>
+          img.url === '__local__' && localMood[i]?.url?.startsWith('data:')
+            ? { ...img, url: localMood[i].url }
+            : img
+        ),
+      };
+    }
     if (currentTab === 'design') renderDesignGrid();
   }
   if (s.closingDate) {
@@ -5428,13 +5459,23 @@ function startDbListener() {
 
 // ── Sync ──
 function persistAll() {
-  try { localStorage.setItem('shiloh-hub', JSON.stringify(getFullState())); } catch {}
+  const state = getFullState();
+  try { localStorage.setItem('shiloh-hub', JSON.stringify(state)); } catch(e) {
+    console.warn('localStorage save failed (likely too large):', e);
+  }
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => {
     setSyncStatus('saving');
-    set(hubRef, getFullState())
+    // Check rough size before sending to Firebase (10MB limit)
+    const json = JSON.stringify(state);
+    if (json.length > 8_000_000) {
+      console.warn('State too large for Firebase (' + Math.round(json.length/1024) + 'KB) — mood board images may need to be removed');
+      setSyncStatus('error');
+      return;
+    }
+    set(hubRef, state)
       .then(() => setSyncStatus('saved'))
-      .catch(() => setSyncStatus('error'));
+      .catch(err => { console.error('Firebase save error:', err); setSyncStatus('error'); });
   }, 800);
 }
 
