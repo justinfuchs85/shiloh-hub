@@ -4578,6 +4578,13 @@ function renderDesignSection() {
 }
 
 function designSave() {
+  // Save to localStorage immediately (synchronous) so refresh never loses data
+  try {
+    const state = getFullState();
+    localStorage.setItem('shiloh-hub', JSON.stringify(state));
+  } catch(e) {
+    console.warn('localStorage write failed:', e);
+  }
   persistAll();
   renderDesignModalStats();
 }
@@ -5203,6 +5210,35 @@ window.removeDesignNote = removeDesignNote;
 
 
 
+
+// ── Firebase key sanitization ─────────────────────────────────────
+// Firebase keys can't contain . # $ / [ ]
+function fbKey(str) {
+  return str.replace(/[.#$/[\]]/g, '_');
+}
+function fbKeyRestore(str) {
+  // We store the original name inside the profile, so we just need
+  // to rebuild the object keyed by original room name on load
+  return str; // passthrough — restoration done by name field
+}
+
+function designProfilesToFirebase(profiles) {
+  const out = {};
+  for (const [room, p] of Object.entries(profiles)) {
+    out[fbKey(room)] = { ...p, _roomName: room };
+  }
+  return out;
+}
+
+function designProfilesFromFirebase(fbProfiles) {
+  const out = {};
+  for (const [, p] of Object.entries(fbProfiles)) {
+    const room = p._roomName || Object.keys(CANONICAL_SPACES.reduce((a,s)=>{a[fbKey(s.name)]=s.name;return a},{})).find(k => k === fbKey(p._roomName)) || p._roomName;
+    out[room] = p;
+  }
+  return out;
+}
+
 function getFullState() {
   const fields = {};
   document.querySelectorAll('[data-key]').forEach(el => { fields[el.dataset.key] = el.value; });
@@ -5225,7 +5261,7 @@ function getFullState() {
     customContacts,
     appMode,
     closingDate,
-    designProfiles,
+    designProfiles: designProfilesToFirebase(designProfiles),
   };
 }
 
@@ -5327,8 +5363,17 @@ function applyState(s) {
     customContacts = s.customContacts;
     renderCustomContacts();
   }
-  if (s.designProfiles && typeof s.designProfiles === 'object') {
-    designProfiles = s.designProfiles;
+  if (s.designProfiles && typeof s.designProfiles === 'object' && Object.keys(s.designProfiles).length > 0) {
+    // Restore sanitized Firebase keys back to original room names
+    const restored = {};
+    for (const [, p] of Object.entries(s.designProfiles)) {
+      const roomName = p._roomName;
+      if (roomName) {
+        const { _roomName, ...rest } = p;
+        restored[roomName] = rest;
+      }
+    }
+    if (Object.keys(restored).length > 0) designProfiles = restored;
     if (currentTab === 'design') renderDesignGrid();
   }
   if (s.closingDate) {
@@ -5450,8 +5495,14 @@ function startDbListener() {
     const s = snapshot.val();
     if (s) {
       _suppressRemoteApply = true;
+      // Merge: keep in-memory designProfiles if Firebase snapshot has none/empty
+      if (s.designProfiles && Object.keys(s.designProfiles).length === 0) {
+        s.designProfiles = designProfilesToFirebase(designProfiles);
+      }
       applyState(s);
-      try { localStorage.setItem('shiloh-hub', JSON.stringify(s)); } catch {}
+      // Save to localStorage preserving current designProfiles
+      const toStore = { ...s, designProfiles: designProfilesToFirebase(designProfiles) };
+      try { localStorage.setItem('shiloh-hub', JSON.stringify(toStore)); } catch {}
       setTimeout(() => { _suppressRemoteApply = false; }, 500);
       setSyncStatus('live');
     }
