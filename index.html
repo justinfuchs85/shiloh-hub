@@ -4466,6 +4466,7 @@ function renderDesignGrid() {
   const grid = document.getElementById('design-grid');
   if (!grid) return;
   initSpaces();
+  try {
   grid.innerHTML = spaces.map(sp => {
     const p = getProfile(sp.name);
     const icon = SPACE_ICONS[sp.name] || '🏠';
@@ -4510,6 +4511,10 @@ function renderDesignGrid() {
   grid.querySelectorAll('.design-room-card').forEach(card => {
     card.addEventListener('click', () => openDesignRoom(card.dataset.room));
   });
+  } catch(e) {
+    console.error('renderDesignGrid error:', e);
+    grid.innerHTML = `<div style="color:red;padding:1rem;font-size:12px;">Design grid error: ${e.message}</div>`;
+  }
 }
 
 // ── Room modal ────────────────────────────────────────────────────
