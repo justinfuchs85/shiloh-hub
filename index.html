@@ -4620,42 +4620,253 @@ function renderVisionSection(p) {
     <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px;">Tip: think mood, not just aesthetics — how do you want to feel in this room?</div>`;
 }
 
-// ── Palette ───────────────────────────────────────────────────────
+
+// ── Benjamin Moore Color Library ─────────────────────────────────
+const BM_COLORS = [
+  // Whites & Off-Whites
+  {code:'OC-17', name:'White Dove', hex:'#F4F0E8'},
+  {code:'OC-65', name:'Chantilly Lace', hex:'#F7F4EE'},
+  {code:'OC-130', name:'Cloud White', hex:'#EDE9DC'},
+  {code:'OC-17', name:'White Dove', hex:'#F4F0E8'},
+  {code:'OC-150', name:'Super White', hex:'#F5F4F0'},
+  {code:'OC-151', name:'White', hex:'#F2F0EB'},
+  {code:'2155-70', name:'Decorator\'s White', hex:'#EFEde6'},
+  {code:'OC-57', name:'White Heron', hex:'#EDE8DC'},
+  {code:'OC-14', name:'Pale Oak', hex:'#E0D9CB'},
+  {code:'OC-45', name:'Swiss Coffee', hex:'#EAE3D5'},
+  {code:'OC-17', name:'White Dove', hex:'#F4F0E8'},
+  {code:'OC-8', name:'Linen White', hex:'#EEE8D9'},
+  {code:'CC-20', name:'Distant Gray', hex:'#E8E4DA'},
+  {code:'OC-25', name:'Balboa Mist', hex:'#DBD4C3'},
+  {code:'OC-17', name:'White Dove', hex:'#F4F0E8'},
+  // Greiges & Taupes
+  {code:'HC-172', name:'Revere Pewter', hex:'#C2B9A7'},
+  {code:'2161-40', name:'Rockport Gray', hex:'#9E9589'},
+  {code:'HC-82', name:'Edgecomb Gray', hex:'#CEC7B5'},
+  {code:'HC-83', name:'Pale Oak', hex:'#DDD6C6'},
+  {code:'HC-78', name:'Bleeker Beige', hex:'#C5B9A3'},
+  {code:'2163-40', name:'Abalone', hex:'#B3A99B'},
+  {code:'2109-50', name:'Barren Plain', hex:'#B9AF9F'},
+  {code:'HC-85', name:'Nantucket Gray', hex:'#B4AFA6'},
+  {code:'HC-91', name:'Gray Owl', hex:'#C5C5BB'},
+  {code:'HC-172', name:'Revere Pewter', hex:'#C2B9A7'},
+  // Grays
+  {code:'2124-10', name:'Black', hex:'#2A2A2A'},
+  {code:'HC-170', name:'Stonington Gray', hex:'#BABCBC'},
+  {code:'2121-40', name:'Gray', hex:'#9B9B9B'},
+  {code:'HC-164', name:'Coventry Gray', hex:'#9AA0A0'},
+  {code:'2133-40', name:'Sea Salt', hex:'#B2C0BB'},
+  {code:'HC-165', name:'November Skies', hex:'#B6C0C0'},
+  {code:'2128-60', name:'Horizon', hex:'#CCCECA'},
+  {code:'1475', name:'Silver Fox', hex:'#B0ADAB'},
+  {code:'HC-166', name:'Boothbay Gray', hex:'#99ABAB'},
+  {code:'2117-40', name:'Cape May Cobblestone', hex:'#9E9990'},
+  {code:'AF-700', name:'Ozark Shadows', hex:'#8E9898'},
+  {code:'HC-159', name:'Plymouth Rock', hex:'#AEAAAA'},
+  // Blues
+  {code:'HC-158', name:'Newburyport Blue', hex:'#7A9BA8'},
+  {code:'2062-20', name:'Hale Navy', hex:'#3A5068'},
+  {code:'HC-157', name:'Yarmouth Blue', hex:'#8FAAB5'},
+  {code:'2060-30', name:'Blue Note', hex:'#6287A0'},
+  {code:'OC-52', name:'Nantucket Fog', hex:'#AFBDC2'},
+  {code:'2050-40', name:'Alaskan Skies', hex:'#97BCC7'},
+  {code:'HC-155', name:'Nantucket Gray', hex:'#B4AFA6'},
+  {code:'2064-20', name:'Midnight Blue', hex:'#2B4C6F'},
+  {code:'2058-30', name:'Van Deusen Blue', hex:'#4A6FA5'},
+  {code:'2062-10', name:'Newburyport Blue', hex:'#2B4A60'},
+  {code:'HC-154', name:'Buxton Blue', hex:'#8FA3B0'},
+  {code:'2050-20', name:'Stillwater', hex:'#4F7E96'},
+  {code:'2066-30', name:'Wedgewood Gray', hex:'#8FAAB0'},
+  {code:'2051-40', name:'Quiet Moments', hex:'#AABFC6'},
+  // Greens
+  {code:'HC-140', name:'Sage Mountain', hex:'#7E8E7E'},
+  {code:'2145-40', name:'Aganthus Green', hex:'#7A9B82'},
+  {code:'HC-128', name:'Lexington Green', hex:'#4B6B50'},
+  {code:'2029-40', name:'Stem Green', hex:'#8EA882'},
+  {code:'2144-40', name:'Herb Garden', hex:'#7A9470'},
+  {code:'HC-137', name:'Hampshire Gray', hex:'#9AA08C'},
+  {code:'2136-30', name:'Forest Green', hex:'#4A6B52'},
+  {code:'HC-126', name:'Kennebunkport Green', hex:'#4A6050'},
+  {code:'461', name:'Pale Avocado', hex:'#B8BF9E'},
+  {code:'2145-50', name:'Misted Fern', hex:'#A8BFAA'},
+  {code:'HC-135', name:'Gloucester Sage', hex:'#8E9E82'},
+  {code:'2139-20', name:'Hunter Green', hex:'#2E5040'},
+  // Greens - sage/olive
+  {code:'HC-144', name:'Tate Olive', hex:'#8E8C6A'},
+  {code:'2143-40', name:'Rosemary Sprig', hex:'#9EA882'},
+  {code:'HC-112', name:'Antique Jade', hex:'#7E9282'},
+  {code:'2142-50', name:'Nile Green', hex:'#AABFAA'},
+  // Yellows & Creams
+  {code:'OC-33', name:'Cream', hex:'#EFE5CA'},
+  {code:'2154-50', name:'Pale Straw', hex:'#EDE3C2'},
+  {code:'HC-10', name:'Hawthorne Yellow', hex:'#D4C07A'},
+  {code:'2022-40', name:'Sundance', hex:'#DFC078'},
+  {code:'2018-50', name:'Lemon Grass', hex:'#D8D09E'},
+  {code:'2019-60', name:'Yellow Highlighter', hex:'#EEE8B0'},
+  {code:'HC-4', name:'Garrison Red', hex:'#9E3028'},
+  {code:'2154-40', name:'Golden Straw', hex:'#D4B85C'},
+  // Reds & Pinks
+  {code:'2003-10', name:'Black Cherry', hex:'#4A1820'},
+  {code:'2086-30', name:'Cranberry Cocktail', hex:'#8E2030'},
+  {code:'2082-40', name:'Raspberry Blush', hex:'#C85060'},
+  {code:'2008-40', name:'Coral Gables', hex:'#D4706A'},
+  {code:'2172-40', name:'Mellow Rose', hex:'#D4907A'},
+  {code:'2174-60', name:'Peach Sorbet', hex:'#EABAAA'},
+  {code:'2004-60', name:'Pink Bliss', hex:'#ECC8C0'},
+  {code:'2088-70', name:'Pale Pink Satin', hex:'#F0D0C8'},
+  {code:'CSP-455', name:'Pink Eraser', hex:'#E8B0A8'},
+  {code:'2001-30', name:'Deep Crimson', hex:'#782030'},
+  // Warm Neutrals & Browns
+  {code:'2163-20', name:'Shaker Beige', hex:'#9E9080'},
+  {code:'AC-3', name:'Aura', hex:'#B09880'},
+  {code:'HC-71', name:'Alexandria Beige', hex:'#C8B898'},
+  {code:'HC-74', name:'Grant Beige', hex:'#C0AA88'},
+  {code:'HC-75', name:'Lenox Tan', hex:'#C0A878'},
+  {code:'2164-40', name:'Antique Brown', hex:'#8E7860'},
+  {code:'2100-40', name:'Warm Caramel', hex:'#B88848'},
+  {code:'2164-20', name:'Chocolate Mousse', hex:'#604830'},
+  {code:'HC-69', name:'Winthrop Peach', hex:'#D4B090'},
+  {code:'1224', name:'Caramel', hex:'#C09060'},
+  // Navies & Dark Colors
+  {code:'CC-60', name:'Gentleman\'s Gray', hex:'#3A4050'},
+  {code:'2067-10', name:'Naval', hex:'#3A4A5A'},
+  {code:'HC-160', name:'Buxton Blue', hex:'#8FA3B0'},
+  {code:'2126-20', name:'Wrought Iron', hex:'#404848'},
+  {code:'2119-10', name:'Black Forest Green', hex:'#283030'},
+  {code:'2132-20', name:'Dark Harbor', hex:'#384848'},
+  {code:'2118-10', name:'Black Beauty', hex:'#1E2020'},
+  {code:'2132-10', name:'Nightfall', hex:'#283040'},
+  // Popular Affinity Collection
+  {code:'AF-20', name:'Pale Smoke', hex:'#E0DDD8'},
+  {code:'AF-95', name:'Collingwood', hex:'#D4CEBC'},
+  {code:'AF-100', name:'Bleeker Beige', hex:'#C5B9A3'},
+  {code:'AF-170', name:'Winds Breath', hex:'#DDD8CC'},
+  {code:'AF-180', name:'Wickham Gray', hex:'#C8C4B8'},
+  {code:'AF-700', name:'Ozark Shadows', hex:'#8E9898'},
+  {code:'AF-710', name:'Nightingale', hex:'#9EAAAA'},
+  {code:'AF-720', name:'Iron Mountain', hex:'#7E8E8E'},
+];
+
+// Deduplicate by code+name
+const _bmSeen = new Set();
+const BM_COLORS_UNIQUE = BM_COLORS.filter(c => {
+  const key = c.code + c.name;
+  if (_bmSeen.has(key)) return false;
+  _bmSeen.add(key);
+  return true;
+});
+
+function searchBMColors(query) {
+  if (!query || query.length < 2) return [];
+  const q = query.toLowerCase();
+  return BM_COLORS_UNIQUE.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.code.toLowerCase().includes(q)
+  ).slice(0, 8);
+}
+
+// ── Palette Section ───────────────────────────────────────────────
 function renderPaletteSection(p) {
   const swatches = p.palette.map((c, i) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
-      <div style="width:40px;height:40px;border-radius:8px;background:${c.hex};border:1px solid rgba(0,0,0,.1);flex-shrink:0;cursor:pointer;" onclick="pickDesignColor(${i})" title="Click to change"></div>
-      <div style="flex:1;min-width:0;">
-        <input value="${c.name}" placeholder="Color name (e.g. Agreeable Gray)"
-          style="width:100%;font-size:13px;border:none;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);outline:none;margin-bottom:3px;"
-          onchange="updatePaletteField(${i},'name',this.value)" />
-        <input value="${c.paint||''}" placeholder="Paint brand + code (e.g. SW 7029)"
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+      <!-- Swatch -->
+      <div style="width:44px;height:44px;border-radius:8px;background:${c.hex};border:1px solid rgba(0,0,0,.1);flex-shrink:0;"></div>
+      <!-- Fields -->
+      <div style="flex:1;min-width:0;position:relative;">
+        <!-- BM search input -->
+        <div style="position:relative;">
+          <input id="bm-search-${i}" value="${c.name}" placeholder="Search Benjamin Moore or type any name…"
+            autocomplete="off"
+            style="width:100%;font-size:13px;border:none;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);outline:none;margin-bottom:3px;padding-right:60px;"
+            oninput="onBMSearch(${i},this.value)"
+            onchange="updatePaletteField(${i},'name',this.value)"
+            onblur="setTimeout(()=>hideBMDropdown(${i}),150)" />
+          <span style="position:absolute;right:0;top:0;font-size:10px;color:var(--color-text-tertiary);white-space:nowrap;padding-top:2px;">BM search</span>
+        </div>
+        <!-- BM dropdown -->
+        <div id="bm-drop-${i}" style="display:none;position:absolute;left:0;right:0;top:100%;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:100;overflow:hidden;"></div>
+        <!-- Paint code -->
+        <input value="${c.paint||''}" placeholder="Code (e.g. OC-17) or brand"
           style="width:100%;font-size:11px;border:none;background:transparent;color:var(--color-text-tertiary);font-family:var(--font-sans);outline:none;"
           onchange="updatePaletteField(${i},'paint',this.value)" />
       </div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+      <!-- Color picker + remove -->
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">
         <input type="color" value="${c.hex}" title="Pick color"
           style="width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;padding:0;background:none;"
-          oninput="updatePaletteField(${i},'hex',this.value)" />
+          oninput="updatePaletteField(${i},'hex',this.value);document.querySelector('#bm-search-${i}').closest('div').previousElementSibling.style.background=this.value" />
         <button onclick="removePaletteColor(${i})" style="background:none;border:none;font-size:12px;color:var(--color-text-tertiary);cursor:pointer;padding:0;opacity:.5;">✕</button>
       </div>
     </div>`).join('');
 
   return `
-    <div style="display:flex;flex-direction:column;">
+    <div style="flex-direction:column;">
+      ${p.palette.length === 0 ? '<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:10px 0 14px;">No colors yet — add one below.</div>' : ''}
       ${swatches}
       ${p.palette.length < 8 ? `
-        <button onclick="addPaletteColor()" style="margin-top:14px;padding:10px;border:1.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;color:var(--color-text-tertiary);font-size:13px;cursor:pointer;font-family:var(--font-sans);transition:all .15s;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--color-border-secondary)';this.style.color='var(--color-text-tertiary)'">
+        <button onclick="addPaletteColor()"
+          style="margin-top:14px;width:100%;padding:10px;border:1.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;color:var(--color-text-tertiary);font-size:13px;cursor:pointer;font-family:var(--font-sans);transition:all .15s;"
+          onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'"
+          onmouseout="this.style.borderColor='var(--color-border-secondary)';this.style.color='var(--color-text-tertiary)'">
           + Add color
         </button>` : ''}
     </div>`;
 }
 
-function addPaletteColor() {
+function onBMSearch(i, query) {
+  updatePaletteField(i, 'name', query);
+  const drop = document.getElementById('bm-drop-' + i);
+  if (!drop) return;
+  const results = searchBMColors(query);
+  if (!results.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = results.map(c => `
+    <div class="bm-result" data-idx="${i}" data-hex="${c.hex}" data-name="${c.name}" data-code="${c.code}"
+      style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:background .1s;"
+      onmouseover="this.style.background='var(--color-background-secondary)'"
+      onmouseout="this.style.background=''">
+      <div style="width:24px;height:24px;border-radius:4px;background:${c.hex};border:1px solid rgba(0,0,0,.08);flex-shrink:0;"></div>
+      <div>
+        <div style="font-size:13px;color:var(--color-text-primary);">${c.name}</div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);">${c.code} · Benjamin Moore</div>
+      </div>
+    </div>`).join('');
+  drop.style.display = 'block';
+  // Wire clicks via delegation
+  drop.querySelectorAll('.bm-result').forEach(el => {
+    el.addEventListener('mousedown', () => {
+      const idx = parseInt(el.dataset.idx);
+      selectBMColor(idx, el.dataset.name, el.dataset.hex, el.dataset.code);
+    });
+  });
+}
+window.onBMSearch = onBMSearch;
+
+function selectBMColor(i, name, hex, code) {
   const p = getProfile(_designCurrentRoom);
-  p.palette.push({ name:'New color', hex:'#C4973A', paint:'' });
+  p.palette[i].name = name;
+  p.palette[i].hex = hex;
+  p.palette[i].paint = 'BM ' + code;
   designSave();
   renderDesignSection();
+}
+window.selectBMColor = selectBMColor;
+
+function hideBMDropdown(i) {
+  const drop = document.getElementById('bm-drop-' + i);
+  if (drop) drop.style.display = 'none';
+}
+window.hideBMDropdown = hideBMDropdown;
+
+function addPaletteColor() {
+  const p = getProfile(_designCurrentRoom);
+  p.palette.push({ name:'', hex:'#C4973A', paint:'' });
+  designSave();
+  renderDesignSection();
+  // Focus the new search input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('[id^="bm-search-"]');
+    if (inputs.length) inputs[inputs.length-1].focus();
+  }, 50);
 }
 window.addPaletteColor = addPaletteColor;
 
@@ -4667,10 +4878,13 @@ function removePaletteColor(i) {
 window.removePaletteColor = removePaletteColor;
 
 function updatePaletteField(i, field, val) {
-  getProfile(_designCurrentRoom).palette[i][field] = val;
+  const p = getProfile(_designCurrentRoom);
+  if (p.palette[i]) p.palette[i][field] = val;
   designSave();
 }
 window.updatePaletteField = updatePaletteField;
+
+
 
 // ── Mood board ────────────────────────────────────────────────────
 // ── Mood Board ────────────────────────────────────────────────────
