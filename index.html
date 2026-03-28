@@ -4454,8 +4454,14 @@ const SPACE_ICONS = {
 };
 
 function getProfile(room) {
+  const defaults = { vision:'', palette:[], moodboard:[], decisions:[], furniture:[], notes:[] };
   if (!designProfiles[room]) {
-    designProfiles[room] = { vision:'', palette:[], moodboard:[], decisions:[], furniture:[], notes:[] };
+    designProfiles[room] = { ...defaults };
+  } else {
+    // Ensure all fields exist (handles partial or migrated data from Firebase)
+    for (const [k, v] of Object.entries(defaults)) {
+      if (designProfiles[room][k] === undefined) designProfiles[room][k] = Array.isArray(v) ? [] : v;
+    }
   }
   return designProfiles[room];
 }
