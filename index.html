@@ -4621,6 +4621,153 @@ function renderVisionSection(p) {
 }
 
 
+
+// ── Behr Colors ───────────────────────────────────────────────────
+const BEHR_COLORS = [
+  // Whites & Off-Whites
+  {code:'W-B-600', name:'Ultra Pure White', hex:'#F4F2EE'},
+  {code:'PPU18-06', name:'Polar Bear', hex:'#F0EDE6'},
+  {code:'N520-1', name:'White Truffle', hex:'#EDE8DE'},
+  {code:'W-F-100', name:'First Snowfall', hex:'#EEECe8'},
+  {code:'PPU18-08', name:'Silky White', hex:'#EDE9DF'},
+  {code:'PWN-36', name:'Antique White', hex:'#EDE3CC'},
+  {code:'W-B-700', name:'Swiss Coffee', hex:'#EAE3D4'},
+  {code:'PPU18-01', name:'Blanc', hex:'#F2EFE8'},
+  {code:'N100-1', name:'Cream Silk', hex:'#F0E8D4'},
+  {code:'23', name:'Navajo White', hex:'#E8DBBC'},
+  // Greiges & Taupes
+  {code:'PPU18-13', name:'Wheat Bread', hex:'#D4C8B0'},
+  {code:'N200-3', name:'Toasty', hex:'#C8B898'},
+  {code:'PPU18-14', name:'Cracked Wheat', hex:'#C8BA9E'},
+  {code:'N210-2', name:'Sandstone Cove', hex:'#D0C4A8'},
+  {code:'PPU18-15', name:'Suede', hex:'#B8AA90'},
+  {code:'790D-4', name:'Mushroom Bisque', hex:'#C0AE98'},
+  {code:'N190-3', name:'Almond Milk', hex:'#D8C8AE'},
+  {code:'PPU18-16', name:'Autumn Tan', hex:'#B8A888'},
+  {code:'N520-3', name:'Burnished Clay', hex:'#B4A088'},
+  // Grays
+  {code:'PPU26-12', name:'Silver Drop', hex:'#C8C8C0'},
+  {code:'N520-2', name:'Smoked Oyster', hex:'#C0B8AA'},
+  {code:'PPU26-10', name:'Light French Gray', hex:'#CACAC2'},
+  {code:'N510-3', name:'Pebble Shore', hex:'#B8B4AA'},
+  {code:'790E-2', name:'Pale Smoke', hex:'#D4D0C8'},
+  {code:'N520-4', name:'Elephant Skin', hex:'#A8A098'},
+  {code:'PPU26-14', name:'Cathedral Gray', hex:'#989890'},
+  {code:'N510-5', name:'Mountain Ridge', hex:'#888480'},
+  {code:'PPU26-16', name:'Shark Skin', hex:'#787870'},
+  {code:'N510-7', name:'Dark Ash', hex:'#585450'},
+  // Blues
+  {code:'PPU14-01', name:'Aqua Foam', hex:'#C0DCE0'},
+  {code:'530D-5', name:'Cameo Blue', hex:'#8AAABF'},
+  {code:'PPU14-04', name:'Aqua Blue', hex:'#78A8C0'},
+  {code:'550D-5', name:'Blue Lagoon', hex:'#6898B8'},
+  {code:'PPU14-07', name:'Dark Blue', hex:'#3A6080'},
+  {code:'S510-7', name:'Navy Blue', hex:'#283848'},
+  {code:'PPU14-02', name:'Spray Mist', hex:'#AACCD8'},
+  {code:'530F-4', name:'Steel Blue', hex:'#8AAAB8'},
+  {code:'PPU14-05', name:'Summer Sky', hex:'#6A9CB8'},
+  {code:'BL-W10', name:'Blue Jean', hex:'#88A8C0'},
+  {code:'PPU14-06', name:'Jewel', hex:'#4878A0'},
+  // Greens
+  {code:'PPU11-01', name:'Celery Cream', hex:'#D8E0C0'},
+  {code:'420D-3', name:'Fern', hex:'#8AAA80'},
+  {code:'PPU11-05', name:'Oregano', hex:'#789070'},
+  {code:'440E-6', name:'Dark Olive', hex:'#506040'},
+  {code:'PPU11-03', name:'Laurel', hex:'#98B088'},
+  {code:'450D-4', name:'Sage Green', hex:'#90A87A'},
+  {code:'PPU11-07', name:'Dark Basil', hex:'#405838'},
+  {code:'S390-4', name:'Pale Mint', hex:'#B8D8C0'},
+  {code:'440D-4', name:'Jade', hex:'#6A9878'},
+  {code:'PPU11-06', name:'Meadow', hex:'#68905A'},
+  // Warm Tones
+  {code:'PPU2-02', name:'Peach Fuzz', hex:'#F0C0A0'},
+  {code:'240D-3', name:'Coral Glow', hex:'#E8A888'},
+  {code:'PPU2-06', name:'Terra Cotta', hex:'#C07858'},
+  {code:'260D-5', name:'Burnt Sienna', hex:'#A86040'},
+  {code:'PPU2-10', name:'Tomato Bisque', hex:'#C05840'},
+  {code:'180D-6', name:'Brick Red', hex:'#982820'},
+  {code:'PPU2-04', name:'Melon', hex:'#E09870'},
+  {code:'S-H-200', name:'Sunshine', hex:'#F0D090'},
+  {code:'PPU6-02', name:'Pale Banana', hex:'#F0E0A0'},
+  {code:'330D-3', name:'Honey Gold', hex:'#D4A840'},
+  // Neutrals
+  {code:'PPU18-11', name:'Cameo Rose', hex:'#E0C8BC'},
+  {code:'N130-2', name:'Linen', hex:'#EADCc8'},
+  {code:'IC-24', name:'Smoky White', hex:'#E8E0D0'},
+  {code:'PPU18-12', name:'Sand Dollar', hex:'#E0D0B8'},
+  {code:'S-H-770', name:'Greige', hex:'#C8BAA8'},
+  {code:'N200-4', name:'Camel', hex:'#C0A880'},
+  {code:'IC-14', name:'Khaki', hex:'#B8A878'},
+  {code:'PPU18-17', name:'Dark Khaki', hex:'#A89860'},
+  {code:'820D-5', name:'Bark', hex:'#907850'},
+  // Dark & Bold
+  {code:'S-H-900', name:'Black', hex:'#282828'},
+  {code:'N520-7', name:'Charcoal', hex:'#484440'},
+  {code:'PPU26-20', name:'Graphite', hex:'#585858'},
+  {code:'S-H-810', name:'Espresso', hex:'#3A2818'},
+  {code:'PPU26-18', name:'Dark Pewter', hex:'#686860'},
+  {code:'S510-6', name:'Storm Cloud', hex:'#787878'},
+];
+
+// ── Glidden Colors ────────────────────────────────────────────────
+const GLIDDEN_COLORS = [
+  // Whites
+  {code:'GLW01', name:'Bright White', hex:'#F4F2EE'},
+  {code:'GLW02', name:'White on White', hex:'#F0EDE6'},
+  {code:'00WW 83/000', name:'Antique White', hex:'#EDE0C8'},
+  {code:'10YY 83/029', name:'Warm White', hex:'#EDE8D8'},
+  {code:'00NN 83/000', name:'White', hex:'#F2F0EC'},
+  {code:'70WW 83/020', name:'Oyster White', hex:'#EDE8DA'},
+  {code:'00YY 78/042', name:'Cream', hex:'#EEE0C0'},
+  {code:'30YY 83/029', name:'Pale Ivory', hex:'#F0E8D4'},
+  // Grays
+  {code:'60NN 55/000', name:'Pewter', hex:'#989898'},
+  {code:'00NN 62/000', name:'Silver', hex:'#ACACAC'},
+  {code:'00NN 72/000', name:'Light Gray', hex:'#C0C0C0'},
+  {code:'00NN 37/000', name:'Charcoal', hex:'#606060'},
+  {code:'10BB 62/010', name:'Misty Gray', hex:'#A8ACAC'},
+  {code:'70BG 72/010', name:'Pale Gray', hex:'#C8CCC8'},
+  {code:'10BB 83/010', name:'Fog', hex:'#D8DCE0'},
+  {code:'00NN 52/000', name:'Slate', hex:'#888888'},
+  // Blues
+  {code:'10BG 72/048', name:'Sky Blue', hex:'#A0C0D0'},
+  {code:'30BG 55/182', name:'Ocean Blue', hex:'#5888A8'},
+  {code:'10BB 43/182', name:'Navy', hex:'#284868'},
+  {code:'10BG 55/135', name:'Teal Blue', hex:'#6898A8'},
+  {code:'70BG 43/139', name:'Steel', hex:'#688090'},
+  {code:'30BB 72/048', name:'Baby Blue', hex:'#A8C0D8'},
+  {code:'10BG 83/048', name:'Powder Blue', hex:'#C8D8E0'},
+  {code:'50BB 38/196', name:'Cobalt', hex:'#3060A0'},
+  // Greens
+  {code:'10GG 72/109', name:'Pale Green', hex:'#A8C8A8'},
+  {code:'30GY 55/174', name:'Sage', hex:'#7A9870'},
+  {code:'10GG 43/182', name:'Forest', hex:'#386040'},
+  {code:'10GY 62/135', name:'Fern Green', hex:'#7A9868'},
+  {code:'70GY 72/064', name:'Mint', hex:'#B0C8A8'},
+  {code:'30GG 55/109', name:'Moss', hex:'#7A9870'},
+  {code:'10GY 43/109', name:'Hunter', hex:'#406040'},
+  // Warm Tones
+  {code:'10YR 72/109', name:'Peach', hex:'#E8C0A0'},
+  {code:'30YR 55/174', name:'Terracotta', hex:'#C07858'},
+  {code:'10YR 43/182', name:'Rust', hex:'#984830'},
+  {code:'70YR 72/064', name:'Cream Yellow', hex:'#F0E0B8'},
+  {code:'10YY 55/174', name:'Golden', hex:'#D0A040'},
+  {code:'30YY 43/182', name:'Dark Gold', hex:'#A87820'},
+  {code:'10YR 55/109', name:'Tan', hex:'#C8A880'},
+  {code:'30YR 43/109', name:'Brown', hex:'#906040'},
+  // Neutrals
+  {code:'10YY 72/064', name:'Linen', hex:'#E8D8B8'},
+  {code:'10YY 62/064', name:'Sand', hex:'#D8C8A0'},
+  {code:'10YR 72/029', name:'Beige', hex:'#E0D0BC'},
+  {code:'10YY 83/029', name:'Ivory', hex:'#F0E8D4'},
+  {code:'30YY 72/064', name:'Straw', hex:'#DDD0A8'},
+  {code:'10YR 83/029', name:'Warm Linen', hex:'#EEE4D0'},
+  // Darks
+  {code:'00NN 18/000', name:'Black', hex:'#2A2A2A'},
+  {code:'10BB 18/010', name:'Midnight', hex:'#202830'},
+  {code:'30GG 18/109', name:'Dark Forest', hex:'#183018'},
+  {code:'10YR 18/109', name:'Espresso', hex:'#301808'},
+];
 // ── Benjamin Moore Color Library ─────────────────────────────────
 const BM_COLORS = [
   // Whites & Off-Whites
@@ -4756,14 +4903,21 @@ const BM_COLORS_UNIQUE = BM_COLORS.filter(c => {
   return true;
 });
 
-function searchBMColors(query) {
+function searchPaintColors(query) {
   if (!query || query.length < 2) return [];
   const q = query.toLowerCase();
-  return BM_COLORS_UNIQUE.filter(c =>
+  const all = [
+    ...BM_COLORS_UNIQUE.map(c => ({...c, brand:'Benjamin Moore'})),
+    ...BEHR_COLORS.map(c => ({...c, brand:'Behr'})),
+    ...GLIDDEN_COLORS.map(c => ({...c, brand:'Glidden'})),
+  ];
+  return all.filter(c =>
     c.name.toLowerCase().includes(q) ||
     c.code.toLowerCase().includes(q)
-  ).slice(0, 8);
+  ).slice(0, 10);
 }
+// Keep old name for compatibility
+function searchBMColors(query) { return searchPaintColors(query); }
 
 // ── Palette Section ───────────────────────────────────────────────
 function renderPaletteSection(p) {
@@ -4775,13 +4929,13 @@ function renderPaletteSection(p) {
       <div style="flex:1;min-width:0;position:relative;">
         <!-- BM search input -->
         <div style="position:relative;">
-          <input id="bm-search-${i}" value="${c.name}" placeholder="Search Benjamin Moore or type any name…"
+          <input id="bm-search-${i}" value="${c.name}" placeholder="Search BM, Behr, Glidden or type any name…"
             autocomplete="off"
             style="width:100%;font-size:13px;border:none;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);outline:none;margin-bottom:3px;padding-right:60px;"
             oninput="onBMSearch(${i},this.value)"
             onchange="updatePaletteField(${i},'name',this.value)"
             onblur="setTimeout(()=>hideBMDropdown(${i}),150)" />
-          <span style="position:absolute;right:0;top:0;font-size:10px;color:var(--color-text-tertiary);white-space:nowrap;padding-top:2px;">BM search</span>
+          <span style="position:absolute;right:0;top:0;font-size:10px;color:var(--color-text-tertiary);white-space:nowrap;padding-top:2px;">BM · Behr · Glidden</span>
         </div>
         <!-- BM dropdown -->
         <div id="bm-drop-${i}" style="display:none;position:absolute;left:0;right:0;top:100%;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:100;overflow:hidden;"></div>
@@ -4820,14 +4974,14 @@ function onBMSearch(i, query) {
   const results = searchBMColors(query);
   if (!results.length) { drop.style.display = 'none'; return; }
   drop.innerHTML = results.map(c => `
-    <div class="bm-result" data-idx="${i}" data-hex="${c.hex}" data-name="${c.name}" data-code="${c.code}"
+    <div class="bm-result" data-idx="${i}" data-hex="${c.hex}" data-name="${c.name}" data-code="${c.code}" data-brand="${c.brand||'Benjamin Moore'}"
       style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:background .1s;"
       onmouseover="this.style.background='var(--color-background-secondary)'"
       onmouseout="this.style.background=''">
       <div style="width:24px;height:24px;border-radius:4px;background:${c.hex};border:1px solid rgba(0,0,0,.08);flex-shrink:0;"></div>
       <div>
         <div style="font-size:13px;color:var(--color-text-primary);">${c.name}</div>
-        <div style="font-size:10px;color:var(--color-text-tertiary);">${c.code} · Benjamin Moore</div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);">${c.code} · ${c.brand||'Benjamin Moore'}</div>
       </div>
     </div>`).join('');
   drop.style.display = 'block';
@@ -4835,17 +4989,18 @@ function onBMSearch(i, query) {
   drop.querySelectorAll('.bm-result').forEach(el => {
     el.addEventListener('mousedown', () => {
       const idx = parseInt(el.dataset.idx);
-      selectBMColor(idx, el.dataset.name, el.dataset.hex, el.dataset.code);
+      selectBMColor(idx, el.dataset.name, el.dataset.hex, el.dataset.code, el.dataset.brand);
     });
   });
 }
 window.onBMSearch = onBMSearch;
 
-function selectBMColor(i, name, hex, code) {
+function selectBMColor(i, name, hex, code, brand) {
   const p = getProfile(_designCurrentRoom);
   p.palette[i].name = name;
   p.palette[i].hex = hex;
-  p.palette[i].paint = 'BM ' + code;
+  const prefix = brand === 'Behr' ? 'Behr ' : brand === 'Glidden' ? 'Glidden ' : 'BM ';
+  p.palette[i].paint = prefix + code;
   designSave();
   renderDesignSection();
 }
