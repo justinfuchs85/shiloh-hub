@@ -2005,6 +2005,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getStorage, ref as storageRef, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 // ── Navigation ──────────────────────────────────────────────────
 // ── App mode state (declared early so all functions can reference it) ──────
 let appMode = 'buying';
@@ -4852,13 +4853,35 @@ function removeMoodImage(i) {
 }
 window.removeMoodImage = removeMoodImage;
 
+
+// ── Firebase Storage upload ───────────────────────────────────────
+async function uploadToStorage(dataUrl, filename) {
+  const path = `moodboard/${Date.now()}_${filename}`;
+  const fileRef = storageRef(storage, path);
+  await uploadString(fileRef, dataUrl, 'data_url');
+  const downloadUrl = await getDownloadURL(fileRef);
+  return downloadUrl;
+}
+
 async function uploadMoodImage(input) {
   const files = Array.from(input.files);
+  const statusEl = document.getElementById('ds-unsplash-status');
+  if (statusEl) { statusEl.textContent = `Uploading ${files.length} image${files.length>1?'s':''}…`; statusEl.style.display = 'block'; }
   for (const file of files) {
-    const raw = await readFileAsDataUrl(file);
-    const compressed = await compressImage(raw, 800, 0.70);
-    getProfile(_designCurrentRoom).moodboard.push({ url: compressed, caption: file.name.replace(/\.[^.]+$/, '') });
+    try {
+      const raw = await readFileAsDataUrl(file);
+      const compressed = await compressImage(raw, 1200, 0.82);
+      const url = await uploadToStorage(compressed, file.name);
+      getProfile(_designCurrentRoom).moodboard.push({ url, caption: file.name.replace(/\.[^.]+$/, '') });
+    } catch(e) {
+      console.error('Storage upload failed:', e);
+      // Fallback: store compressed locally
+      const raw = await readFileAsDataUrl(file);
+      const compressed = await compressImage(raw, 800, 0.70);
+      getProfile(_designCurrentRoom).moodboard.push({ url: compressed, caption: file.name.replace(/\.[^.]+$/, '') });
+    }
   }
+  if (statusEl) statusEl.style.display = 'none';
   designSave();
   const grid = document.getElementById('mood-board-grid');
   if (grid) { grid.innerHTML = getMoodboardHTML(getProfile(_designCurrentRoom)); initMoodDrag(); }
@@ -4940,9 +4963,17 @@ function initMoodDrag() {
       // Priority 1: actual image file (dragged from desktop)
       const imageFile = Array.from(dt.files).find(f => f.type.startsWith('image/'));
       if (imageFile) {
-        const raw = await readFileAsDataUrl(imageFile);
-        const compressed = await compressImage(raw, 800, 0.70);
-        addOne(compressed);
+        try {
+          const raw = await readFileAsDataUrl(imageFile);
+          const compressed = await compressImage(raw, 1200, 0.82);
+          const url = await uploadToStorage(compressed, imageFile.name || 'dropped.jpg');
+          addOne(url);
+        } catch(e) {
+          console.error('Storage upload failed, using local fallback:', e);
+          const raw = await readFileAsDataUrl(imageFile);
+          const compressed = await compressImage(raw, 800, 0.70);
+          addOne(compressed);
+        }
         return;
       }
 
@@ -5194,24 +5225,8 @@ function getFullState() {
     customContacts,
     appMode,
     closingDate,
-    designProfiles: stripDesignBase64(designProfiles),
+    designProfiles,
   };
-}
-
-function stripDesignBase64(profiles) {
-  // For Firebase: replace base64 data URLs with a placeholder so we stay under size limit.
-  // The full data stays in localStorage only.
-  const stripped = {};
-  for (const [room, p] of Object.entries(profiles)) {
-    stripped[room] = {
-      ...p,
-      moodboard: p.moodboard.map(img => ({
-        ...img,
-        url: img.url.startsWith('data:') ? '__local__' : img.url,
-      }))
-    };
-  }
-  return stripped;
 }
 
 function applyState(s) {
@@ -5313,22 +5328,7 @@ function applyState(s) {
     renderCustomContacts();
   }
   if (s.designProfiles && typeof s.designProfiles === 'object') {
-    // Restore base64 images from localStorage where Firebase has __local__ placeholders
-    const local = (() => { try { return JSON.parse(localStorage.getItem('shiloh-hub') || 'null'); } catch { return null; } })();
-    const localProfiles = local?.designProfiles || {};
-    designProfiles = {};
-    for (const [room, p] of Object.entries(s.designProfiles)) {
-      const localRoom = localProfiles[room] || {};
-      const localMood = localRoom.moodboard || [];
-      designProfiles[room] = {
-        ...p,
-        moodboard: p.moodboard.map((img, i) =>
-          img.url === '__local__' && localMood[i]?.url?.startsWith('data:')
-            ? { ...img, url: localMood[i].url }
-            : img
-        ),
-      };
-    }
+    designProfiles = s.designProfiles;
     if (currentTab === 'design') renderDesignGrid();
   }
   if (s.closingDate) {
@@ -5371,6 +5371,7 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 const hubRef = ref(db, 'hub');
+const storage = getStorage(fbApp);
 
 let _suppressRemoteApply = false;
 let _saveTimer = null;
