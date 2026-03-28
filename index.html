@@ -4918,8 +4918,14 @@ function initMoodDrag() {
     dropZone.addEventListener('drop', async e => {
       if (_moodDragIdx !== null) return; // let tile reorder handle it
       e.preventDefault();
+      e.stopPropagation();
       _dragDepth = 0;
       if (dropOverlay) dropOverlay.style.display = 'none';
+
+      // Guard against drop firing multiple times
+      if (dropZone._dropping) return;
+      dropZone._dropping = true;
+      setTimeout(() => { dropZone._dropping = false; }, 500);
 
       const dt = e.dataTransfer;
 
@@ -4990,6 +4996,7 @@ function initMoodDrag() {
     tile.addEventListener('dragleave', () => tile.style.outline = '');
     tile.addEventListener('drop', e => {
       e.preventDefault();
+      e.stopPropagation();
       tile.style.outline = '';
       const toIdx = parseInt(tile.dataset.index);
       if (_moodDragIdx === null || _moodDragIdx === toIdx) return;
