@@ -4156,8 +4156,26 @@ function toggleSettings() {
 }
 window.toggleSettings = toggleSettings;
 
+
+function syncClosingDateFromMilestones() {
+  const ms = milestones.find(m => m.id === 'ms-5' || m.label.toLowerCase().includes('closing day'));
+  if (ms && ms.date) {
+    closingDate = ms.date;
+    const input = document.getElementById('settings-closing-date');
+    if (input) input.value = closingDate;
+    renderBuyingOverview();
+  }
+}
+
 function saveClosingDate(val) {
   closingDate = val;
+  // Keep "Closing day" milestone in sync
+  const ms = milestones.find(m => m.id === 'ms-5');
+  if (ms) {
+    ms.date = val;
+    renderMilestones();
+  }
+  renderBuyingOverview();
   persistAll();
 }
 window.saveClosingDate = saveClosingDate;
@@ -4652,10 +4670,20 @@ function getMoodboardHTML(p) {
 function renderMoodboardSection(p) {
   const apiKey = localStorage.getItem(UNSPLASH_KEY_STORAGE) || '';
   return `
-    <!-- Board -->
-    <div id="mood-board-grid"
-      style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;min-height:60px;">
-      ${getMoodboardHTML(p)}
+    <!-- Board — outer wrapper handles external image drops -->
+    <div id="mood-drop-zone"
+      style="position:relative;border-radius:var(--border-radius-lg);margin-bottom:16px;transition:box-shadow .15s;">
+      <div id="mood-board-grid"
+        style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;min-height:80px;">
+        ${getMoodboardHTML(p)}
+      </div>
+      <!-- Drop overlay — shown while dragging an external image over the zone -->
+      <div id="mood-drop-overlay"
+        style="display:none;position:absolute;inset:0;background:rgba(29,92,82,.18);border:2.5px dashed var(--teal);border-radius:var(--border-radius-lg);z-index:10;align-items:center;justify-content:center;pointer-events:none;">
+        <div style="background:var(--teal-dark);color:#fff;border-radius:var(--border-radius-md);padding:12px 24px;font-size:13px;font-family:var(--font-sans);letter-spacing:.04em;">
+          Drop to add to mood board
+        </div>
+      </div>
     </div>
 
     <!-- Add panel tabs -->
@@ -4844,6 +4872,100 @@ function initMoodDrag() {
     });
   });
 
+  // ── External image drop (from another browser / website) ──────────────────
+  const dropZone = document.getElementById('mood-drop-zone');
+  const dropOverlay = document.getElementById('mood-drop-overlay');
+
+  if (dropZone) {
+    // Track drag-enter depth to handle child elements triggering dragleave
+    let _dragDepth = 0;
+
+    dropZone.addEventListener('dragenter', e => {
+      // Only respond to external drags (not our own tile reordering)
+      if (_moodDragIdx !== null) return;
+      _dragDepth++;
+      e.preventDefault();
+      if (dropOverlay) dropOverlay.style.display = 'flex';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      if (_moodDragIdx !== null) return;
+      _dragDepth--;
+      if (_dragDepth <= 0) {
+        _dragDepth = 0;
+        if (dropOverlay) dropOverlay.style.display = 'none';
+      }
+    });
+
+    dropZone.addEventListener('dragover', e => {
+      if (_moodDragIdx !== null) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+
+    dropZone.addEventListener('drop', async e => {
+      if (_moodDragIdx !== null) return; // let tile reorder handle it
+      e.preventDefault();
+      _dragDepth = 0;
+      if (dropOverlay) dropOverlay.style.display = 'none';
+
+      const dt = e.dataTransfer;
+
+      // Priority 1: actual image file (dragged from desktop or some browsers)
+      const imageFile = Array.from(dt.files).find(f => f.type.startsWith('image/'));
+      if (imageFile) {
+        const raw = await readFileAsDataUrl(imageFile);
+        const compressed = await compressImage(raw, 1200, 0.8);
+        getProfile(_designCurrentRoom).moodboard.push({ url: compressed, caption: '' });
+        designSave();
+        grid.innerHTML = getMoodboardHTML(getProfile(_designCurrentRoom));
+        initMoodDrag();
+        return;
+      }
+
+      // Priority 2: text/uri-list (direct image URL from browser drag)
+      const uriList = dt.getData('text/uri-list');
+      if (uriList) {
+        const urls = uriList.split('\n').map(u => u.trim()).filter(u => u && !u.startsWith('#'));
+        for (const url of urls) {
+          if (/\.(jpg|jpeg|png|gif|webp|avif|svg)(\?|$)/i.test(url) || url.startsWith('data:image')) {
+            getProfile(_designCurrentRoom).moodboard.push({ url, caption: '' });
+          }
+        }
+        if (urls.length) {
+          designSave();
+          grid.innerHTML = getMoodboardHTML(getProfile(_designCurrentRoom));
+          initMoodDrag();
+          return;
+        }
+      }
+
+      // Priority 3: extract src from text/html (dragged img element)
+      const html = dt.getData('text/html');
+      if (html) {
+        const match = html.match(/src=["']([^"']+)["']/i);
+        if (match && match[1]) {
+          const url = match[1];
+          getProfile(_designCurrentRoom).moodboard.push({ url, caption: '' });
+          designSave();
+          grid.innerHTML = getMoodboardHTML(getProfile(_designCurrentRoom));
+          initMoodDrag();
+          return;
+        }
+      }
+
+      // Priority 4: plain text URL
+      const text = dt.getData('text/plain');
+      if (text && /^https?:\/\/.+/i.test(text.trim())) {
+        getProfile(_designCurrentRoom).moodboard.push({ url: text.trim(), caption: '' });
+        designSave();
+        grid.innerHTML = getMoodboardHTML(getProfile(_designCurrentRoom));
+        initMoodDrag();
+      }
+    });
+  }
+
+  // ── Tile-to-tile reorder drag ────────────────────────────────────────────
   // Drag events
   grid.querySelectorAll('.mood-tile').forEach(tile => {
     tile.addEventListener('dragstart', e => {
@@ -5135,6 +5257,13 @@ function applyState(s) {
   }
   if (s.milestones && Array.isArray(s.milestones)) {
     milestones = s.milestones;
+    // Sync closingDate from the Closing day milestone if not already set via s.closingDate
+    const closingMs = milestones.find(m => m.id === 'ms-5');
+    if (closingMs && closingMs.date && !s.closingDate) {
+      closingDate = closingMs.date;
+      const input = document.getElementById('settings-closing-date');
+      if (input) input.value = closingDate;
+    }
     renderMilestones();
   }
   if (s.utilities && Array.isArray(s.utilities)) {
@@ -6430,6 +6559,7 @@ function addMilestone() {
   document.getElementById('ms-date').value = '';
   document.getElementById('milestone-add-form').style.display = 'none';
   gaEvent('add_milestone', { type });
+  syncClosingDateFromMilestones();
   renderMilestones();
   persistAll();
 }
@@ -6461,6 +6591,7 @@ document.getElementById('ms-edit-save').addEventListener('click', () => {
   m.date = date;
   m.type = document.getElementById('ms-edit-type').value;
   form.style.display = 'none';
+  syncClosingDateFromMilestones();
   renderMilestones();
   persistAll();
 });
