@@ -7387,6 +7387,13 @@ function getFullState() {
   };
 }
 
+/** Firebase sometimes returns arrays as keyed objects — convert either to a real array. */
+function toArr(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  return Object.values(v);
+}
+
 function applyState(s) {
   try {
   if (s.fields) {
@@ -7422,41 +7429,43 @@ function applyState(s) {
   }
   if (s.userPhotos && Array.isArray(s.userPhotos)) {
     userPhotos = s.userPhotos;
-    if (s.photoCategories && Array.isArray(s.photoCategories)) {
-      s.photoCategories.forEach(saved => {
+    if (s.photoCategories) {
+      toArr(s.photoCategories).forEach(saved => {
         const existing = photoCategories.find(c => c.id === saved.id);
         if (existing) {
           existing.name = saved.name;
-          if (Array.isArray(saved.photos) && saved.photos.length) existing.photos = saved.photos;
+          const photos = toArr(saved.photos);
+          if (photos.length) existing.photos = photos;
         }
       });
       // Restore custom categories
-      s.photoCategories.filter(c => c.id.startsWith('pcu-')).forEach(saved => {
+      toArr(s.photoCategories).filter(c => c.id.startsWith('pcu-')).forEach(saved => {
         if (!photoCategories.find(c => c.id === saved.id)) {
-          photoCategories.push({ id: saved.id, name: saved.name, photos: Array.isArray(saved.photos) ? saved.photos : [] });
+          photoCategories.push({ id: saved.id, name: saved.name, photos: toArr(saved.photos) });
         }
       });
     }
     buildGallery();
   }
-  if (s.quickLinks && Array.isArray(s.quickLinks)) {
-    quickLinks = [...DEFAULT_LINKS, ...s.quickLinks.filter(l => !DEFAULT_LINKS.find(d => d.label === l.label))];
+  if (s.quickLinks) {
+    const ql = toArr(s.quickLinks);
+    quickLinks = [...DEFAULT_LINKS, ...ql.filter(l => !DEFAULT_LINKS.find(d => d.label === l.label))];
     renderQuickLinks();
   }
-  if (s.expenses && Array.isArray(s.expenses)) {
-    expenses = s.expenses;
+  if (s.expenses) {
+    expenses = toArr(s.expenses);
     renderExpenses();
   }
-  if (s.sharedNotes && Array.isArray(s.sharedNotes)) {
-    sharedNotes = s.sharedNotes;
+  if (s.sharedNotes) {
+    sharedNotes = toArr(s.sharedNotes);
     renderNotes();
   }
-  if (s.shoppingRooms && Array.isArray(s.shoppingRooms)) {
-    shoppingRooms = s.shoppingRooms.map(r => ({ ...r, items: Array.isArray(r.items) ? r.items : [] }));
+  if (s.shoppingRooms) {
+    shoppingRooms = toArr(s.shoppingRooms).map(r => ({ ...r, items: toArr(r.items) }));
     renderShopping();
   }
-  if (s.milestones && Array.isArray(s.milestones)) {
-    milestones = s.milestones;
+  if (s.milestones) {
+    milestones = toArr(s.milestones);
     // Sync closingDate from the Closing day milestone if not already set via s.closingDate
     const closingMs = milestones.find(m => m.id === 'ms-5');
     if (closingMs && closingMs.date && !s.closingDate) {
@@ -7466,24 +7475,24 @@ function applyState(s) {
     }
     renderMilestones();
   }
-  if (s.utilities && Array.isArray(s.utilities)) {
-    utilities = s.utilities;
+  if (s.utilities) {
+    utilities = toArr(s.utilities);
     renderUtilities();
   }
-  if (s.projects && Array.isArray(s.projects)) {
-    projects = s.projects;
+  if (s.projects) {
+    projects = toArr(s.projects);
     renderProjects();
   }
-  if (s.spaces && Array.isArray(s.spaces)) {
-    spaces = s.spaces;
+  if (s.spaces) {
+    spaces = toArr(s.spaces);
     renderSpacesGrid();
   }
-  if (s.inventory && Array.isArray(s.inventory)) {
-    inventory = s.inventory;
+  if (s.inventory) {
+    inventory = toArr(s.inventory);
     renderInventory();
   }
-  if (s.customContacts && Array.isArray(s.customContacts)) {
-    customContacts = s.customContacts;
+  if (s.customContacts) {
+    customContacts = toArr(s.customContacts);
     renderCustomContacts();
   }
   if (s.designProfiles && typeof s.designProfiles === 'object' && Object.keys(s.designProfiles).length > 0) {
@@ -7507,16 +7516,16 @@ function applyState(s) {
   if (s.appMode && s.appMode !== appMode) {
     setAppMode(s.appMode, false);
   }
-  if (s.maintTasks && Array.isArray(s.maintTasks)) {
+  if (s.maintTasks) {
     const savedMap = {};
-    s.maintTasks.forEach(t => { savedMap[t.id] = t; });
+    toArr(s.maintTasks).forEach(t => { savedMap[t.id] = t; });
     maintTasks = DEFAULT_MAINT_TASKS.map(dt => savedMap[dt.id] ? { ...dt, ...savedMap[dt.id] } : dt);
     s.maintTasks.filter(t => t.custom && !DEFAULT_MAINT_TASKS.find(d => d.id === t.id)).forEach(t => {
       if (!maintTasks.find(m => m.id === t.id)) maintTasks.push(t);
     });
   }
-  if (s.maintLog && Array.isArray(s.maintLog)) {
-    maintLog = s.maintLog;
+  if (s.maintLog) {
+    maintLog = toArr(s.maintLog);
   }
   renderMaintenance();
 
