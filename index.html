@@ -753,7 +753,18 @@
           onchange="saveClosingDate(this.value)" />
       </div>
 
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
+      <!-- Admin Alerts -->
+      <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);">Admin Alerts <span id="admin-alerts-badge" style="display:none;background:var(--color-text-danger,#e05);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;"></span></div>
+          <button onclick="loadAdminAlerts()" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,0.35);cursor:pointer;padding:0;line-height:1;" title="Refresh alerts">↻</button>
+        </div>
+        <div id="admin-alerts-list" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;">
+          <div style="color:rgba(255,255,255,0.25);font-size:10px;font-style:italic;">Open settings to load alerts…</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);margin-top:10px;">
         <button onclick="signOut()" style="background:none;border:none;font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;padding:0;letter-spacing:.05em;text-transform:uppercase;">🔒 Lock</button>
         <span id="sync-status" style="font-size:10px;color:rgba(255,255,255,0.3);"></span>
       </div>
@@ -2007,7 +2018,7 @@
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, set, onValue, push, get, query, limitToLast, orderByKey } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 import { getStorage, ref as storageRef, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 // ── Navigation ──────────────────────────────────────────────────
 // ── App mode state (declared early so all functions can reference it) ──────
@@ -2200,6 +2211,20 @@ window.closeMobSheet = closeMobSheet;
 // ── Analytics helper ─────────────────────────────────────────────
 function gaEvent(action, params = {}) {
   if (typeof gtag === 'function') gtag('event', action, params);
+}
+
+// ── Admin logging ─────────────────────────────────────────────────
+// Writes structured log entries to Firebase /admin_logs for the admin alerts panel.
+// type: 'error' | 'warn' | 'info' | 'auth'
+function adminLog(type, message, detail = '') {
+  try {
+    push(logsRef, {
+      type,
+      message,
+      detail: String(detail).slice(0, 500),
+      ts: Date.now()
+    }).catch(() => {});
+  } catch {}
 }
 
 function switchTab(id) {
@@ -4162,6 +4187,7 @@ function toggleSettings() {
     const input = document.getElementById('settings-closing-date');
     if (input) input.value = closingDate || '2026-04-25';
     updateSettingsUI();
+    loadAdminAlerts();
   }
 }
 window.toggleSettings = toggleSettings;
@@ -4528,6 +4554,7 @@ function renderDesignGrid() {
   });
   } catch(e) {
     console.error('renderDesignGrid error:', e);
+    adminLog('error', 'Design grid render failed', String(e).slice(0, 300));
     grid.innerHTML = `<div style="color:red;padding:1rem;font-size:12px;">Design grid error: ${e.message}</div>`;
   }
 }
@@ -6987,6 +7014,7 @@ async function uploadMoodImage(input) {
       getProfile(_designCurrentRoom).moodboard.push({ url, caption: file.name.replace(/\.[^.]+$/, '') });
     } catch(e) {
       console.error('Storage upload failed:', e);
+      adminLog('warn', 'Mood board image upload failed — using local fallback', String(e).slice(0, 200));
       // Fallback: store compressed locally
       const raw = await readFileAsDataUrl(file);
       const compressed = await compressImage(raw, 800, 0.70);
@@ -7083,6 +7111,7 @@ function initMoodDrag() {
           addOne(url);
         } catch(e) {
           console.error('Storage upload failed, using local fallback:', e);
+          adminLog('warn', 'Drag-drop image upload failed — using local fallback', String(e).slice(0, 200));
           const raw = await readFileAsDataUrl(imageFile);
           const compressed = await compressImage(raw, 800, 0.70);
           addOne(compressed);
@@ -7529,7 +7558,7 @@ function applyState(s) {
   }
   renderMaintenance();
 
-  } catch(e) { console.error('applyState error:', e); }
+  } catch(e) { console.error('applyState error:', e); adminLog('error', 'applyState error', String(e).slice(0, 300)); }
 }
 
 // ── Firebase + Google Auth ───────────────────────────────────────
@@ -7548,6 +7577,7 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 const hubRef = ref(db, 'hub');
+const logsRef = ref(db, 'admin_logs');
 const storage = getStorage(fbApp);
 
 let _suppressRemoteApply = false;
@@ -7605,10 +7635,12 @@ function tryPassphrase() {
   if (val === PASSPHRASE) {
     sessionStorage.setItem(SESSION_KEY, '1');
     document.getElementById('auth-error').style.display = 'none';
+    adminLog('auth', 'Successful login', navigator.userAgent.slice(0, 120));
     showApp();
   } else {
     passphraseInput.value = '';
     showAuthError('Incorrect passphrase. Please try again.');
+    adminLog('warn', 'Failed login attempt', navigator.userAgent.slice(0, 120));
     passphraseInput.focus();
   }
 }
@@ -7649,6 +7681,7 @@ function persistAll() {
   const state = getFullState();
   try { localStorage.setItem('shiloh-hub', JSON.stringify(state)); } catch(e) {
     console.warn('localStorage save failed (likely too large):', e);
+    adminLog('warn', 'localStorage save failed — storage likely full', String(e).slice(0, 200));
   }
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => {
@@ -7656,13 +7689,15 @@ function persistAll() {
     // Check rough size before sending to Firebase (10MB limit)
     const json = JSON.stringify(state);
     if (json.length > 8_000_000) {
-      console.warn('State too large for Firebase (' + Math.round(json.length/1024) + 'KB) — mood board images may need to be removed');
+      const kb = Math.round(json.length / 1024);
+      console.warn('State too large for Firebase (' + kb + 'KB) — mood board images may need to be removed');
+      adminLog('error', 'State too large for Firebase sync', kb + 'KB — mood board images may need to be removed');
       setSyncStatus('error');
       return;
     }
     set(hubRef, state)
       .then(() => setSyncStatus('saved'))
-      .catch(err => { console.error('Firebase save error:', err); setSyncStatus('error'); });
+      .catch(err => { console.error('Firebase save error:', err); adminLog('error', 'Firebase save failed', String(err).slice(0, 300)); setSyncStatus('error'); });
   }, 800);
 }
 
@@ -7679,6 +7714,51 @@ function setSyncStatus(status) {
   el.textContent = s.text;
   el.style.color = s.color;
 }
+
+// ── Admin Alerts ──────────────────────────────────────────────────
+async function loadAdminAlerts() {
+  const list = document.getElementById('admin-alerts-list');
+  const badge = document.getElementById('admin-alerts-badge');
+  if (!list) return;
+  list.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:10px;">Loading…</div>';
+  try {
+    const q = query(logsRef, orderByKey(), limitToLast(50));
+    const snap = await get(q);
+    const entries = [];
+    snap.forEach(child => { entries.push(child.val()); });
+    entries.reverse(); // newest first
+    if (!entries.length) {
+      list.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:10px;font-style:italic;">No alerts yet.</div>';
+      if (badge) badge.style.display = 'none';
+      return;
+    }
+    const errorCount = entries.filter(e => e.type === 'error').length;
+    if (badge) {
+      if (errorCount > 0) { badge.textContent = errorCount + ' error' + (errorCount > 1 ? 's' : ''); badge.style.display = 'inline'; }
+      else { badge.style.display = 'none'; }
+    }
+    list.innerHTML = entries.map(e => {
+      const colors = { error: '#e05555', warn: '#e09030', info: '#3a9', auth: '#5a9fde' };
+      const labels = { error: 'ERROR', warn: 'WARN', info: 'INFO', auth: 'AUTH' };
+      const color = colors[e.type] || '#888';
+      const label = labels[e.type] || e.type.toUpperCase();
+      const t = e.ts ? new Date(e.ts) : null;
+      const timeStr = t ? t.toLocaleDateString('en-US', { month:'short', day:'numeric' }) + ' ' + t.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }) : '—';
+      const detail = e.detail ? `<div style="color:rgba(255,255,255,0.3);font-size:9px;margin-top:2px;word-break:break-all;">${e.detail}</div>` : '';
+      return `<div style="padding:5px 7px;background:rgba(255,255,255,0.04);border-left:2px solid ${color};border-radius:3px;">
+        <div style="display:flex;align-items:baseline;gap:5px;">
+          <span style="font-size:8px;font-weight:600;letter-spacing:.06em;color:${color};">${label}</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.7);flex:1;">${e.message}</span>
+          <span style="font-size:9px;color:rgba(255,255,255,0.25);white-space:nowrap;">${timeStr}</span>
+        </div>${detail}
+      </div>`;
+    }).join('');
+  } catch(err) {
+    list.innerHTML = '<div style="color:#e05555;font-size:10px;">Failed to load alerts.</div>';
+    console.error('loadAdminAlerts error:', err);
+  }
+}
+window.loadAdminAlerts = loadAdminAlerts;
 
 // Export JSON (still useful as a manual backup)
 function exportData() {
