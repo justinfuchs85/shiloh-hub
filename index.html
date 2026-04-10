@@ -677,6 +677,10 @@
     <button id="passphrase-btn" style="width:100%;padding:12px 16px;background:var(--teal-dark);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;font-family:var(--font-sans);cursor:pointer;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;">Enter Hub</button>
     <div id="auth-error" style="display:none;margin-top:14px;font-size:12px;color:var(--color-text-danger);background:var(--color-background-danger);padding:8px 12px;border-radius:6px;"></div>
     <div style="margin-top:20px;font-size:11px;color:var(--warm-faint);letter-spacing:0.04em;">Private access only</div>
+    <div style="margin-top:20px;border-top:1px solid var(--cream-deeper);padding-top:18px;">
+      <button onclick="window.location.href='?demo=true'" style="width:100%;padding:10px 16px;background:transparent;color:var(--teal);border:1px solid var(--teal);border-radius:var(--border-radius-md);font-size:11px;font-family:var(--font-sans);cursor:pointer;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;">Try Demo</button>
+      <div style="margin-top:8px;font-size:10px;color:var(--warm-faint);line-height:1.5;">Explore a live sandbox — all data is wiped when you close the tab.</div>
+    </div>
   </div>
 </div>
 
@@ -723,6 +727,11 @@
     <div class="sidebar-header">
       <div class="address">4496 Shiloh Way Dr SE<br>Kentwood, MI 49546</div>
       <div class="badge" id="sidebar-badge">Offer Accepted</div>
+    </div>
+    <!-- Demo mode banner (shown only when ?demo=true) -->
+    <div id="demo-banner" style="display:none;margin:8px 12px;padding:8px 10px;background:rgba(255,200,50,0.15);border:1px solid rgba(255,200,50,0.35);border-radius:6px;">
+      <div style="font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,220,80,0.9);margin-bottom:3px;">Demo Session</div>
+      <div style="font-size:9px;color:rgba(255,255,255,0.45);line-height:1.4;">All data will be deleted when you close this tab.</div>
     </div>
     <div class="nav-items" id="nav-items"></div>
     <!-- Settings panel (slides up) -->
@@ -2007,7 +2016,7 @@
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, set, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 import { getStorage, ref as storageRef, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 // ── Navigation ──────────────────────────────────────────────────
 // ── App mode state (declared early so all functions can reference it) ──────
@@ -7547,8 +7556,19 @@ const firebaseConfig = {
 
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
-const hubRef = ref(db, 'hub');
 const storage = getStorage(fbApp);
+
+// ── Demo mode ──────────────────────────────────────────────────────
+// Activate with ?demo=true  — each visitor gets an isolated session.
+// All data is stored under hub-demo/<id> in Firebase and a matching
+// localStorage key; both are wiped when the tab closes.
+const _demoParams = new URLSearchParams(window.location.search);
+const isDemoMode = _demoParams.get('demo') === 'true';
+const _demoId = isDemoMode
+  ? ('d' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7))
+  : null;
+const STORAGE_KEY = isDemoMode ? ('shiloh-hub-demo-' + _demoId) : 'shiloh-hub';
+const hubRef = isDemoMode ? ref(db, 'hub-demo/' + _demoId) : ref(db, 'hub');
 
 let _suppressRemoteApply = false;
 let _saveTimer = null;
@@ -7565,17 +7585,20 @@ function isAuthenticated() {
 function showApp() {
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('app-shell').style.display = 'flex';
+  if (isDemoMode) {
+    document.getElementById('demo-banner').style.display = 'block';
+  }
   if (!_dbListenerActive) {
     _dbListenerActive = true;
     startDbListener();
   }
-  const local = (() => { try { return JSON.parse(localStorage.getItem('shiloh-hub') || 'null'); } catch { return null; } })();
+  const local = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch { return null; } })();
   if (local) applyState(local);
   else updateProgress();
   // Restore last-visited tab
   const savedTab = localStorage.getItem('shiloh-hub-tab');
   if (savedTab && savedTab !== 'overview') switchTab(savedTab);
-  setTimeout(checkClosingDayPrompt, 800);
+  if (!isDemoMode) setTimeout(checkClosingDayPrompt, 800);
 }
 
 function showLock() {
@@ -7589,8 +7612,8 @@ function showAuthError(msg) {
   el.style.display = 'block';
 }
 
-// Check session on load
-if (isAuthenticated()) {
+// Check session on load — demo mode skips passphrase entirely
+if (isDemoMode || isAuthenticated()) {
   showApp();
 } else {
   showLock();
@@ -7624,6 +7647,17 @@ function signOut() {
 }
 window.signOut = signOut;
 
+// ── Demo session cleanup ──────────────────────────────────────────
+// When a demo tab closes, wipe its isolated data from localStorage
+// and Firebase (best-effort — async Firebase remove may not always
+// complete before the browser terminates the page).
+if (isDemoMode) {
+  window.addEventListener('beforeunload', () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try { remove(hubRef); } catch {}
+  });
+}
+
 function startDbListener() {
   onValue(hubRef, snapshot => {
     if (_suppressRemoteApply) return;
@@ -7637,7 +7671,7 @@ function startDbListener() {
       applyState(s);
       // Save to localStorage preserving current designProfiles
       const toStore = { ...s, designProfiles: designProfilesToFirebase(designProfiles) };
-      try { localStorage.setItem('shiloh-hub', JSON.stringify(toStore)); } catch {}
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore)); } catch {}
       setTimeout(() => { _suppressRemoteApply = false; }, 500);
       setSyncStatus('live');
     }
@@ -7647,7 +7681,7 @@ function startDbListener() {
 // ── Sync ──
 function persistAll() {
   const state = getFullState();
-  try { localStorage.setItem('shiloh-hub', JSON.stringify(state)); } catch(e) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {
     console.warn('localStorage save failed (likely too large):', e);
   }
   clearTimeout(_saveTimer);
@@ -9890,7 +9924,7 @@ function renderSpaceTabStuff(body, sn, dp) {
 
 // designSave: refresh overlay hero when open
 function designSave() {
-  try { localStorage.setItem('shiloh-hub', JSON.stringify(getFullState())); } catch(e) { console.warn(e); }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(getFullState())); } catch(e) { console.warn(e); }
   persistAll();
   if (_designCurrentSection === 'moodboard') renderMoodPaletteBar();
   if (_spaceOverlayRoom) renderSpaceOverlayHero();
