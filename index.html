@@ -776,64 +776,38 @@
       <!-- ── BUYING MODE OVERVIEW ── -->
       <div id="ov-buying-section">
 
-        <!-- Hero: countdown + address -->
-        <div style="background:var(--teal-dark);border-radius:var(--border-radius-lg);padding:1.5rem 1.75rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.5);margin-bottom:6px;">4496 Shiloh Way Dr SE, Kentwood</div>
-            <div id="ov-countdown-val" style="font-family:var(--font-serif);font-size:48px;font-weight:300;color:#fff;line-height:1;">—</div>
-            <div id="ov-countdown-label" style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">days to closing</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Closing date</div>
-            <div id="ov-closing-date-display" style="font-size:16px;color:var(--gold-light);font-family:var(--font-serif);">April 25, 2026</div>
-            <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.08em;">Offer price</div>
-            <div style="font-size:18px;color:#fff;font-family:var(--font-serif);">$500,000</div>
-          </div>
-        </div>
-
-        <!-- Purchase progress -->
-        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.25rem;">
-          <!-- Circular ring -->
-          <div style="flex-shrink:0;position:relative;width:80px;height:80px;">
-            <svg width="80" height="80" viewBox="0 0 80 80" style="display:block;transform:rotate(-90deg);">
-              <!-- Track -->
-              <circle cx="40" cy="40" r="32" fill="none" stroke="var(--color-border-tertiary)" stroke-width="7"/>
-              <!-- Progress arc -->
-              <circle id="ov-ring-arc" cx="40" cy="40" r="32" fill="none"
-                stroke="var(--teal)" stroke-width="7"
-                stroke-linecap="round"
-                stroke-dasharray="201.06" stroke-dashoffset="201.06"
-                style="transition:stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1);"/>
-            </svg>
-            <!-- Centre label -->
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-              <span id="ov-progress-pct" style="font-family:var(--font-serif);font-size:18px;font-weight:400;color:var(--color-text-primary);line-height:1;">0%</span>
+        <!-- Closing countdown + step progress -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem 1.5rem;margin-bottom:1.25rem;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:1rem;">
+            <div>
+              <div style="font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;">Closing in</div>
+              <div style="display:flex;align-items:baseline;gap:6px;">
+                <span id="ov-countdown-val" style="font-family:var(--font-serif);font-size:48px;font-weight:300;color:var(--color-text-primary);line-height:1;">—</span>
+                <span id="ov-countdown-label" style="font-size:14px;color:var(--color-text-secondary);">days</span>
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-size:13px;color:var(--color-text-primary);font-weight:500;">4496 Shiloh Way SE</div>
+              <div id="ov-step-label" style="font-size:11px;color:var(--color-text-tertiary);margin-top:3px;">Step — of —</div>
             </div>
           </div>
-          <!-- Text side -->
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px;">Purchase progress</div>
-            <span id="ov-progress-label" style="font-size:12px;color:var(--color-text-secondary);">0 of 23 tasks complete</span>
-            <div class="progress-bar-wrap" style="margin-top:10px;"><div class="progress-bar" id="ov-pbar" style="width:0%"></div></div>
-            <div style="margin-top:10px;">
-              <a href="#" onclick="switchTab('timeline');return false;" style="font-size:12px;color:var(--color-text-info);text-decoration:none;">View full timeline →</a>
-            </div>
-          </div>
+          <!-- Step progress bar -->
+          <div id="ov-step-bar"></div>
         </div>
 
-        <!-- Urgent tasks -->
+        <!-- Do this week -->
         <div style="margin-bottom:1.25rem;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);">Next up</div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);">Do this week</div>
             <a href="#" onclick="switchTab('timeline');return false;" style="font-size:11px;color:var(--color-text-info);text-decoration:none;">All tasks →</a>
           </div>
-          <div id="ov-urgent-tasks" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <div id="ov-urgent-tasks" style="display:flex;flex-direction:column;gap:8px;"></div>
         </div>
 
-        <!-- Key contacts quick-dial -->
+        <!-- At a glance -->
         <div style="margin-bottom:1.25rem;">
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:10px;">Key contacts</div>
-          <div id="ov-key-contacts" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:10px;">At a glance</div>
+          <div id="ov-buying-stats" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
         </div>
 
         <!-- Property at a glance (collapsed by default) -->
@@ -887,36 +861,19 @@
           </div>
         </div>
 
-        <!-- Quick action buttons -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem;">
-          <button onclick="switchTab('shopping')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
-            <span style="font-size:22px;">🛒</span>
-            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Shopping</span>
-          </button>
-          <button onclick="switchTab('notes')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
-            <span style="font-size:22px;">📝</span>
-            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Notes</span>
-          </button>
-          <button onclick="switchTab('projects')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
-            <span style="font-size:22px;">🏗️</span>
-            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Projects</span>
-          </button>
-          <button onclick="switchTab('maintenance')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
-            <span style="font-size:22px;">🔧</span>
-            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Maintenance</span>
-          </button>
-        </div>
-
-        <!-- Stats row -->
-        <div id="ov-home-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem;"></div>
-
-        <!-- Maintenance spotlight -->
+        <!-- Do this week — maintenance tasks -->
         <div style="margin-bottom:1.25rem;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);">Maintenance due</div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);">Do this week</div>
             <a href="#" onclick="switchTab('maintenance');return false;" style="font-size:11px;color:var(--color-text-info);text-decoration:none;">Full schedule →</a>
           </div>
-          <div id="ov-upcoming-maint" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;"></div>
+          <div id="ov-upcoming-maint" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+
+        <!-- At a glance -->
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-tertiary);margin-bottom:10px;">At a glance</div>
+          <div id="ov-home-stats" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
         </div>
 
         <!-- Active projects -->
@@ -926,6 +883,26 @@
             <a href="#" onclick="switchTab('projects');return false;" style="font-size:11px;color:var(--color-text-info);text-decoration:none;">All projects →</a>
           </div>
           <div id="ov-active-projects" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        <!-- Quick navigation -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem;">
+          <button onclick="switchTab('shopping')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
+            <span style="font-size:22px;">🛒</span>
+            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Shopping</span>
+          </button>
+          <button onclick="switchTab('projects')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
+            <span style="font-size:22px;">🏗️</span>
+            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Projects</span>
+          </button>
+          <button onclick="switchTab('notes')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
+            <span style="font-size:22px;">📝</span>
+            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Notes</span>
+          </button>
+          <button onclick="switchTab('maintenance')" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px 8px;cursor:pointer;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 12px rgba(29,92,82,.12)'" onmouseout="this.style.boxShadow=''">
+            <span style="font-size:22px;">🔧</span>
+            <span style="font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;">Maintenance</span>
+          </button>
         </div>
 
         <!-- Property at a glance -->
@@ -4206,45 +4183,49 @@ function renderHomeOverview() {
     else daysEl.textContent = '—';
   }
 
-  // Stat cards
-  const statsEl = document.getElementById('ov-home-stats');
   const activeProjects = (typeof projects !== 'undefined' ? projects : []).filter(p => p.status !== 'done').length;
   const maintDue = (typeof maintTasks !== 'undefined' ? maintTasks : []).filter(t => !maintIsDoneThisPeriod(t)).length;
   const shoppingCount = (typeof shoppingRooms !== 'undefined' ? shoppingRooms : []).reduce((n, r) => n + (r.items || []).length, 0);
-  if (statsEl) {
-    statsEl.innerHTML = [
-      { label: 'Maintenance due', value: maintDue, sub: 'tasks this period', onclick: "switchTab('maintenance')" },
-      { label: 'Shopping items', value: shoppingCount, sub: 'on the list', onclick: "switchTab('shopping')" },
-      { label: 'Open projects', value: activeProjects, sub: 'in progress', onclick: "switchTab('projects')" },
-    ].map(s => `
-      <div class="stat" onclick="${s.onclick}" style="cursor:pointer;" title="Go to ${s.label}">
-        <div class="stat-label">${s.label}</div>
-        <div class="stat-value">${s.value}</div>
-        <div class="stat-sub">${s.sub}</div>
-      </div>`).join('');
-  }
+  const designCount = (typeof designProfiles !== 'undefined' ? Object.values(designProfiles) : []).filter(p => p.vision || p.palette?.length || p.decisions?.length).length;
 
-  // Maintenance due — sorted by season proximity
+  // Do this week — top 3 maintenance tasks with CTA buttons
   const maintEl = document.getElementById('ov-upcoming-maint');
   if (maintEl) {
     const seasonOrder = ['Spring','Summer','Fall','Winter','Monthly','Annual'];
     const due = (typeof maintTasks !== 'undefined' ? maintTasks : [])
       .filter(t => !maintIsDoneThisPeriod(t))
       .sort((a, b) => seasonOrder.indexOf(a.season) - seasonOrder.indexOf(b.season))
-      .slice(0, 5);
+      .slice(0, 3);
     maintEl.innerHTML = due.length ? due.map(t => {
       const m = SEASON_META[t.season];
-      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+      return `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);">
         <input type="checkbox" onchange="toggleMaintDone('${t.id}',this.checked);setTimeout(renderHomeOverview,100)"
-          style="flex-shrink:0;accent-color:var(--teal);width:15px;height:15px;cursor:pointer;" />
-        <span style="font-size:15px;">${m.icon}</span>
+          style="margin-top:2px;flex-shrink:0;accent-color:var(--teal);width:15px;height:15px;cursor:pointer;" />
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;color:var(--color-text-primary);">${t.title}</div>
-          <div style="font-size:11px;color:var(--color-text-tertiary);">${t.season}${t.month ? ' · ' + MONTH_NAMES[parseInt(t.month)] : ''}</div>
+          <div style="font-size:13px;color:var(--color-text-primary);font-weight:500;">${t.title}</div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;">${m.icon} ${t.season}${t.month ? ' · ' + MONTH_NAMES[parseInt(t.month)] : ''}</div>
         </div>
+        <button onclick="switchTab('maintenance')" style="flex-shrink:0;padding:5px 13px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:20px;font-size:11px;color:var(--color-text-secondary);font-family:var(--font-sans);cursor:pointer;white-space:nowrap;">View</button>
       </div>`;
     }).join('')
-    : `<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:4px 0;">All caught up for this period — great work! 🎉</div>`;
+    : `<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:10px 0;">All caught up for this period — great work! 🎉</div>`;
+  }
+
+  // At a glance — 2×2 stat cards
+  const statsEl = document.getElementById('ov-home-stats');
+  if (statsEl) {
+    statsEl.innerHTML = [
+      { label: 'Maintenance due', value: maintDue, sub: 'tasks this period', onclick: "switchTab('maintenance')" },
+      { label: 'Shopping items', value: shoppingCount, sub: 'on the list', onclick: "switchTab('shopping')" },
+      { label: 'Open projects', value: activeProjects, sub: 'in progress', onclick: "switchTab('projects')" },
+      { label: 'Design spaces', value: designCount, sub: 'with notes', onclick: "switchTab('design')" },
+    ].map(s => `
+      <div class="stat" onclick="${s.onclick}" style="cursor:pointer;" title="Go to ${s.label}">
+        <div class="stat-label">${s.label}</div>
+        <div class="stat-value">${s.value}</div>
+        <div class="stat-sub">${s.sub}</div>
+      </div>`).join('');
   }
 
   // Active projects
@@ -4292,83 +4273,130 @@ function renderOverview() {
   else renderHomeOverview();
 }
 
+function getTaskCTA(task) {
+  const t = task.title.toLowerCase();
+  if (/sign|review|read|disclosure|confirm|check|wire|report/.test(t)) return 'Open';
+  if (/schedule|book|find|hire|search|call|contact/.test(t)) return 'Browse';
+  if (/submit|upload|add|lock|file|transfer|update|change|determine/.test(t)) return 'Add';
+  return 'View';
+}
+window.getTaskCTA = getTaskCTA;
+
 function renderBuyingOverview() {
   if (typeof taskPhases === 'undefined') return;
 
-  // Update ring
+  const STEP_LABELS = ['Offer', 'Inspection', 'Financing', 'Appraisal', 'Closing', 'Done'];
+
   const all = taskPhases.flatMap(ph => ph.tasks);
   const done = all.filter(t => t.done).length;
   const total = all.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
-  const arc = document.getElementById('ov-ring-arc');
-  if (arc) {
-    const circumference = 2 * Math.PI * 32; // r=32 → 201.06
-    const offset = circumference * (1 - pct / 100);
-    arc.style.strokeDashoffset = offset;
-    // Colour shifts gold as you near 100%
-    arc.style.stroke = pct >= 100 ? 'var(--gold)' : pct >= 75 ? 'var(--teal-light)' : 'var(--teal)';
+
+  // Collect incomplete tasks upfront (used by multiple sections)
+  const incomplete = [];
+  (taskPhases || []).forEach(ph => {
+    (ph.tasks || []).forEach(t => { if (!t.done) incomplete.push({ ...t, phase: ph.name }); });
+  });
+
+  // Determine current step (step 0 = Offer, always done; steps 1-5 = phases 0-4)
+  let currentStepIdx = STEP_LABELS.length - 1;
+  for (let i = 0; i < taskPhases.length; i++) {
+    if (taskPhases[i].tasks.some(t => !t.done)) { currentStepIdx = i + 1; break; }
   }
+  currentStepIdx = Math.min(currentStepIdx, STEP_LABELS.length - 1);
 
   // Countdown
   const today = new Date();
   const closing = closingDate ? new Date(closingDate + 'T12:00:00') : null;
   const countVal = document.getElementById('ov-countdown-val');
   const countLabel = document.getElementById('ov-countdown-label');
-  const closingDisplay = document.getElementById('ov-closing-date-display');
   if (closing && countVal) {
     const diff = Math.ceil((closing - today) / 86400000);
     if (diff > 0) {
       countVal.textContent = diff;
-      countLabel.textContent = diff === 1 ? 'day to closing' : 'days to closing';
+      countLabel.textContent = diff === 1 ? 'day' : 'days';
     } else if (diff === 0) {
       countVal.textContent = '🎉';
-      countLabel.textContent = 'Today is closing day!';
+      countLabel.textContent = 'Today!';
     } else {
       countVal.textContent = Math.abs(diff);
-      countLabel.textContent = 'days since closing';
-    }
-    if (closingDisplay) {
-      closingDisplay.textContent = closing.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      countLabel.textContent = diff === -1 ? 'day ago' : 'days ago';
     }
   }
 
-  // Urgent tasks — next 5 incomplete across all phases
+  // Step indicator label
+  const stepLabelEl = document.getElementById('ov-step-label');
+  if (stepLabelEl) {
+    stepLabelEl.textContent = `Step ${currentStepIdx + 1} of ${STEP_LABELS.length}`;
+  }
+
+  // Step progress bar
+  const stepBar = document.getElementById('ov-step-bar');
+  if (stepBar) {
+    stepBar.innerHTML = `
+      <div style="display:flex;gap:3px;margin-bottom:7px;">
+        ${STEP_LABELS.map((_, i) => {
+          const bg = i < currentStepIdx ? 'var(--teal)' : i === currentStepIdx ? 'var(--teal-light)' : 'var(--color-border-tertiary)';
+          return `<div style="flex:1;height:4px;border-radius:2px;background:${bg};transition:background .3s;"></div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:3px;">
+        ${STEP_LABELS.map((label, i) => {
+          const color = i === currentStepIdx ? 'var(--teal)' : i < currentStepIdx ? 'var(--color-text-tertiary)' : 'var(--color-border-secondary)';
+          const weight = i === currentStepIdx ? '600' : '400';
+          return `<div style="flex:1;font-size:9px;text-align:center;color:${color};font-weight:${weight};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${label}</div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // Do this week — top 3 incomplete tasks with CTA buttons
   const urgentEl = document.getElementById('ov-urgent-tasks');
   if (urgentEl) {
-    const incomplete = [];
-    (taskPhases || []).forEach(ph => {
-      (ph.tasks || []).forEach(t => { if (!t.done) incomplete.push({ ...t, phase: ph.name }); });
-    });
-    const slice = incomplete.slice(0, 5);
-    urgentEl.innerHTML = slice.length ? slice.map(t => `
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);">
+    const slice = incomplete.slice(0, 3);
+    urgentEl.innerHTML = slice.length ? slice.map(t => {
+      const cta = getTaskCTA(t);
+      return `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);">
         <input type="checkbox" onchange="ovToggleTask('${t.id}',this.checked)"
-          style="margin-top:2px;flex-shrink:0;accent-color:var(--teal);width:15px;height:15px;cursor:pointer;" />
+          style="margin-top:3px;flex-shrink:0;accent-color:var(--teal);width:15px;height:15px;cursor:pointer;" />
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;color:var(--color-text-primary);">${t.title}</div>
+          <div style="font-size:13px;color:var(--color-text-primary);font-weight:500;">${t.title}</div>
           ${t.detail ? `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;">${t.detail}</div>` : ''}
-          <div style="font-size:10px;color:var(--teal);margin-top:3px;text-transform:uppercase;letter-spacing:.06em;">${t.phase}${t.due ? ' · ' + t.due : ''}</div>
         </div>
-      </div>`).join('')
+        <button onclick="switchTab('timeline')" style="flex-shrink:0;padding:5px 13px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:20px;font-size:11px;color:var(--color-text-secondary);font-family:var(--font-sans);cursor:pointer;white-space:nowrap;">${cta}</button>
+      </div>`;
+    }).join('')
     : `<div style="font-size:13px;color:var(--color-text-tertiary);font-style:italic;padding:10px 0;">All tasks complete — you're in great shape! 🎉</div>`;
   }
 
-  // Key contacts quick-dial
-  const contactsEl = document.getElementById('ov-key-contacts');
-  if (contactsEl) {
+  // At a glance — 2×2 stat cards
+  const statsEl = document.getElementById('ov-buying-stats');
+  if (statsEl) {
     const fields = {};
     document.querySelectorAll('[data-key]').forEach(el => { fields[el.dataset.key] = el.value; });
-    const contacts = [
-      { initials:'BA', label: "Buyer's Agent", name: fields['contact-ba-name'] || "Jeff Heglund", phone: fields['contact-ba-phone'] || '(616) 916-1915', color:'var(--color-background-success)', textColor:'var(--color-text-success)' },
-      { initials:'LO', label: 'Loan Officer',  name: fields['contact-lo-name'] || "Jonathan Arnold", phone: fields['contact-lo-phone'] || '(616) 581-2374', color:'var(--color-background-warning)', textColor:'var(--color-text-warning)' },
-      { initials:'IN', label: 'Inspector',     name: fields['contact-in-name'] || "Kyle Miller",    phone: fields['contact-in-phone'] || '',               color:'var(--color-background-danger)',  textColor:'var(--color-text-danger)' },
-    ];
-    contactsEl.innerHTML = contacts.map(c => `
-      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px;text-align:center;">
-        <div style="width:32px;height:32px;border-radius:50%;background:${c.color};color:${c.textColor};font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">${c.initials}</div>
-        <div style="font-size:11px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px;">${c.name.split(' ')[0]}</div>
-        <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:8px;">${c.label}</div>
-        ${c.phone ? `<a href="tel:${c.phone}" style="display:block;font-size:11px;color:var(--teal);text-decoration:none;background:var(--teal-muted);border-radius:20px;padding:4px 8px;">📞 Call</a>` : `<span style="font-size:10px;color:var(--color-text-tertiary);">No phone saved</span>`}
+    const contactKeys = ['la', 'ba', 'lo', 'in', 'at', 'fa'];
+    const contactCount = contactKeys.filter(k => fields[`contact-${k}-name`] && fields[`contact-${k}-name`].trim()).length || 6;
+    const contactNames = ['Agent', 'Lender', 'Title'];
+
+    const currentPhase = taskPhases.find(ph => ph.tasks.some(t => !t.done));
+    const phaseDone = currentPhase ? currentPhase.tasks.filter(t => t.done).length : 0;
+    const phaseTotal = currentPhase ? currentPhase.tasks.length : 0;
+    const phaseShortName = currentPhase
+      ? (currentPhase.name.includes('—') ? currentPhase.name.split('—')[1].trim() : currentPhase.name).slice(0, 22)
+      : 'All done';
+
+    const nextTask = incomplete[0];
+
+    statsEl.innerHTML = [
+      { label: 'Tasks complete', value: `${done} of ${total}`, sub: `${pct}% overall`, onclick: "switchTab('timeline')" },
+      { label: 'This phase', value: `${phaseDone} of ${phaseTotal}`, sub: phaseShortName, onclick: "switchTab('timeline')" },
+      { label: 'Your team', value: `${contactCount} contacts`, sub: contactNames.join(', ') + ', +' + Math.max(0, contactCount - 3), onclick: "switchTab('contacts')" },
+      { label: 'Next due', value: nextTask ? nextTask.due || 'TBD' : '—', sub: nextTask ? nextTask.title.slice(0, 24) : 'No pending tasks', onclick: "switchTab('timeline')" },
+    ].map(s => `
+      <div class="stat" onclick="${s.onclick}" style="cursor:pointer;" title="${s.label}">
+        <div class="stat-label">${s.label}</div>
+        <div class="stat-value" style="font-size:16px;">${s.value}</div>
+        <div class="stat-sub">${s.sub}</div>
       </div>`).join('');
   }
 }
